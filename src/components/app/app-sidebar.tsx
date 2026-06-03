@@ -114,6 +114,23 @@ function SidebarBody({
           </p>
         </div>
         <Profile email={email} />
+        <div className="flex items-center justify-center gap-2 text-[0.7rem] text-muted-foreground/70">
+          <Link
+            href="/privacy"
+            onClick={onNavigate}
+            className="transition hover:text-foreground"
+          >
+            Privacy
+          </Link>
+          <span aria-hidden>·</span>
+          <Link
+            href="/terms"
+            onClick={onNavigate}
+            className="transition hover:text-foreground"
+          >
+            Terms
+          </Link>
+        </div>
       </div>
     </div>
   );

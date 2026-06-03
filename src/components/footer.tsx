@@ -22,7 +22,7 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-10 text-sm sm:gap-16">
+          <div className="grid grid-cols-2 gap-10 text-sm sm:grid-cols-3 sm:gap-16">
             <div className="space-y-3">
               <p className="font-medium">Product</p>
               <ul className="space-y-2 text-muted-foreground">
@@ -59,6 +59,21 @@ export function Footer() {
                 <li>
                   <Link href="/dashboard" className="hover:text-foreground">
                     Dashboard
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div className="space-y-3">
+              <p className="font-medium">Legal</p>
+              <ul className="space-y-2 text-muted-foreground">
+                <li>
+                  <Link href="/privacy" className="hover:text-foreground">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="hover:text-foreground">
+                    Terms of Use
                   </Link>
                 </li>
               </ul>

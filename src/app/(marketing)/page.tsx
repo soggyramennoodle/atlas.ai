@@ -3,6 +3,7 @@ import { Hero } from "@/components/landing/hero";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { FeaturesBento } from "@/components/landing/features-bento";
 import { Faq } from "@/components/landing/faq";
+import { PrivacyTrust } from "@/components/landing/privacy-trust";
 import { FinalCta } from "@/components/landing/cta";
 
 export default async function Home() {
@@ -18,6 +19,7 @@ export default async function Home() {
       <HowItWorks />
       <FeaturesBento />
       <Faq />
+      <PrivacyTrust />
       <FinalCta ctaHref={ctaHref} />
     </>
   );

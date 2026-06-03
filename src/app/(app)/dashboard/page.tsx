@@ -133,10 +133,16 @@ export default async function DashboardPage() {
           <StatCards stats={stats} />
         </div>
 
-        {/* Quick action */}
-        <div className="mt-6">
-          <QuickRecord />
-        </div>
+        {/* Quick actions — the single quick-action entry point (§10). The
+            empty state below provides the record CTA when the library is empty,
+            so we avoid a third redundant button.
+            TODO: Dynamic quick actions based on AI context (flashcard review,
+            quiz practice, note review) */}
+        {notes.length > 0 && (
+          <div className="mt-6">
+            <QuickRecord />
+          </div>
+        )}
 
         {/* Body: recordings + tips */}
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
