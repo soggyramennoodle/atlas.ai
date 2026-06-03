@@ -8,7 +8,19 @@ import {
 } from "@google/genai";
 import type { StructuredNotes } from "./types";
 
-const MODEL = "gemini-2.5-flash";
+/**
+ * The model used for note generation. Defaults to Gemini 2.5 Pro, which
+ * produces materially more thorough, well-structured notes on long-form audio
+ * than Flash (better long-context instruction following and reasoning).
+ * Override with the GEMINI_MODEL env var.
+ *
+ * Fallback for cost/latency-sensitive setups: GEMINI_MODEL="gemini-2.5-flash".
+ */
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-pro";
+
+/** A lighter, cheaper model for short helper calls (explanations, edit diffs). */
+export const HELPER_MODEL =
+  process.env.GEMINI_HELPER_MODEL || "gemini-2.5-flash";
 
 function getClient() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -17,6 +29,26 @@ function getClient() {
   }
   return new GoogleGenAI({ apiKey });
 }
+
+export { getClient as getGeminiClient };
+
+/** A single note bullet: the text plus the transcript excerpt it came from. */
+const pointSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    text: {
+      type: Type.STRING,
+      description: "A full, self-contained note bullet (not a fragment).",
+    },
+    source_excerpt: {
+      type: Type.STRING,
+      description:
+        "A short verbatim quote (one or two sentences) from the lecture transcript that this point was drawn from. Used to trace a note back to what the professor actually said.",
+    },
+  },
+  required: ["text"],
+  propertyOrdering: ["text", "source_excerpt"],
+};
 
 /** JSON schema that constrains Gemini's output to our StructuredNotes shape. */
 const notesSchema: Schema = {
@@ -37,19 +69,19 @@ const notesSchema: Schema = {
     },
     sections: {
       type: Type.ARRAY,
-      description: "Thorough, ordered notes covering the full lecture.",
+      description: "Exhaustive, ordered notes covering the full lecture.",
       items: {
         type: Type.OBJECT,
         properties: {
           heading: { type: Type.STRING },
-          points: { type: Type.ARRAY, items: { type: Type.STRING } },
+          points: { type: Type.ARRAY, items: pointSchema },
           subsections: {
             type: Type.ARRAY,
             items: {
               type: Type.OBJECT,
               properties: {
                 heading: { type: Type.STRING },
-                points: { type: Type.ARRAY, items: { type: Type.STRING } },
+                points: { type: Type.ARRAY, items: pointSchema },
               },
               required: ["heading", "points"],
               propertyOrdering: ["heading", "points"],
@@ -62,7 +94,8 @@ const notesSchema: Schema = {
     },
     keyConcepts: {
       type: Type.ARRAY,
-      description: "Key terms introduced in the lecture and their definitions.",
+      description:
+        "Every domain-specific term introduced in the lecture and its definition.",
       items: {
         type: Type.OBJECT,
         properties: {
@@ -73,31 +106,54 @@ const notesSchema: Schema = {
         propertyOrdering: ["term", "definition"],
       },
     },
+    transcript: {
+      type: Type.STRING,
+      description:
+        "The full, verbatim transcript of the entire lecture audio, lightly cleaned of filler words and false starts but otherwise complete and faithful.",
+    },
   },
-  required: ["title", "summary", "sections", "keyConcepts"],
-  propertyOrdering: ["title", "subject", "summary", "sections", "keyConcepts"],
+  required: ["title", "summary", "sections", "keyConcepts", "transcript"],
+  propertyOrdering: [
+    "title",
+    "subject",
+    "summary",
+    "sections",
+    "keyConcepts",
+    "transcript",
+  ],
 };
 
-const SYSTEM_PROMPT = `You are Atlas, a meticulous note-taker for university students.
+const SYSTEM_PROMPT = `You are an elite university note-taker attending this lecture on behalf of the student. Your job is NOT to summarize — a summary is generated separately. Your job is to take EXHAUSTIVELY DETAILED, STRUCTURED notes that capture virtually every concept, argument, example, derivation, definition, aside, and nuance the professor delivers. Nothing of academic relevance should be omitted. Write as if the student will use these notes alone to prepare for a final exam and will never re-listen to the lecture.
 
-You are given the audio of a lecture. The student did not take their own notes and is relying entirely on you, so your notes must be THOROUGH and COMPLETE. Do not skip details, examples, derivations, or asides that a diligent student would write down.
+Your notes must be:
+- Organized into sections and subsections that mirror the lecture's natural structure.
+- Written in clear, precise academic language.
+- Rich with detail: include every formula (write them in plain text/Unicode), every named theorem, every example, every edge case mentioned, every number, name, and date.
+- Faithful to the professor's logic and sequencing — do not reorder or collapse content.
+- Inclusive of transitional remarks that signal importance ("this is key", "remember this for the exam", "contrast this with X"). Preserve these cues in the relevant bullet.
+- Supplemented with a "Key Concepts" block ("keyConcepts") at the end defining ALL domain-specific terminology introduced.
 
-Produce a structured set of notes:
+Output format:
 - "title": a clean, descriptive title for the lecture.
-- "subject": the course or subject if you can tell (e.g. "Microeconomics"), otherwise "".
-- "sections": the heart of the notes. Walk through the lecture in order. Each section has a "heading" and detailed "points" (full, self-contained bullet points — not fragments). Break long topics into "subsections" where it helps. Capture explanations, examples, formulas (write them in plain text/Unicode), numbers, names, dates, and anything stated as important or examinable.
-- "keyConcepts": every important term or definition introduced, each with a clear definition. If the lecture introduces no formal terms, return an empty array.
-- "summary": write this LAST, after the detailed notes — a short overview paragraph (3-5 sentences) of what the lecture covered.
+- "subject": the course or subject if identifiable (e.g. "Microeconomics"), otherwise "".
+- "sections": the heart of the notes. Walk through the lecture in order. Each section has a "heading" and detailed "points". Break long topics into "subsections" where it helps. Each point is an object: "text" is the full, self-contained bullet; "source_excerpt" is a short verbatim quote from the lecture that the point was drawn from.
+- "keyConcepts": every important term or definition introduced, each with a clear definition. Empty array if none.
+- "summary": a short overview paragraph (3-5 sentences) of what the lecture covered. Write this LAST.
+- "transcript": the full, verbatim transcript of the entire lecture, lightly cleaned of filler/false starts but otherwise complete.
 
 Rules:
-- Base everything strictly on the audio. Never invent facts, figures, or citations that were not said.
+- Base everything strictly on the audio. Never invent facts, figures, citations, or quotes that were not said. "source_excerpt" must be a real quote from the audio.
 - If audio is unclear or inaudible in places, note that rather than guessing.
-- Prefer clarity and completeness over brevity. It is better to over-capture than to lose a detail.
-- Write in clear, neutral academic English.`;
+- Prefer completeness over brevity. It is far better to over-capture than to lose a detail.`;
 
 interface GenerateArgs {
   bytes: Buffer | Uint8Array;
   mimeType: string;
+  /**
+   * Optional personalization context built from the student's AI memory and
+   * profile. Appended to the system prompt so notes adapt to the student.
+   */
+  memoryContext?: string;
 }
 
 /**
@@ -107,6 +163,7 @@ interface GenerateArgs {
 export async function generateNotesFromAudio({
   bytes,
   mimeType,
+  memoryContext,
 }: GenerateArgs): Promise<StructuredNotes> {
   const ai = getClient();
 
@@ -132,14 +189,18 @@ export async function generateNotesFromAudio({
       throw new Error("Gemini failed to process the uploaded audio.");
     }
 
+    const systemInstruction = memoryContext
+      ? `${SYSTEM_PROMPT}\n\n--- About this student (personalization context) ---\n${memoryContext}\nUse this context to tailor terminology, depth, and emphasis. Never fabricate details to fit it.`
+      : SYSTEM_PROMPT;
+
     const response = await ai.models.generateContent({
       model: MODEL,
       contents: createUserContent([
         createPartFromUri(uploaded.uri!, uploaded.mimeType!),
-        "Take complete, structured notes on this lecture following your instructions.",
+        "Take complete, exhaustively detailed, structured notes on this lecture following your instructions.",
       ]),
       config: {
-        systemInstruction: SYSTEM_PROMPT,
+        systemInstruction,
         responseMimeType: "application/json",
         responseSchema: notesSchema,
         temperature: 0.3,

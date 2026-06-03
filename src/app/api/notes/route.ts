@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateNotesFromAudio } from "@/lib/gemini";
+import { buildMemoryContext } from "@/lib/memory";
+import type { UserMemory, UserProfile, StructuredNotes } from "@/lib/types";
 
 export const runtime = "nodejs";
 // Generating notes from a full lecture can take a while.
@@ -12,6 +14,8 @@ interface ProcessBody {
   path?: string;
   mimeType?: string;
   durationSeconds?: number | null;
+  /** Best-effort live transcript captured in-browser (§7). Fallback only. */
+  liveTranscript?: string | null;
 }
 
 export async function POST(request: Request) {
@@ -32,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { path, mimeType, durationSeconds } = body;
+  const { path, mimeType, durationSeconds, liveTranscript } = body;
   if (!path || !mimeType) {
     return NextResponse.json(
       { error: "Missing audio path or mimeType." },
@@ -59,9 +63,24 @@ export async function POST(request: Request) {
 
   const bytes = Buffer.from(await file.arrayBuffer());
 
-  let notes;
+  // Personalization: pull the student's AI memory + profile (RLS-scoped to
+  // them) and turn it into a context string for the system prompt (§2).
+  const [{ data: memoryRow }, { data: profileRow }] = await Promise.all([
+    supabase.from("user_memory").select("memory_blob").maybeSingle(),
+    supabase.from("user_profiles").select("*").maybeSingle(),
+  ]);
+  const memoryContext = buildMemoryContext(
+    (memoryRow?.memory_blob as UserMemory | undefined) ?? null,
+    (profileRow as UserProfile | undefined) ?? null
+  );
+
+  let notes: StructuredNotes;
   try {
-    notes = await generateNotesFromAudio({ bytes, mimeType });
+    notes = await generateNotesFromAudio({
+      bytes,
+      mimeType,
+      memoryContext: memoryContext || undefined,
+    });
   } catch (err) {
     console.error("Gemini note generation failed:", err);
     return NextResponse.json(
@@ -71,6 +90,12 @@ export async function POST(request: Request) {
       },
       { status: 502 }
     );
+  }
+
+  // Gemini's transcript is authoritative; fall back to the in-browser live
+  // transcript only if the model returned nothing usable.
+  if (!notes.transcript?.trim() && liveTranscript?.trim()) {
+    notes.transcript = liveTranscript.trim();
   }
 
   const { data: inserted, error: insertError } = await supabase

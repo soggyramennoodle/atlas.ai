@@ -1,22 +1,28 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteNote } from "@/app/(app)/notes/[id]/actions";
 import { Button } from "@/components/ui/button";
 
 export function DeleteNoteButton({ id }: { id: string }) {
+  const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function onDelete() {
     startTransition(async () => {
-      try {
-        await deleteNote(id);
-      } catch {
+      // The action returns a result rather than throwing/redirecting, so a
+      // successful delete can no longer be mistaken for a failure (§12).
+      const result = await deleteNote(id);
+      if (!result.ok) {
         toast.error("Couldn't delete this note. Please try again.");
+        return;
       }
+      toast.success("Note deleted.");
+      router.push("/dashboard");
     });
   }
 

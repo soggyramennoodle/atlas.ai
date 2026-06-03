@@ -5,7 +5,7 @@ import { ArrowLeft, Clock, Calendar } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { NoteView } from "@/components/notes/note-view";
 import { DeleteNoteButton } from "@/components/notes/note-actions";
-import { Badge } from "@/components/ui/badge";
+import { CourseCapsule } from "@/components/notes/course-capsule";
 import type { NoteRecord } from "@/lib/types";
 
 async function getNote(id: string) {
@@ -62,11 +62,7 @@ export default async function NotePage({
         </div>
 
         <header className="mt-6">
-          {note.subject && (
-            <Badge variant="secondary" className="font-normal">
-              {note.subject}
-            </Badge>
-          )}
+          <CourseCapsule noteId={note.id} subject={note.subject} />
           <h1 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             {note.title}
           </h1>
@@ -85,7 +81,7 @@ export default async function NotePage({
         </header>
 
         <div className="mt-10">
-          <NoteView notes={note.content} />
+          <NoteView note={{ id: note.id, content: note.content }} />
         </div>
       </div>
     </main>
