@@ -64,6 +64,49 @@ export function sanitizeNoteHtml(html: string): string {
     .replace(/(href|src)\s*=\s*("javascript:[^"]*"|'javascript:[^']*')/gi, "");
 }
 
+/**
+ * Flatten a notes document to plain text suitable for feeding back to the model
+ * (e.g. regenerating the summary). Prefers the verbatim transcript when present
+ * — it's the richest source — and otherwise reconstructs the body from the
+ * edited `bodyHtml` or the structured sections, then appends key concepts.
+ */
+export function notesToPlainText(notes: StructuredNotes): string {
+  const parts: string[] = [];
+
+  if (notes.title?.trim()) parts.push(`Title: ${notes.title.trim()}`);
+  if (notes.subject?.trim()) parts.push(`Subject: ${notes.subject.trim()}`);
+
+  if (notes.transcript?.trim()) {
+    parts.push(`Transcript:\n${notes.transcript.trim()}`);
+  } else if (notes.bodyHtml?.trim()) {
+    parts.push(`Notes:\n${htmlToPlainText(notes.bodyHtml)}`);
+  } else {
+    const body: string[] = [];
+    for (const section of notes.sections ?? []) {
+      if (section.heading?.trim()) body.push(`## ${section.heading.trim()}`);
+      for (const p of section.points ?? []) {
+        const t = pointText(p).trim();
+        if (t) body.push(`- ${t}`);
+      }
+      for (const sub of section.subsections ?? []) {
+        if (sub.heading?.trim()) body.push(`### ${sub.heading.trim()}`);
+        for (const p of sub.points ?? []) {
+          const t = pointText(p).trim();
+          if (t) body.push(`- ${t}`);
+        }
+      }
+    }
+    if (body.length) parts.push(`Notes:\n${body.join("\n")}`);
+  }
+
+  const concepts = (notes.keyConcepts ?? [])
+    .filter((c) => c.term?.trim())
+    .map((c) => `- ${c.term.trim()}: ${c.definition?.trim() ?? ""}`);
+  if (concepts.length) parts.push(`Key concepts:\n${concepts.join("\n")}`);
+
+  return parts.join("\n\n").trim();
+}
+
 /** Strip tags to plain text — used by the memory diff to compare edits. */
 export function htmlToPlainText(html: string): string {
   return html

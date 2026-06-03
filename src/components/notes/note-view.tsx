@@ -130,6 +130,40 @@ export function NoteView({
     []
   );
 
+  /**
+   * Persist a freshly regenerated summary. Works in both view and edit mode by
+   * merging the new summary into whatever content is currently live (draft while
+   * editing, saved otherwise) so neither body edits nor the new summary is lost.
+   */
+  const applyRegeneratedSummary = useCallback(
+    (text: string) => {
+      const base = clone(editMode ? draftRef.current : savedRef.current);
+      base.summary = text;
+      setSaved(base);
+      setDraft(base);
+      setStatus("saving");
+      fetch(`/api/notes/${note.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: base }),
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error();
+          setStatus("saved");
+          if (fadeTimer.current) clearTimeout(fadeTimer.current);
+          fadeTimer.current = setTimeout(
+            () => setStatus((s) => (s === "saved" ? "idle" : s)),
+            2000
+          );
+        })
+        .catch(() => {
+          setStatus("idle");
+          toast.error("Couldn't save the new summary.");
+        });
+    },
+    [editMode, note.id]
+  );
+
   function startEditing() {
     const base = clone(saved);
     setDraft(base);
@@ -193,22 +227,14 @@ export function NoteView({
       </div>
 
       <article className="relative space-y-10">
-        {/* Summary */}
-        {editMode ? (
-          <section className="rounded-[1.5rem] border bg-primary/[0.04] p-6 sm:p-7">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Summary
-            </h3>
-            <AutoTextarea
-              value={draft.summary}
-              onChange={(v) => update((d) => void (d.summary = v))}
-              className="mt-3 w-full resize-none bg-transparent text-pretty leading-relaxed text-foreground/90 focus:outline-none"
-              placeholder="A short overview of the lecture…"
-            />
-          </section>
-        ) : (
-          <SummaryCard summary={saved.summary} />
-        )}
+        {/* Summary — read-only text with an AI "Regenerate" capsule. The
+            summary is no longer hand-edited; it's re-derived from the full
+            notes/transcript and streams back in. */}
+        <SummaryCard
+          noteId={note.id}
+          summary={shown.summary}
+          onRegenerated={applyRegeneratedSummary}
+        />
 
         {/* Full transcript (view mode only, when present) */}
         {!editMode && saved.transcript?.trim() && (

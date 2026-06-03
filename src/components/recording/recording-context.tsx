@@ -37,6 +37,8 @@ interface RecordingValue {
   clip: Clip | null;
   stage: CaptureStage;
   busy: boolean;
+  /** True after a generation attempt failed — surfaces the "download" escape hatch. */
+  failed: boolean;
   /** Live (best-effort) in-browser transcript captured while recording. */
   liveTranscript: string;
   /** Whether the browser supports the Web Speech API live transcription. */
@@ -49,6 +51,8 @@ interface RecordingValue {
   stop: () => void;
   discard: () => void;
   generate: () => Promise<void>;
+  /** Save the captured recording to disk (for re-upload after a failed run). */
+  download: () => void;
 }
 
 const RecordingContext = createContext<RecordingValue | null>(null);
@@ -130,6 +134,7 @@ export function RecordingProvider({
   const [liveTranscript, setLiveTranscript] = useState("");
   const [sessionLabel, setSessionLabel] = useState("Untitled Lecture");
   const [transcriptSupported, setTranscriptSupported] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -358,12 +363,14 @@ export function RecordingProvider({
     setLevels(IDLE_LEVELS());
     setLiveTranscript("");
     setSessionLabel("Untitled Lecture");
+    setFailed(false);
     setPhase("idle");
     teardown();
   }, [clip, teardown]);
 
   const generate = useCallback(async () => {
     if (!clip) return;
+    setFailed(false);
     const supabase = createClient();
     try {
       const { id } = await uploadLectureAndGenerate({
@@ -390,8 +397,25 @@ export function RecordingProvider({
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
       setStage("idle");
+      // Keep the clip around (phase stays "recorded") and offer a download so
+      // the student can save the audio and re-upload it later.
+      setFailed(true);
     }
   }, [clip, liveTranscript, router, seconds, userId]);
+
+  const download = useCallback(() => {
+    if (!clip) return;
+    const safeLabel =
+      sessionLabel.trim().replace(/[^\w\d\- ]+/g, "").replace(/\s+/g, "-") ||
+      "lecture";
+    const stamp = new Date().toISOString().slice(0, 10);
+    const a = document.createElement("a");
+    a.href = clip.url;
+    a.download = `${safeLabel}-${stamp}.${extForMime(clip.mime)}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }, [clip, sessionLabel]);
 
   const value: RecordingValue = {
     phase,
@@ -400,6 +424,7 @@ export function RecordingProvider({
     clip,
     stage,
     busy,
+    failed,
     liveTranscript,
     transcriptSupported,
     sessionLabel,
@@ -410,6 +435,7 @@ export function RecordingProvider({
     stop,
     discard,
     generate,
+    download,
   };
 
   return (

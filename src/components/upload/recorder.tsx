@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Lock, Mic, Pause, Play, Sparkles, Square, Trash2 } from "lucide-react";
+import { Download, Loader2, Lock, Mic, Pause, Play, Sparkles, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { type CaptureStage } from "@/lib/upload-lecture";
@@ -22,7 +22,7 @@ function formatClock(s: number) {
  * live transcript fill the right half.
  */
 export function Recorder() {
-  const { phase, seconds, levels, clip, stage, busy, start, pause, resume, stop, discard, generate } =
+  const { phase, seconds, levels, clip, stage, busy, failed, start, pause, resume, stop, discard, generate, download } =
     useRecording();
 
   const live = phase === "recording" || phase === "paused";
@@ -173,6 +173,26 @@ export function Recorder() {
                       Discard
                     </Button>
                   </div>
+
+                  {/* Escape hatch when processing fails: save the audio locally
+                      so it can be re-uploaded later. */}
+                  {failed && (
+                    <div className="space-y-3 rounded-2xl border border-destructive/40 bg-destructive/5 p-4 text-left">
+                      <p className="text-sm text-muted-foreground">
+                        Atlas couldn&apos;t process this recording. Download it now
+                        and upload it again later — you won&apos;t lose the audio.
+                      </p>
+                      <Button
+                        onClick={download}
+                        variant="outline"
+                        size="lg"
+                        className="h-11 w-full gap-2"
+                      >
+                        <Download className="size-4" />
+                        Download recording
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

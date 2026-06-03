@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Mic, Pause, Play, Sparkles, Square, Trash2 } from "lucide-react";
+import { Download, Loader2, Mic, Pause, Play, Sparkles, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRecording } from "./recording-context";
@@ -20,7 +20,7 @@ function clock(s: number) {
  */
 export function RecordingDock() {
   const pathname = usePathname();
-  const { phase, seconds, levels, busy, sessionLabel, pause, resume, stop, generate, discard } =
+  const { phase, seconds, levels, busy, failed, sessionLabel, pause, resume, stop, generate, discard, download } =
     useRecording();
 
   const onUpload = pathname === "/upload";
@@ -123,11 +123,24 @@ export function RecordingDock() {
                   ) : (
                     <Sparkles className="size-3.5" />
                   )}
-                  {busy ? "Working…" : "Generate notes"}
+                  {busy ? "Working…" : failed ? "Try again" : "Generate notes"}
                 </Button>
               </>
             )}
           </div>
+
+          {/* Download escape hatch after a failed run. */}
+          {phase === "recorded" && failed && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={download}
+              className="mt-2 w-full gap-1.5"
+            >
+              <Download className="size-3.5" />
+              Download recording
+            </Button>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
