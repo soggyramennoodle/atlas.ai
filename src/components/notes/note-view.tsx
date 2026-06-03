@@ -15,6 +15,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { LearningOverlay, type LearningState } from "./learning-overlay";
+import { SummaryCard } from "./summary-card";
+import { TranscriptPanel } from "./transcript-panel";
+import { SourceBullet } from "./source-bubble";
+import { ConceptCard } from "./concept-card";
 
 /** Coerce a bullet (old `string` shape or new `NotePoint`) to a NotePoint. */
 function toPoint(p: NotePoint | string): NotePoint {
@@ -157,22 +161,25 @@ export function NoteView({
         style={{ filter: learning ? "blur(2px)" : "none" }}
       >
         {/* Summary */}
-        <section className="rounded-[1.5rem] border bg-primary/[0.04] p-6 sm:p-7">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-primary">
-            Summary
-          </h3>
-          {editMode ? (
+        {editMode ? (
+          <section className="rounded-[1.5rem] border bg-primary/[0.04] p-6 sm:p-7">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Summary
+            </h3>
             <Textarea
               value={draft.summary}
               onChange={(e) => update((d) => void (d.summary = e.target.value))}
               className="mt-3 min-h-24"
             />
-          ) : (
-            <p className="mt-3 text-pretty leading-relaxed text-foreground/90">
-              {saved.summary}
-            </p>
-          )}
-        </section>
+          </section>
+        ) : (
+          <SummaryCard summary={saved.summary} />
+        )}
+
+        {/* Full transcript (view mode only, when present) */}
+        {!editMode && saved.transcript?.trim() && (
+          <TranscriptPanel transcript={saved.transcript} />
+        )}
 
         {/* Detailed sections */}
         <div className="space-y-9">
@@ -204,17 +211,28 @@ export function NoteView({
           <section>
             <h3 className="text-xl font-semibold tracking-tight">Key concepts</h3>
             <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-              {shown.keyConcepts.map((concept, i) => (
-                <ConceptBlock
-                  key={i}
-                  concept={concept}
-                  editMode={editMode}
-                  onTerm={(v) => update((d) => void (d.keyConcepts[i].term = v))}
-                  onDefinition={(v) =>
-                    update((d) => void (d.keyConcepts[i].definition = v))
-                  }
-                />
-              ))}
+              {shown.keyConcepts.map((concept, i) =>
+                editMode ? (
+                  <ConceptBlock
+                    key={i}
+                    concept={concept}
+                    onTerm={(v) =>
+                      update((d) => void (d.keyConcepts[i].term = v))
+                    }
+                    onDefinition={(v) =>
+                      update((d) => void (d.keyConcepts[i].definition = v))
+                    }
+                  />
+                ) : (
+                  <ConceptCard
+                    key={i}
+                    concept={concept}
+                    context={[saved.subject, saved.title]
+                      .filter(Boolean)
+                      .join(" — ")}
+                  />
+                )
+              )}
             </dl>
           </section>
         )}
@@ -309,7 +327,7 @@ function SectionBlock({
                 className="min-h-16 flex-1"
               />
             ) : (
-              <span className="text-pretty">{point.text}</span>
+              <SourceBullet text={point.text} excerpt={point.source_excerpt} />
             )}
           </li>
         ))}
@@ -340,7 +358,7 @@ function SectionBlock({
                     className="min-h-14 flex-1"
                   />
                 ) : (
-                  <span className="text-pretty">{point.text}</span>
+                  <SourceBullet text={point.text} excerpt={point.source_excerpt} />
                 )}
               </li>
             ))}
@@ -351,40 +369,28 @@ function SectionBlock({
   );
 }
 
+/** Edit-mode inputs for a single key concept. */
 function ConceptBlock({
   concept,
-  editMode,
   onTerm,
   onDefinition,
 }: {
   concept: KeyConcept;
-  editMode: boolean;
   onTerm: (v: string) => void;
   onDefinition: (v: string) => void;
 }) {
   return (
     <div className="rounded-2xl border bg-card p-5">
-      {editMode ? (
-        <>
-          <Input
-            value={concept.term}
-            onChange={(e) => onTerm(e.target.value)}
-            className="font-semibold"
-          />
-          <Textarea
-            value={concept.definition}
-            onChange={(e) => onDefinition(e.target.value)}
-            className="mt-2 min-h-16"
-          />
-        </>
-      ) : (
-        <>
-          <dt className="font-semibold tracking-tight">{concept.term}</dt>
-          <dd className="mt-1.5 text-pretty text-sm leading-relaxed text-muted-foreground">
-            {concept.definition}
-          </dd>
-        </>
-      )}
+      <Input
+        value={concept.term}
+        onChange={(e) => onTerm(e.target.value)}
+        className="font-semibold"
+      />
+      <Textarea
+        value={concept.definition}
+        onChange={(e) => onDefinition(e.target.value)}
+        className="mt-2 min-h-16"
+      />
     </div>
   );
 }

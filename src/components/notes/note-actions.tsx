@@ -2,10 +2,72 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Trash2 } from "lucide-react";
+import { Download, FileText, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteNote } from "@/app/(app)/notes/[id]/actions";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+/** Export dropdown — downloads the note as a PDF or DOCX (§4). */
+export function ExportMenu({ id }: { id: string }) {
+  const [busy, setBusy] = useState<"pdf" | "docx" | null>(null);
+
+  async function download(format: "pdf" | "docx") {
+    setBusy(format);
+    try {
+      const res = await fetch(`/api/notes/${id}/export?format=${format}`);
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      // Pull the server-provided filename when present.
+      const disposition = res.headers.get("Content-Disposition") ?? "";
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      const filename = match?.[1] ?? `notes.${format}`;
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error(`Couldn't export as ${format.toUpperCase()}.`);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+          {busy ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Download className="size-4" />
+          )}
+          Export
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuItem onSelect={() => download("pdf")} disabled={!!busy}>
+          <FileText className="size-4" />
+          Export as PDF
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => download("docx")} disabled={!!busy}>
+          <FileText className="size-4" />
+          Export as DOCX
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 export function DeleteNoteButton({ id }: { id: string }) {
   const router = useRouter();

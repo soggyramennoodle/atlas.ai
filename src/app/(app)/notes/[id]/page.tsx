@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Clock, Calendar } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { NoteView } from "@/components/notes/note-view";
-import { DeleteNoteButton } from "@/components/notes/note-actions";
+import { DeleteNoteButton, ExportMenu } from "@/components/notes/note-actions";
 import { CourseCapsule } from "@/components/notes/course-capsule";
 import type { NoteRecord } from "@/lib/types";
 
@@ -58,7 +58,10 @@ export default async function NotePage({
             <ArrowLeft className="size-4" />
             Library
           </Link>
-          <DeleteNoteButton id={note.id} />
+          <div className="flex items-center gap-1">
+            <ExportMenu id={note.id} />
+            <DeleteNoteButton id={note.id} />
+          </div>
         </div>
 
         <header className="mt-6">
