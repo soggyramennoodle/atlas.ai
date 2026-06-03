@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppSidebar } from "@/components/app/app-sidebar";
+import { RecordingProvider } from "@/components/recording/recording-context";
+import { RecordingDock } from "@/components/recording/recording-dock";
 
 export default async function AppLayout({
   children,
@@ -25,11 +27,15 @@ export default async function AppLayout({
   if (!profileError && !profile?.display_name) redirect("/onboarding");
 
   return (
-    <div className="min-h-screen">
-      <AppSidebar email={user.email ?? ""} />
-      <div className="lg:pl-64">
-        <div className="pt-16 lg:pt-0">{children}</div>
+    <RecordingProvider userId={user.id}>
+      <div className="min-h-screen">
+        <AppSidebar email={user.email ?? ""} />
+        <div className="lg:pl-64">
+          <div className="pt-16 lg:pt-0">{children}</div>
+        </div>
+        {/* Persistent recording fly-out, shown off the /upload page (§8). */}
+        <RecordingDock />
       </div>
-    </div>
+    </RecordingProvider>
   );
 }

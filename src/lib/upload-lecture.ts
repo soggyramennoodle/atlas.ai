@@ -44,6 +44,8 @@ interface UploadArgs {
   mimeType: string;
   ext: string;
   durationSeconds: number | null;
+  /** Best-effort in-browser live transcript (§7). Used only as a fallback. */
+  liveTranscript?: string | null;
   onStage: (stage: Exclude<CaptureStage, "idle">) => void;
 }
 
@@ -59,6 +61,7 @@ export async function uploadLectureAndGenerate({
   mimeType,
   ext,
   durationSeconds,
+  liveTranscript,
   onStage,
 }: UploadArgs): Promise<{ id: string }> {
   onStage("uploading");
@@ -84,6 +87,7 @@ export async function uploadLectureAndGenerate({
       path,
       mimeType,
       durationSeconds: durationSeconds ? Math.round(durationSeconds) : null,
+      liveTranscript: liveTranscript || null,
     }),
   });
 

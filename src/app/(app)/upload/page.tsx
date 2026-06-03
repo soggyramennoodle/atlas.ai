@@ -35,7 +35,7 @@ export default async function UploadPage() {
         </p>
       </div>
 
-      <div className="relative mx-auto mt-10 max-w-2xl">
+      <div className="relative mx-auto mt-10 max-w-5xl">
         <CapturePanel userId={user.id} />
       </div>
     </main>
