@@ -1,0 +1,178 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  LayoutDashboard,
+  Mic,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  Sparkles,
+} from "lucide-react";
+import { Logo } from "@/components/logo";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+
+const NAV = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/upload", label: "Record a lecture", icon: Mic },
+  { href: "/settings", label: "Settings", icon: Settings },
+];
+
+function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  return (
+    <nav className="flex flex-col gap-1">
+      {NAV.map((item) => {
+        const active =
+          pathname === item.href ||
+          (item.href !== "/dashboard" && pathname.startsWith(item.href));
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={cn(
+              "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+              active
+                ? "text-primary-foreground"
+                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+            )}
+          >
+            {active && (
+              <motion.span
+                layoutId="sidebar-active"
+                className="absolute inset-0 -z-10 rounded-xl bg-primary"
+                transition={{ type: "spring", stiffness: 380, damping: 32 }}
+              />
+            )}
+            <item.icon className="size-[1.15rem] shrink-0" />
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+function Profile({ email }: { email: string }) {
+  const initials = email ? email[0]?.toUpperCase() : "?";
+  return (
+    <div className="flex items-center gap-3 rounded-xl border bg-card/60 p-2.5">
+      <Avatar className="size-9 border">
+        <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
+          {initials}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{email.split("@")[0]}</p>
+        <p className="truncate text-xs text-muted-foreground">{email}</p>
+      </div>
+      <form action="/auth/signout" method="post">
+        <button
+          aria-label="Sign out"
+          className="grid size-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground"
+        >
+          <LogOut className="size-4" />
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function SidebarBody({
+  email,
+  onNavigate,
+}: {
+  email: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col gap-6 p-4">
+      <Link
+        href="/dashboard"
+        onClick={onNavigate}
+        className="flex items-center px-2 pt-2 transition hover:opacity-90"
+      >
+        <Logo beta />
+      </Link>
+
+      <NavLinks onNavigate={onNavigate} />
+
+      {/* Upsell / spacer */}
+      <div className="mt-auto space-y-4">
+        <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 to-transparent p-4">
+          <div className="pointer-events-none absolute -right-6 -top-6 size-20 rounded-full bg-primary/20 blur-2xl" />
+          <Sparkles className="size-5 text-primary" />
+          <p className="mt-2 text-sm font-medium">Flashcards & quizzes</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Coming soon to turn your notes into active recall.
+          </p>
+        </div>
+        <Profile email={email} />
+      </div>
+    </div>
+  );
+}
+
+export function AppSidebar({ email }: { email: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      {/* Desktop fixed sidebar */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r bg-background/60 backdrop-blur-xl lg:block">
+        <SidebarBody email={email} />
+      </aside>
+
+      {/* Mobile top bar */}
+      <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b bg-background/70 px-4 py-3 backdrop-blur-xl lg:hidden">
+        <Link href="/dashboard">
+          <Logo beta />
+        </Link>
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          className="grid size-9 place-items-center rounded-full border bg-background/60"
+        >
+          <Menu className="size-4" />
+        </button>
+      </div>
+
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+              className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm lg:hidden"
+            />
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", stiffness: 340, damping: 34 }}
+              className="fixed inset-y-0 left-0 z-50 w-72 border-r bg-background lg:hidden"
+            >
+              <button
+                onClick={() => setOpen(false)}
+                aria-label="Close menu"
+                className="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-accent"
+              >
+                <X className="size-4" />
+              </button>
+              <SidebarBody email={email} onNavigate={() => setOpen(false)} />
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}

@@ -5,10 +5,17 @@ export function Footer() {
   return (
     <footer className="relative mt-24 overflow-hidden rounded-t-[2.5rem] border-t bg-card/50">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-      <div className="mx-auto w-full max-w-5xl px-4 py-14">
+      {/* oversized wordmark watermark */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 select-none whitespace-nowrap text-[28vw] font-semibold leading-none tracking-tighter text-foreground/[0.03] sm:text-[24vw]"
+      >
+        Atlas
+      </span>
+      <div className="relative mx-auto w-full max-w-5xl px-4 py-14">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-xs">
-            <Logo />
+            <Logo beta />
             <p className="mt-3 text-sm text-muted-foreground text-pretty">
               A smart study assistant that turns lecture recordings into
               thorough, structured notes.

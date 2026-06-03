@@ -53,7 +53,7 @@ export function Nav({ email }: { email: string | null }) {
         )}
       >
         <Link href="/" className="shrink-0 transition hover:-translate-y-px">
-          <Logo />
+          <Logo beta />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

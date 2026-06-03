@@ -1,0 +1,188 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { BookOpen, Clock, Mic } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Greeting } from "@/components/dashboard/greeting";
+import { StatCards, type Stat } from "@/components/dashboard/stat-cards";
+import { QuickRecord } from "@/components/dashboard/quick-record";
+import { Tips } from "@/components/dashboard/tips";
+import { EmptyRecordings } from "@/components/dashboard/empty-state";
+import type { NoteRecord } from "@/lib/types";
+
+export const metadata: Metadata = { title: "Dashboard" };
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatDuration(s: number | null) {
+  if (!s) return null;
+  return `${Math.round(s / 60)} min`;
+}
+
+/** Consecutive days (ending today or yesterday) that have a recording. */
+function computeStreak(dates: string[]): number {
+  const days = new Set(dates.map((d) => new Date(d).toISOString().slice(0, 10)));
+  if (days.size === 0) return 0;
+  const dayMs = 86_400_000;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let cursor = today.getTime();
+  // Allow the streak to "hold" if the latest activity was yesterday.
+  if (!days.has(new Date(cursor).toISOString().slice(0, 10))) {
+    cursor -= dayMs;
+    if (!days.has(new Date(cursor).toISOString().slice(0, 10))) return 0;
+  }
+  let streak = 0;
+  while (days.has(new Date(cursor).toISOString().slice(0, 10))) {
+    streak += 1;
+    cursor -= dayMs;
+  }
+  return streak;
+}
+
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/dashboard");
+
+  const { data } = await supabase
+    .from("notes")
+    .select(
+      "id, title, subject, audio_path, duration_seconds, created_at, content"
+    )
+    .order("created_at", { ascending: false });
+
+  const notes = (data ?? []) as Pick<
+    NoteRecord,
+    "id" | "title" | "subject" | "duration_seconds" | "created_at" | "content"
+  >[];
+
+  const totalSeconds = notes.reduce(
+    (sum, n) => sum + (n.duration_seconds ?? 0),
+    0
+  );
+  const keyConcepts = notes.reduce(
+    (sum, n) => sum + (n.content?.keyConcepts?.length ?? 0),
+    0
+  );
+  const streak = computeStreak(notes.map((n) => n.created_at));
+
+  const name = (user.email ?? "there").split("@")[0];
+
+  const stats: Stat[] = [
+    { icon: "mic", label: "Recordings", value: notes.length },
+    {
+      icon: "clock",
+      label: "Hours captured",
+      value: totalSeconds / 3600,
+      decimals: 1,
+    },
+    { icon: "sparkles", label: "Key concepts", value: keyConcepts },
+    { icon: "flame", label: "Day streak", value: streak },
+  ];
+
+  return (
+    <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <Greeting name={name} />
+          <Button asChild size="lg" className="group shimmer shrink-0">
+            <Link href="/upload">
+              <Mic className="size-4" />
+              Record a lecture
+            </Link>
+          </Button>
+        </div>
+
+        {/* Stats */}
+        <div className="mt-8">
+          <StatCards stats={stats} />
+        </div>
+
+        {/* Quick action */}
+        <div className="mt-6">
+          <QuickRecord />
+        </div>
+
+        {/* Body: recordings + tips */}
+        <div className="mt-10 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+          <section>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold tracking-tight">
+                Recent recordings
+              </h2>
+              {notes.length > 0 && (
+                <span className="font-mono text-xs text-muted-foreground">
+                  {notes.length} total
+                </span>
+              )}
+            </div>
+
+            {notes.length === 0 ? (
+              <div className="mt-5">
+                <EmptyRecordings />
+              </div>
+            ) : (
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                {notes.map((note) => (
+                  <Link
+                    key={note.id}
+                    href={`/notes/${note.id}`}
+                    className="glow-card group flex flex-col rounded-2xl border bg-card/70 p-5 transition hover:-translate-y-0.5 hover:border-primary/30"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+                        <BookOpen className="size-5" />
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-emerald-400">
+                        <span className="size-1.5 rounded-full bg-emerald-400" />
+                        Ready
+                      </span>
+                    </div>
+                    <h3 className="mt-4 line-clamp-2 font-semibold leading-snug tracking-tight">
+                      {note.title}
+                    </h3>
+                    <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                      {note.content?.summary}
+                    </p>
+                    <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>{formatDate(note.created_at)}</span>
+                      {formatDuration(note.duration_seconds) && (
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="size-3" />
+                          {formatDuration(note.duration_seconds)}
+                        </span>
+                      )}
+                      {note.subject && (
+                        <Badge
+                          variant="secondary"
+                          className="ml-auto font-normal"
+                        >
+                          {note.subject}
+                        </Badge>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <aside className="space-y-6">
+            <Tips />
+          </aside>
+        </div>
+      </div>
+    </main>
+  );
+}

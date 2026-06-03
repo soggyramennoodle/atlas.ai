@@ -7,27 +7,30 @@ import { Button } from "@/components/ui/button";
 
 const container = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+  show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
 };
 const item = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 26 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
+    transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
 export function Hero({ ctaHref }: { ctaHref: string }) {
   return (
-    <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-aurora" />
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-50 [mask-image:radial-gradient(60%_50%_at_50%_25%,black,transparent)]" />
+    <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-4 pb-20 pt-32">
+      {/* Drifting gradient mesh */}
+      <div className="pointer-events-none absolute inset-0 bg-aurora animate-drift" />
+      <div className="pointer-events-none absolute inset-0 bg-grid opacity-40 [mask-image:radial-gradient(60%_55%_at_50%_35%,black,transparent)]" />
+      {/* vignette */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
-      <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 pb-12 pt-36 text-center sm:pt-44">
+      <div className="relative mx-auto flex max-w-5xl flex-col items-center text-center">
         <motion.div variants={container} initial="hidden" animate="show">
           <motion.div variants={item} className="flex justify-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.07] px-3.5 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.16em] text-primary backdrop-blur">
+            <span className="group inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.07] px-4 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary backdrop-blur">
               <AudioLines className="size-3.5" />
               Your private study atelier
             </span>
@@ -35,13 +38,15 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
 
           <motion.h1
             variants={item}
-            className="mt-7 text-balance text-5xl font-semibold leading-[0.95] tracking-tight sm:text-7xl"
+            className="mt-8 text-balance text-5xl font-semibold leading-[0.92] tracking-tight sm:text-7xl lg:text-[5.5rem]"
           >
             Sit back and listen.
             <br />
             <span className="text-muted-foreground">We&apos;ll remember</span>{" "}
-            <span className="font-serif text-6xl font-normal italic text-primary sm:text-8xl">
-              every word.
+            <span className="font-serif text-6xl font-normal italic sm:text-8xl lg:text-[6.5rem]">
+              <span className="text-gradient-gold animate-gradient">
+                every word.
+              </span>
             </span>
           </motion.h1>
 
@@ -56,9 +61,9 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
 
           <motion.div
             variants={item}
-            className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
+            className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
-            <Button asChild size="lg" className="group h-12 px-6 text-base">
+            <Button asChild size="lg" className="group shimmer h-12 px-6 text-base">
               <Link href={ctaHref}>
                 <Mic className="size-4" />
                 Record a lecture
@@ -77,82 +82,134 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
 
           <motion.p
             variants={item}
-            className="mt-5 font-mono text-xs text-muted-foreground"
+            className="mt-6 font-mono text-xs text-muted-foreground"
           >
             No card required · Your recordings stay private
           </motion.p>
         </motion.div>
 
+        {/* Floating orbital centerpiece */}
         <motion.div
-          initial={{ opacity: 0, y: 40, rotateX: 12 }}
-          animate={{ opacity: 1, y: 0, rotateX: 0 }}
-          transition={{ duration: 0.9, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-16 w-full [perspective:1200px]"
+          variants={item}
+          initial="hidden"
+          animate="show"
+          className="relative mt-16 w-full max-w-3xl"
         >
-          <NotesPreview />
+          <OrbitVisual />
         </motion.div>
       </div>
+
+      {/* scroll hint */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.4 }}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2"
+      >
+        <div className="flex h-9 w-5 items-start justify-center rounded-full border border-muted-foreground/30 p-1">
+          <motion.span
+            className="size-1.5 rounded-full bg-primary"
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+      </motion.div>
     </section>
   );
 }
 
-function NotesPreview() {
+/**
+ * The hero centerpiece: rotating orbit rings behind a floating glass
+ * "capture" card that animates a waveform resolving into note lines.
+ */
+function OrbitVisual() {
   return (
-    <div className="mx-auto max-w-3xl overflow-hidden rounded-[1.75rem] border bg-card shadow-2xl ring-luxe">
-      <div className="flex items-center gap-2 border-b bg-background/40 px-4 py-3">
-        <span className="size-3 rounded-full bg-red-400/60" />
-        <span className="size-3 rounded-full bg-amber-400/60" />
-        <span className="size-3 rounded-full bg-emerald-400/60" />
-        <div className="ml-3 flex items-center gap-2 font-mono text-xs text-muted-foreground">
-          <AudioLines className="size-3.5 text-primary" />
-          lecture-09-thermodynamics.webm
+    <div className="relative [perspective:1400px]">
+      {/* orbit rings */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2">
+        <div className="animate-spin-slow">
+          <div className="size-[34rem] rounded-full border border-primary/10" />
+        </div>
+        <div className="absolute inset-0 grid place-items-center animate-spin-reverse">
+          <div className="size-[24rem] rounded-full border border-primary/15 [border-style:dashed]" />
+        </div>
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="size-[40rem] rounded-full bg-primary/5 blur-3xl" />
         </div>
       </div>
-      <div className="grid gap-6 p-6 text-left sm:grid-cols-[1.4fr_1fr] sm:p-8">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">
-            Lecture 9
-          </p>
-          <h3 className="mt-2 font-serif text-2xl italic tracking-tight">
-            The Second Law of Thermodynamics
-          </h3>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            An overview of entropy as a measure of disorder, the Clausius
-            statement, and why heat flows spontaneously from hot to cold.
-          </p>
-          <div className="mt-5 space-y-3">
-            {[
-              "Entropy (S) quantifies the number of microstates of a system.",
-              "ΔS_universe ≥ 0 for any spontaneous process.",
-              "Heat engines cannot be 100% efficient — Carnot sets the limit.",
-            ].map((line) => (
-              <div key={line} className="flex gap-2.5 text-sm">
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
-                <span>{line}</span>
-              </div>
-            ))}
+
+      <motion.div
+        className="animate-float mx-auto w-full max-w-2xl overflow-hidden rounded-[1.75rem] glass shadow-2xl ring-luxe"
+        whileHover={{ scale: 1.01 }}
+      >
+        <div className="flex items-center gap-2 border-b border-white/5 bg-background/30 px-4 py-3">
+          <span className="size-3 rounded-full bg-red-400/60" />
+          <span className="size-3 rounded-full bg-amber-400/60" />
+          <span className="size-3 rounded-full bg-emerald-400/60" />
+          <div className="ml-3 flex items-center gap-2 font-mono text-xs text-muted-foreground">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-primary" />
+            </span>
+            recording · 41:08
           </div>
         </div>
-        <div className="rounded-2xl border bg-background/40 p-4">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            Key concepts
-          </p>
-          <dl className="mt-3 space-y-3 text-sm">
-            <div>
-              <dt className="font-medium text-primary">Entropy</dt>
-              <dd className="text-muted-foreground">
-                A measure of a system&apos;s disorder.
-              </dd>
+        <div className="grid gap-6 p-6 text-left sm:grid-cols-[1fr_1.3fr] sm:p-7">
+          {/* live waveform */}
+          <div className="flex flex-col justify-between rounded-2xl border bg-background/40 p-4">
+            <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-primary">
+              Live audio
+            </p>
+            <div className="flex h-20 items-center justify-center gap-[3px]">
+              {Array.from({ length: 22 }).map((_, i) => (
+                <motion.span
+                  key={i}
+                  className="w-[3px] rounded-full bg-gradient-to-t from-primary/40 to-primary"
+                  animate={{ height: ["18%", "85%", "32%", "70%", "20%"] }}
+                  transition={{
+                    duration: 1.6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: i * 0.06,
+                  }}
+                  style={{ height: "30%" }}
+                />
+              ))}
             </div>
-            <div>
-              <dt className="font-medium text-primary">Carnot efficiency</dt>
-              <dd className="text-muted-foreground">
-                Max efficiency, η = 1 − T_c/T_h.
-              </dd>
+            <p className="font-mono text-[0.65rem] text-muted-foreground">
+              transcribing…
+            </p>
+          </div>
+
+          {/* notes resolving */}
+          <div>
+            <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-primary">
+              Atlas notes
+            </p>
+            <h3 className="mt-2 font-serif text-xl italic">
+              The Second Law of Thermodynamics
+            </h3>
+            <div className="mt-4 space-y-2.5">
+              {[
+                "Entropy quantifies a system's microstates.",
+                "ΔS_universe ≥ 0 for spontaneous change.",
+                "Carnot bounds every heat engine's efficiency.",
+              ].map((line, i) => (
+                <motion.div
+                  key={line}
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 + i * 0.5, duration: 0.5 }}
+                  className="flex gap-2.5 text-sm text-foreground/90"
+                >
+                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
+                  <span>{line}</span>
+                </motion.div>
+              ))}
             </div>
-          </dl>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

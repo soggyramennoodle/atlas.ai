@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { deleteNote } from "@/app/notes/[id]/actions";
+import { deleteNote } from "@/app/(app)/notes/[id]/actions";
 import { Button } from "@/components/ui/button";
 
 export function DeleteNoteButton({ id }: { id: string }) {

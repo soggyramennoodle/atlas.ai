@@ -10,7 +10,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
       <div className="relative w-full max-w-md">
         <div className="mb-8 flex justify-center">
           <Link href="/">
-            <Logo className="scale-110" />
+            <Logo beta className="scale-110" />
           </Link>
         </div>
         {children}

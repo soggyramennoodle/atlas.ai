@@ -200,4 +200,159 @@
   .text-pretty {
     text-wrap: pretty;
   }
+
+  /* Gold gradient text for hero headlines. */
+  .text-gradient-gold {
+    background-image: linear-gradient(
+      120deg,
+      color-mix(in oklch, var(--primary) 70%, white) 0%,
+      var(--primary) 45%,
+      color-mix(in oklch, var(--primary) 60%, var(--chart-3)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Frosted glass surface. */
+  .glass {
+    background-color: color-mix(in oklch, var(--card) 55%, transparent);
+    backdrop-filter: blur(16px);
+    border: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+  }
+
+  /* Looping motion utilities. */
+  .animate-float {
+    animation: atlas-float 7s ease-in-out infinite;
+  }
+  .animate-float-slow {
+    animation: atlas-float 11s ease-in-out infinite;
+  }
+  .animate-spin-slow {
+    animation: atlas-spin 24s linear infinite;
+  }
+  .animate-spin-reverse {
+    animation: atlas-spin 30s linear infinite reverse;
+  }
+  .animate-breathe {
+    animation: atlas-breathe 4.5s ease-in-out infinite;
+  }
+  .animate-drift {
+    animation: atlas-drift 18s ease-in-out infinite alternate;
+  }
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: atlas-gradient 6s ease infinite;
+  }
+  .animate-pulse-ring::before,
+  .animate-pulse-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid color-mix(in oklch, var(--primary) 60%, transparent);
+    animation: atlas-pulse-ring 2.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  .animate-pulse-ring::after {
+    animation-delay: 1.3s;
+  }
+
+  /* Shimmer glint that sweeps across a button on hover. */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-150%);
+    background: linear-gradient(
+      100deg,
+      transparent 30%,
+      color-mix(in oklch, white 35%, transparent) 50%,
+      transparent 70%
+    );
+  }
+  .shimmer:hover::after {
+    animation: atlas-shimmer 0.9s ease;
+  }
+
+  /* Traveling light around a card border on hover. */
+  .glow-card {
+    position: relative;
+    isolation: isolate;
+  }
+  .glow-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+      from var(--atlas-angle),
+      transparent 0%,
+      var(--primary) 12%,
+      transparent 32%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .glow-card:hover::before {
+    opacity: 1;
+    animation: atlas-angle 3s linear infinite;
+  }
+}
+
+@property --atlas-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes atlas-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-18px) rotate(2deg); }
+}
+@keyframes atlas-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes atlas-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.09); opacity: 1; }
+}
+@keyframes atlas-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(4%, -3%, 0) scale(1.08); }
+}
+@keyframes atlas-gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes atlas-pulse-ring {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes atlas-shimmer {
+  to { transform: translateX(150%); }
+}
+@keyframes atlas-angle {
+  to { --atlas-angle: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
