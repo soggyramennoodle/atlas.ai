@@ -9,14 +9,18 @@ import {
 import type { StructuredNotes } from "./types";
 
 /**
- * The model used for note generation. Defaults to Gemini 2.5 Pro, which
- * produces materially more thorough, well-structured notes on long-form audio
- * than Flash (better long-context instruction following and reasoning).
- * Override with the GEMINI_MODEL env var.
+ * The preferred model used for note generation. Defaults to Gemini 2.5 Pro,
+ * which produces materially more thorough, well-structured notes on long-form
+ * audio than Flash (better long-context instruction following and reasoning).
+ * Override with GEMINI_MODEL.
  *
- * Fallback for cost/latency-sensitive setups: GEMINI_MODEL="gemini-2.5-flash".
+ * If the preferred model is unavailable due to quota/rate/model-access issues,
+ * Atlas retries once with GEMINI_FALLBACK_MODEL (default: Gemini 2.5 Flash).
  */
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-pro";
+const FALLBACK_MODEL =
+  process.env.GEMINI_FALLBACK_MODEL || "gemini-2.5-flash";
+const NOTE_MODELS = Array.from(new Set([MODEL, FALLBACK_MODEL].filter(Boolean)));
 
 /** A lighter, cheaper model for short helper calls (explanations, edit diffs). */
 export const HELPER_MODEL =
@@ -156,6 +160,72 @@ interface GenerateArgs {
   memoryContext?: string;
 }
 
+function errorText(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+}
+
+/** Whether a model failure is worth retrying with the fallback model. */
+function shouldTryFallback(err: unknown): boolean {
+  const text = errorText(err).toLowerCase();
+  return [
+    "429",
+    "resource_exhausted",
+    "quota",
+    "rate limit",
+    "rate-limit",
+    "permission_denied",
+    "forbidden",
+    "not found",
+    "not_found",
+    "model",
+  ].some((needle) => text.includes(needle));
+}
+
+async function generateStructuredNotes({
+  ai,
+  model,
+  fileUri,
+  fileMimeType,
+  systemInstruction,
+}: {
+  ai: GoogleGenAI;
+  model: string;
+  fileUri: string;
+  fileMimeType: string;
+  systemInstruction: string;
+}): Promise<StructuredNotes> {
+  const response = await ai.models.generateContent({
+    model,
+    contents: createUserContent([
+      createPartFromUri(fileUri, fileMimeType),
+      "Take complete, exhaustively detailed, structured notes on this lecture following your instructions.",
+    ]),
+    config: {
+      systemInstruction,
+      responseMimeType: "application/json",
+      responseSchema: notesSchema,
+      temperature: 0.3,
+    },
+  });
+
+  const text = response.text;
+  if (!text) {
+    throw new Error(`Gemini returned an empty response from ${model}.`);
+  }
+
+  const parsed = JSON.parse(text) as StructuredNotes;
+  if (!parsed.title || !Array.isArray(parsed.sections)) {
+    throw new Error(`Gemini returned notes in an unexpected format from ${model}.`);
+  }
+  return parsed;
+}
+
 /**
  * Uploads lecture audio to the Gemini Files API and returns thorough,
  * structured notes. Cleans up the uploaded file afterwards.
@@ -193,30 +263,35 @@ export async function generateNotesFromAudio({
       ? `${SYSTEM_PROMPT}\n\n--- About this student (personalization context) ---\n${memoryContext}\nUse this context to tailor terminology, depth, and emphasis. Never fabricate details to fit it.`
       : SYSTEM_PROMPT;
 
-    const response = await ai.models.generateContent({
-      model: MODEL,
-      contents: createUserContent([
-        createPartFromUri(uploaded.uri!, uploaded.mimeType!),
-        "Take complete, exhaustively detailed, structured notes on this lecture following your instructions.",
-      ]),
-      config: {
-        systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: notesSchema,
-        temperature: 0.3,
-      },
-    });
-
-    const text = response.text;
-    if (!text) {
-      throw new Error("Gemini returned an empty response.");
+    let lastError: unknown;
+    for (const [index, model] of NOTE_MODELS.entries()) {
+      try {
+        if (index > 0) {
+          console.warn(
+            `Retrying lecture note generation with fallback model ${model}.`
+          );
+        }
+        return await generateStructuredNotes({
+          ai,
+          model,
+          fileUri: uploaded.uri!,
+          fileMimeType: uploaded.mimeType!,
+          systemInstruction,
+        });
+      } catch (err) {
+        lastError = err;
+        const hasFallback = index < NOTE_MODELS.length - 1;
+        if (!hasFallback || !shouldTryFallback(err)) {
+          throw err;
+        }
+        console.warn(
+          `Gemini note generation failed with ${model}; trying fallback model.`,
+          err
+        );
+      }
     }
 
-    const parsed = JSON.parse(text) as StructuredNotes;
-    if (!parsed.title || !Array.isArray(parsed.sections)) {
-      throw new Error("Gemini returned notes in an unexpected format.");
-    }
-    return parsed;
+    throw lastError ?? new Error("Gemini note generation failed.");
   } finally {
     // Best-effort cleanup of the uploaded file.
     if (uploaded.name) {

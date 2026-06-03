@@ -90,7 +90,7 @@ export function KeyConceptsGrid({
       <div className="grid gap-4 sm:grid-cols-2">
         {concepts.map((concept, i) => (
           <ConceptCard
-            key={i}
+            key={`${i}-${selected === i ? "selected" : "base"}`}
             concept={concept}
             context={context}
             selected={selected === i}
@@ -124,19 +124,18 @@ function ConceptCard({
 }) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const turnsRef = useRef<Turn[]>([]);
-  turnsRef.current = turns;
   const idRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
 
   const thinking = turns.some((t) => t.streaming);
 
-  // Reset the conversation whenever the card is dismissed.
   useEffect(() => {
-    if (!selected) {
-      abortRef.current?.abort();
-      setTurns([]);
-    }
-  }, [selected]);
+    turnsRef.current = turns;
+  }, [turns]);
+
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
 
   // Escape closes the popped card.
   useEffect(() => {
