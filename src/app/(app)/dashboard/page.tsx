@@ -54,12 +54,15 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/dashboard");
 
-  const { data } = await supabase
-    .from("notes")
-    .select(
-      "id, title, subject, audio_path, duration_seconds, created_at, content"
-    )
-    .order("created_at", { ascending: false });
+  const [{ data }, { data: profile }] = await Promise.all([
+    supabase
+      .from("notes")
+      .select(
+        "id, title, subject, audio_path, duration_seconds, created_at, content"
+      )
+      .order("created_at", { ascending: false }),
+    supabase.from("user_profiles").select("*").maybeSingle(),
+  ]);
 
   const notes = (data ?? []) as Pick<
     NoteRecord,
@@ -76,7 +79,15 @@ export default async function DashboardPage() {
   );
   const streak = computeStreak(notes.map((n) => n.created_at));
 
-  const name = (user.email ?? "there").split("@")[0];
+  const name =
+    profile?.display_name?.trim() || (user.email ?? "there").split("@")[0];
+  // Profile is "incomplete" if onboarding fields are missing (§5).
+  const profileIncomplete =
+    !profile?.display_name ||
+    !profile?.institution ||
+    !profile?.program ||
+    !profile?.year ||
+    !profile?.grad_year;
 
   const stats: Stat[] = [
     { icon: "mic", label: "Recordings", value: notes.length },
@@ -95,7 +106,20 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <Greeting name={name} />
+          <div>
+            <Greeting name={name} />
+            {profileIncomplete && (
+              <Link
+                href="/settings"
+                className="group mt-3 inline-flex items-center gap-1 text-sm text-primary/90 transition hover:text-primary"
+              >
+                Complete your profile for a personalized experience
+                <span className="transition-transform group-hover:translate-x-0.5">
+                  →
+                </span>
+              </Link>
+            )}
+          </div>
           <Button asChild size="lg" className="group shimmer shrink-0">
             <Link href="/upload">
               <Mic className="size-4" />

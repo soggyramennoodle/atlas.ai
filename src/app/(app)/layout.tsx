@@ -15,6 +15,15 @@ export default async function AppLayout({
   // Middleware already guards these routes; defence in depth.
   if (!user) redirect("/login");
 
+  // First-login gating (§5): send users without a profile to onboarding.
+  // Fail open — if the user_profiles table isn't applied yet, the query errors
+  // and we don't want to trap the user in a redirect loop.
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("display_name")
+    .maybeSingle();
+  if (!profileError && !profile?.display_name) redirect("/onboarding");
+
   return (
     <div className="min-h-screen">
       <AppSidebar email={user.email ?? ""} />
