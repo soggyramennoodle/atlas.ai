@@ -12,7 +12,6 @@ import type {
 } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { notesBodyToHtml, sanitizeNoteHtml } from "@/lib/notes-html";
 import { SummaryCard } from "./summary-card";
 import { TranscriptPanel } from "./transcript-panel";
@@ -68,12 +67,18 @@ export function NoteView({
   const [editorSeed, setEditorSeed] = useState("");
 
   const draftRef = useRef(draft);
-  draftRef.current = draft;
   const originalRef = useRef<StructuredNotes>(initial);
   const savedRef = useRef(saved);
-  savedRef.current = saved;
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+
+  useEffect(() => {
+    savedRef.current = saved;
+  }, [saved]);
 
   const update = (fn: (d: StructuredNotes) => void) =>
     setDraft((prev) => {

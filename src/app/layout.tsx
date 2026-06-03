@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
 
 const sans = Inter({
@@ -38,13 +40,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${sans.variable} ${serif.variable} ${mono.variable} h-full antialiased`}
+      className={`${sans.variable} ${serif.variable} ${mono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="relative min-h-full flex flex-col font-sans">
-        <div aria-hidden className="noise-overlay" />
-        {children}
-        <Toaster position="top-center" theme="dark" richColors />
+        <ThemeProvider>
+          <div aria-hidden className="noise-overlay" />
+          {children}
+          <ThemeToggle />
+          <Toaster position="top-center" richColors />
+        </ThemeProvider>
       </body>
     </html>
   );

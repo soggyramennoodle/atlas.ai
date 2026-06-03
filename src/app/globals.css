@@ -4,56 +4,59 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Atlas — "Midnight Luxe" — a private members' club meets a watchmaker's atelier.
-  Obsidian black, champagne gold, ivory text. Heavy serif drama, monospace data,
-  generous radii, a fine film-grain over everything. Committed dark art direction.
+  Atlas theme system. Light mode keeps the same atelier polish with parchment
+  whites and burnished gold; dark mode preserves the original Midnight Luxe
+  obsidian treatment.
 */
 
 :root {
   --radius: 1.1rem;
 
-  /* Obsidian */
-  --background: oklch(0.155 0.012 280);
-  --foreground: oklch(0.965 0.004 90);
+  --background: oklch(0.985 0.006 90);
+  --foreground: oklch(0.205 0.018 280);
 
-  /* A hair lifted off the background — the "felt table" surface */
-  --card: oklch(0.195 0.013 280);
-  --card-foreground: oklch(0.965 0.004 90);
+  --card: oklch(0.998 0.002 90);
+  --card-foreground: oklch(0.205 0.018 280);
 
-  --popover: oklch(0.205 0.013 280);
-  --popover-foreground: oklch(0.965 0.004 90);
+  --popover: oklch(0.998 0.002 90);
+  --popover-foreground: oklch(0.205 0.018 280);
 
-  /* Champagne gold — the single accent that does all the work */
-  --primary: oklch(0.79 0.106 86);
-  --primary-foreground: oklch(0.17 0.012 280);
+  --primary: oklch(0.545 0.126 82);
+  --primary-foreground: oklch(0.985 0.006 90);
 
-  --secondary: oklch(0.255 0.013 280);
-  --secondary-foreground: oklch(0.95 0.004 90);
+  --secondary: oklch(0.935 0.012 88);
+  --secondary-foreground: oklch(0.245 0.018 280);
 
-  --muted: oklch(0.235 0.012 280);
-  --muted-foreground: oklch(0.72 0.008 90);
+  --muted: oklch(0.935 0.012 88);
+  --muted-foreground: oklch(0.49 0.018 280);
 
-  /* Faint gold-tinted surface for hovers */
-  --accent: oklch(0.28 0.022 86);
-  --accent-foreground: oklch(0.96 0.01 86);
+  --accent: oklch(0.895 0.045 84);
+  --accent-foreground: oklch(0.245 0.018 280);
 
-  --destructive: oklch(0.62 0.21 25);
-  --destructive-foreground: oklch(0.98 0.005 90);
+  --destructive: oklch(0.58 0.21 25);
+  --destructive-foreground: oklch(0.985 0.006 90);
 
-  /* Borders read as hairlines of ivory at low strength */
-  --border: oklch(0.32 0.012 280);
-  --input: oklch(0.34 0.012 280);
-  --ring: oklch(0.79 0.106 86);
+  --border: oklch(0.835 0.017 88);
+  --input: oklch(0.82 0.017 88);
+  --ring: oklch(0.545 0.126 82);
 
-  --chart-1: oklch(0.79 0.106 86);
-  --chart-2: oklch(0.72 0.05 250);
-  --chart-3: oklch(0.7 0.12 40);
-  --chart-4: oklch(0.68 0.1 330);
-  --chart-5: oklch(0.7 0.09 160);
+  --chart-1: oklch(0.545 0.126 82);
+  --chart-2: oklch(0.62 0.11 250);
+  --chart-3: oklch(0.62 0.13 40);
+  --chart-4: oklch(0.58 0.13 330);
+  --chart-5: oklch(0.58 0.11 160);
+
+  --noise-opacity: 0.026;
+  --aurora-primary-strength: 32%;
+  --aurora-secondary-strength: 24%;
+  --grid-strength: 8%;
+  --luxe-shadow-strength: 54%;
+  --luxe-inset-strength: 16%;
+  --glass-alpha: 72%;
+  --ai-glow-blend-mode: multiply;
+  --theme-duration: 650ms;
 }
 
-/* Committed to one palette — .dark mirrors :root so component-level
-   `dark:` variants resolve against the same Midnight Luxe tokens. */
 .dark {
   --background: oklch(0.155 0.012 280);
   --foreground: oklch(0.965 0.004 90);
@@ -74,6 +77,21 @@
   --border: oklch(0.32 0.012 280);
   --input: oklch(0.34 0.012 280);
   --ring: oklch(0.79 0.106 86);
+
+  --chart-1: oklch(0.79 0.106 86);
+  --chart-2: oklch(0.72 0.05 250);
+  --chart-3: oklch(0.7 0.12 40);
+  --chart-4: oklch(0.68 0.1 330);
+  --chart-5: oklch(0.7 0.09 160);
+
+  --noise-opacity: 0.045;
+  --aurora-primary-strength: 18%;
+  --aurora-secondary-strength: 14%;
+  --grid-strength: 9%;
+  --luxe-shadow-strength: 40%;
+  --luxe-inset-strength: 8%;
+  --glass-alpha: 55%;
+  --ai-glow-blend-mode: screen;
 }
 
 @theme inline {
@@ -127,6 +145,20 @@
     text-rendering: optimizeLegibility;
   }
 
+  html.theme-switching,
+  html.theme-switching *,
+  html.theme-switching *::before,
+  html.theme-switching *::after {
+    transition:
+      background-color var(--theme-duration) cubic-bezier(0.22, 1, 0.36, 1),
+      border-color var(--theme-duration) cubic-bezier(0.22, 1, 0.36, 1),
+      color var(--theme-duration) cubic-bezier(0.22, 1, 0.36, 1),
+      fill var(--theme-duration) cubic-bezier(0.22, 1, 0.36, 1),
+      stroke var(--theme-duration) cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow var(--theme-duration) cubic-bezier(0.22, 1, 0.36, 1),
+      opacity var(--theme-duration) cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+
   ::selection {
     background-color: color-mix(in oklch, var(--primary) 30%, transparent);
     color: var(--foreground);
@@ -141,21 +173,21 @@
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    opacity: 0.045;
+    opacity: var(--noise-opacity);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* A gold aurora bleeding from the top, over obsidian. */
+  /* A theme-aware aurora: softer in dark, brighter in light. */
   .bg-aurora {
     background-image:
       radial-gradient(
         58rem 40rem at 70% -12%,
-        color-mix(in oklch, var(--primary) 18%, transparent),
+        color-mix(in oklch, var(--primary) var(--aurora-primary-strength), transparent),
         transparent 60%
       ),
       radial-gradient(
         42rem 34rem at 8% 4%,
-        color-mix(in oklch, var(--chart-2) 14%, transparent),
+        color-mix(in oklch, var(--chart-2) var(--aurora-secondary-strength), transparent),
         transparent 55%
       );
   }
@@ -163,7 +195,7 @@
   /* Faint architectural grid, like an atelier blueprint. */
   .bg-grid {
     background-image: radial-gradient(
-      color-mix(in oklch, var(--foreground) 9%, transparent) 1px,
+      color-mix(in oklch, var(--foreground) var(--grid-strength), transparent) 1px,
       transparent 1px
     );
     background-size: 26px 26px;
@@ -172,8 +204,8 @@
   /* Hairline gold ring used to lift premium surfaces off the felt. */
   .ring-luxe {
     box-shadow:
-      inset 0 1px 0 0 color-mix(in oklch, var(--foreground) 8%, transparent),
-      0 30px 80px -40px color-mix(in oklch, var(--primary) 40%, transparent);
+      inset 0 1px 0 0 color-mix(in oklch, var(--foreground) var(--luxe-inset-strength), transparent),
+      0 30px 80px -40px color-mix(in oklch, var(--primary) var(--luxe-shadow-strength), transparent);
   }
 
   /* Magnetic interaction — every button/link gets weighted hover motion. */
@@ -216,7 +248,7 @@
 
   /* Frosted glass surface. */
   .glass {
-    background-color: color-mix(in oklch, var(--card) 55%, transparent);
+    background-color: color-mix(in oklch, var(--card) var(--glass-alpha), transparent);
     backdrop-filter: blur(16px);
     border: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
   }
@@ -270,7 +302,7 @@
     background: linear-gradient(
       100deg,
       transparent 30%,
-      color-mix(in oklch, white 35%, transparent) 50%,
+      color-mix(in oklch, var(--foreground) 18%, transparent) 50%,
       transparent 70%
     );
   }
@@ -305,7 +337,7 @@
     pointer-events: none;
   }
   .glow-card:hover::before {
-    opacity: 1;
+    opacity: 0.95;
     animation: atlas-angle 3s linear infinite;
   }
 }
@@ -413,7 +445,7 @@
   animation-iteration-count: infinite;
 }
 .ai-glow--blend .ai-blob {
-  mix-blend-mode: screen;
+  mix-blend-mode: var(--ai-glow-blend-mode);
 }
 .ai-glow[data-paused="true"] .ai-blob {
   animation-play-state: paused;

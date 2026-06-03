@@ -142,7 +142,7 @@ function OrbitVisual() {
         className="animate-float mx-auto w-full max-w-2xl overflow-hidden rounded-[1.75rem] glass shadow-2xl ring-luxe"
         whileHover={{ scale: 1.01 }}
       >
-        <div className="flex items-center gap-2 border-b border-white/5 bg-background/30 px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-foreground/10 bg-background/30 px-4 py-3">
           <span className="size-3 rounded-full bg-red-400/60" />
           <span className="size-3 rounded-full bg-amber-400/60" />
           <span className="size-3 rounded-full bg-emerald-400/60" />
