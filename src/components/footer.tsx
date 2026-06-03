@@ -3,8 +3,9 @@ import { Logo } from "@/components/logo";
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t bg-muted/30">
-      <div className="mx-auto w-full max-w-5xl px-4 py-12">
+    <footer className="relative mt-24 overflow-hidden rounded-t-[2.5rem] border-t bg-card/50">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+      <div className="mx-auto w-full max-w-5xl px-4 py-14">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-xs">
             <Logo />
@@ -30,7 +31,7 @@ export function Footer() {
                 </li>
                 <li>
                   <Link href="/upload" className="hover:text-foreground">
-                    Upload a lecture
+                    Record a lecture
                   </Link>
                 </li>
               </ul>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -8,9 +8,10 @@ const sans = Inter({
   subsets: ["latin"],
 });
 
-const serif = Instrument_Serif({
+// The drama serif of Midnight Luxe — used italic, at scale, in gold.
+const serif = Playfair_Display({
   variable: "--font-serif",
-  weight: "400",
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
   subsets: ["latin"],
 });
@@ -37,12 +38,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sans.variable} ${serif.variable} ${mono.variable} h-full antialiased`}
+      className={`dark ${sans.variable} ${serif.variable} ${mono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="relative min-h-full flex flex-col font-sans">
+        <div aria-hidden className="noise-overlay" />
         {children}
-        <Toaster position="top-center" richColors />
+        <Toaster position="top-center" theme="dark" richColors />
       </body>
     </html>
   );

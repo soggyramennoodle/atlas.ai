@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  Upload,
+  Mic,
   Ear,
   NotebookPen,
   ListChecks,
@@ -19,9 +19,9 @@ import { Button } from "@/components/ui/button";
 
 const STEPS = [
   {
-    icon: Upload,
-    title: "Upload your recording",
-    body: "Drop in audio from any lecture — phone recording, Zoom export, voice memo. Atlas handles long files.",
+    icon: Mic,
+    title: "Record the lecture",
+    body: "Press record in your browser when class starts and let it run. Prefer a file you already have? Upload that instead.",
   },
   {
     icon: Ear,
@@ -70,8 +70,8 @@ const FEATURES = [
 
 const FAQ = [
   {
-    q: "What audio formats can I upload?",
-    a: "Common formats like MP3, M4A, WAV, AAC, OGG and FLAC all work. If you recorded it on your phone or exported it from a call, it's almost certainly supported.",
+    q: "Do I have to upload a file?",
+    a: "No — recording happens right in your browser. Just press record when class starts. If you'd rather upload an existing file (MP3, M4A, WAV, AAC, OGG, FLAC), that option is there too.",
   },
   {
     q: "How thorough are the notes?",
@@ -103,11 +103,15 @@ export default async function Home() {
         {/* How it works */}
         <section id="how" className="mx-auto max-w-5xl scroll-mt-24 px-4 py-20">
           <Reveal className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-medium uppercase tracking-wider text-primary">
+            <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
               How it works
             </p>
-            <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-              From recording to study-ready in three steps
+            <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+              From recording to{" "}
+              <span className="font-serif font-normal italic text-primary">
+                study-ready
+              </span>{" "}
+              in three steps
             </h2>
           </Reveal>
 
@@ -116,12 +120,12 @@ export default async function Home() {
               <Reveal
                 key={step.title}
                 delay={i * 0.1}
-                className="relative rounded-[1.5rem] border bg-card p-7"
+                className="group relative overflow-hidden rounded-[1.75rem] border bg-card p-7 transition hover:border-primary/30"
               >
-                <span className="font-mono text-sm text-muted-foreground">
+                <span className="font-mono text-sm text-primary/70">
                   0{i + 1}
                 </span>
-                <span className="mt-5 grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+                <span className="mt-5 grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
                   <step.icon className="size-6" />
                 </span>
                 <h3 className="mt-5 text-lg font-semibold tracking-tight">
@@ -138,15 +142,18 @@ export default async function Home() {
         {/* Features */}
         <section
           id="features"
-          className="scroll-mt-24 border-y bg-muted/30 py-20"
+          className="scroll-mt-24 border-y bg-card/30 py-20"
         >
           <div className="mx-auto max-w-5xl px-4">
             <Reveal className="mx-auto max-w-2xl text-center">
-              <p className="text-sm font-medium uppercase tracking-wider text-primary">
+              <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
                 Features
               </p>
-              <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-                Everything you need from a lecture, written down
+              <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+                Everything you need from a lecture,{" "}
+                <span className="font-serif font-normal italic text-primary">
+                  written down
+                </span>
               </h2>
             </Reveal>
 
@@ -155,9 +162,9 @@ export default async function Home() {
                 <Reveal
                   key={f.title}
                   delay={(i % 3) * 0.08}
-                  className="rounded-[1.5rem] border bg-card p-6 transition hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5"
+                  className="rounded-[1.75rem] border bg-card p-6 transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5"
                 >
-                  <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
                     <f.icon className="size-5" />
                   </span>
                   <h3 className="mt-4 font-semibold tracking-tight">
@@ -175,15 +182,18 @@ export default async function Home() {
         {/* FAQ */}
         <section id="faq" className="mx-auto max-w-3xl scroll-mt-24 px-4 py-20">
           <Reveal className="text-center">
-            <p className="text-sm font-medium uppercase tracking-wider text-primary">
+            <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
               FAQ
             </p>
-            <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-              Questions, answered
+            <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+              Questions,{" "}
+              <span className="font-serif font-normal italic text-primary">
+                answered
+              </span>
             </h2>
           </Reveal>
 
-          <div className="mt-12 divide-y rounded-[1.5rem] border bg-card">
+          <div className="mt-12 divide-y rounded-[1.75rem] border bg-card">
             {FAQ.map((item, i) => (
               <Reveal key={item.q} delay={i * 0.05} className="p-6 sm:p-7">
                 <h3 className="font-semibold tracking-tight">{item.q}</h3>
@@ -197,8 +207,8 @@ export default async function Home() {
 
         {/* CTA */}
         <section className="mx-auto max-w-5xl px-4 pb-8">
-          <Reveal className="relative overflow-hidden rounded-[2rem] border bg-primary px-6 py-16 text-center text-primary-foreground sm:px-10">
-            <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.12]" />
+          <Reveal className="relative overflow-hidden rounded-[2.5rem] border border-primary/30 bg-primary px-6 py-16 text-center text-primary-foreground sm:px-10">
+            <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.14]" />
             <div className="relative">
               <h2 className="mx-auto max-w-2xl text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
                 Stop scribbling. Start{" "}
@@ -207,7 +217,7 @@ export default async function Home() {
                 </span>
               </h2>
               <p className="mx-auto mt-4 max-w-md text-primary-foreground/80">
-                Upload your next lecture and let Atlas take the notes for you.
+                Record your next lecture and let Atlas take the notes for you.
               </p>
               <Button
                 asChild

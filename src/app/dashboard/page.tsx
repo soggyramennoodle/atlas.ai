@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BookOpen, Clock, Plus, Sparkles } from "lucide-react";
+import { BookOpen, Clock, Mic, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
@@ -62,8 +62,8 @@ export default async function DashboardPage() {
             </div>
             <Button asChild size="lg" className="group">
               <Link href="/upload">
-                <Plus className="size-4" />
-                Upload a lecture
+                <Mic className="size-4" />
+                Record a lecture
               </Link>
             </Button>
           </div>
@@ -77,11 +77,11 @@ export default async function DashboardPage() {
                 No notes yet
               </h2>
               <p className="mt-2 max-w-sm text-muted-foreground text-pretty">
-                Upload your first lecture recording and Atlas will turn it into
-                thorough, structured notes.
+                Record your first lecture and Atlas will turn it into thorough,
+                structured notes.
               </p>
               <Button asChild className="mt-6">
-                <Link href="/upload">Upload a lecture</Link>
+                <Link href="/upload">Record a lecture</Link>
               </Button>
             </div>
           ) : (

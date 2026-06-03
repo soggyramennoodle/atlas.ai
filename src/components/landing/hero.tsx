@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, AudioLines } from "lucide-react";
+import { ArrowRight, Mic, AudioLines } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const container = {
@@ -22,36 +22,36 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
   return (
     <section className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-aurora" />
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-60 [mask-image:radial-gradient(60%_50%_at_50%_30%,black,transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-grid opacity-50 [mask-image:radial-gradient(60%_50%_at_50%_25%,black,transparent)]" />
 
       <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 pb-12 pt-36 text-center sm:pt-44">
         <motion.div variants={container} initial="hidden" animate="show">
           <motion.div variants={item} className="flex justify-center">
-            <span className="inline-flex items-center gap-2 rounded-full border bg-background/70 px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur">
-              <Sparkles className="size-3.5 text-primary" />
-              Your smart study assistant
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.07] px-3.5 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.16em] text-primary backdrop-blur">
+              <AudioLines className="size-3.5" />
+              Your private study atelier
             </span>
           </motion.div>
 
           <motion.h1
             variants={item}
-            className="mt-6 text-balance text-5xl font-semibold leading-[0.95] tracking-tight sm:text-7xl"
+            className="mt-7 text-balance text-5xl font-semibold leading-[0.95] tracking-tight sm:text-7xl"
           >
-            Record the lecture.
+            Sit back and listen.
             <br />
-            Atlas writes the{" "}
+            <span className="text-muted-foreground">We&apos;ll remember</span>{" "}
             <span className="font-serif text-6xl font-normal italic text-primary sm:text-8xl">
-              notes.
+              every word.
             </span>
           </motion.h1>
 
           <motion.p
             variants={item}
-            className="mx-auto mt-7 max-w-xl text-pretty text-lg text-muted-foreground"
+            className="mx-auto mt-8 max-w-xl text-pretty text-lg text-muted-foreground"
           >
-            Upload any lecture recording and get thorough, structured notes —
-            a clear summary, key concepts, and every detail captured. So you can
-            actually listen in class.
+            Record any lecture straight from your browser and Atlas hands back
+            thorough, structured notes — a clear summary, key concepts, every
+            detail captured. So you can finally be present in class.
           </motion.p>
 
           <motion.div
@@ -60,7 +60,8 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
           >
             <Button asChild size="lg" className="group h-12 px-6 text-base">
               <Link href={ctaHref}>
-                Upload a lecture
+                <Mic className="size-4" />
+                Record a lecture
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </Button>
@@ -76,7 +77,7 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
 
           <motion.p
             variants={item}
-            className="mt-5 text-xs text-muted-foreground"
+            className="mt-5 font-mono text-xs text-muted-foreground"
           >
             No card required · Your recordings stay private
           </motion.p>
@@ -97,22 +98,22 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
 
 function NotesPreview() {
   return (
-    <div className="mx-auto max-w-3xl overflow-hidden rounded-[1.5rem] border bg-card shadow-2xl shadow-primary/10">
-      <div className="flex items-center gap-2 border-b bg-muted/40 px-4 py-3">
-        <span className="size-3 rounded-full bg-red-400/70" />
-        <span className="size-3 rounded-full bg-amber-400/70" />
-        <span className="size-3 rounded-full bg-emerald-400/70" />
-        <div className="ml-3 flex items-center gap-2 text-xs text-muted-foreground">
+    <div className="mx-auto max-w-3xl overflow-hidden rounded-[1.75rem] border bg-card shadow-2xl ring-luxe">
+      <div className="flex items-center gap-2 border-b bg-background/40 px-4 py-3">
+        <span className="size-3 rounded-full bg-red-400/60" />
+        <span className="size-3 rounded-full bg-amber-400/60" />
+        <span className="size-3 rounded-full bg-emerald-400/60" />
+        <div className="ml-3 flex items-center gap-2 font-mono text-xs text-muted-foreground">
           <AudioLines className="size-3.5 text-primary" />
-          lecture-09-thermodynamics.m4a
+          lecture-09-thermodynamics.webm
         </div>
       </div>
       <div className="grid gap-6 p-6 text-left sm:grid-cols-[1.4fr_1fr] sm:p-8">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-primary">
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">
             Lecture 9
           </p>
-          <h3 className="mt-1 text-xl font-semibold tracking-tight">
+          <h3 className="mt-2 font-serif text-2xl italic tracking-tight">
             The Second Law of Thermodynamics
           </h3>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -132,19 +133,19 @@ function NotesPreview() {
             ))}
           </div>
         </div>
-        <div className="rounded-2xl border bg-muted/30 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="rounded-2xl border bg-background/40 p-4">
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Key concepts
           </p>
           <dl className="mt-3 space-y-3 text-sm">
             <div>
-              <dt className="font-medium">Entropy</dt>
+              <dt className="font-medium text-primary">Entropy</dt>
               <dd className="text-muted-foreground">
                 A measure of a system&apos;s disorder.
               </dd>
             </div>
             <div>
-              <dt className="font-medium">Carnot efficiency</dt>
+              <dt className="font-medium text-primary">Carnot efficiency</dt>
               <dd className="text-muted-foreground">
                 Max efficiency, η = 1 − T_c/T_h.
               </dd>

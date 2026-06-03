@@ -4,79 +4,76 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Atlas — academic study assistant.
-  Design language: clean warm whites, ink-dark text, a calm scholarly indigo,
-  generous radii, and very subtle gradients. Minimal, modern, academic.
+  Atlas — "Midnight Luxe" — a private members' club meets a watchmaker's atelier.
+  Obsidian black, champagne gold, ivory text. Heavy serif drama, monospace data,
+  generous radii, a fine film-grain over everything. Committed dark art direction.
 */
 
 :root {
-  --radius: 0.85rem;
+  --radius: 1.1rem;
 
-  /* Warm paper white, never a flat #fff */
-  --background: oklch(0.994 0.002 95);
-  --foreground: oklch(0.21 0.02 270);
+  /* Obsidian */
+  --background: oklch(0.155 0.012 280);
+  --foreground: oklch(0.965 0.004 90);
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.02 270);
+  /* A hair lifted off the background — the "felt table" surface */
+  --card: oklch(0.195 0.013 280);
+  --card-foreground: oklch(0.965 0.004 90);
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.02 270);
+  --popover: oklch(0.205 0.013 280);
+  --popover-foreground: oklch(0.965 0.004 90);
 
-  /* Scholarly indigo */
-  --primary: oklch(0.46 0.17 277);
-  --primary-foreground: oklch(0.985 0.005 95);
+  /* Champagne gold — the single accent that does all the work */
+  --primary: oklch(0.79 0.106 86);
+  --primary-foreground: oklch(0.17 0.012 280);
 
-  --secondary: oklch(0.97 0.006 280);
-  --secondary-foreground: oklch(0.3 0.03 277);
+  --secondary: oklch(0.255 0.013 280);
+  --secondary-foreground: oklch(0.95 0.004 90);
 
-  --muted: oklch(0.972 0.004 270);
-  --muted-foreground: oklch(0.53 0.02 270);
+  --muted: oklch(0.235 0.012 280);
+  --muted-foreground: oklch(0.72 0.008 90);
 
-  --accent: oklch(0.95 0.02 280);
-  --accent-foreground: oklch(0.35 0.06 277);
+  /* Faint gold-tinted surface for hovers */
+  --accent: oklch(0.28 0.022 86);
+  --accent-foreground: oklch(0.96 0.01 86);
 
-  --destructive: oklch(0.58 0.21 27);
-  --destructive-foreground: oklch(0.985 0.005 95);
+  --destructive: oklch(0.62 0.21 25);
+  --destructive-foreground: oklch(0.98 0.005 90);
 
-  --border: oklch(0.92 0.005 280);
-  --input: oklch(0.92 0.005 280);
-  --ring: oklch(0.46 0.17 277);
+  /* Borders read as hairlines of ivory at low strength */
+  --border: oklch(0.32 0.012 280);
+  --input: oklch(0.34 0.012 280);
+  --ring: oklch(0.79 0.106 86);
 
-  --chart-1: oklch(0.46 0.17 277);
-  --chart-2: oklch(0.6 0.13 200);
-  --chart-3: oklch(0.7 0.15 50);
-  --chart-4: oklch(0.65 0.18 330);
-  --chart-5: oklch(0.55 0.12 150);
+  --chart-1: oklch(0.79 0.106 86);
+  --chart-2: oklch(0.72 0.05 250);
+  --chart-3: oklch(0.7 0.12 40);
+  --chart-4: oklch(0.68 0.1 330);
+  --chart-5: oklch(0.7 0.09 160);
 }
 
+/* Committed to one palette — .dark mirrors :root so component-level
+   `dark:` variants resolve against the same Midnight Luxe tokens. */
 .dark {
-  --background: oklch(0.18 0.02 270);
-  --foreground: oklch(0.96 0.005 95);
-
-  --card: oklch(0.22 0.02 272);
-  --card-foreground: oklch(0.96 0.005 95);
-
-  --popover: oklch(0.22 0.02 272);
-  --popover-foreground: oklch(0.96 0.005 95);
-
-  --primary: oklch(0.72 0.14 280);
-  --primary-foreground: oklch(0.18 0.02 270);
-
-  --secondary: oklch(0.28 0.02 272);
-  --secondary-foreground: oklch(0.96 0.005 95);
-
-  --muted: oklch(0.28 0.02 272);
-  --muted-foreground: oklch(0.7 0.02 270);
-
-  --accent: oklch(0.32 0.03 277);
-  --accent-foreground: oklch(0.96 0.005 95);
-
-  --destructive: oklch(0.62 0.21 27);
-  --destructive-foreground: oklch(0.96 0.005 95);
-
-  --border: oklch(0.3 0.02 272);
-  --input: oklch(0.32 0.02 272);
-  --ring: oklch(0.72 0.14 280);
+  --background: oklch(0.155 0.012 280);
+  --foreground: oklch(0.965 0.004 90);
+  --card: oklch(0.195 0.013 280);
+  --card-foreground: oklch(0.965 0.004 90);
+  --popover: oklch(0.205 0.013 280);
+  --popover-foreground: oklch(0.965 0.004 90);
+  --primary: oklch(0.79 0.106 86);
+  --primary-foreground: oklch(0.17 0.012 280);
+  --secondary: oklch(0.255 0.013 280);
+  --secondary-foreground: oklch(0.95 0.004 90);
+  --muted: oklch(0.235 0.012 280);
+  --muted-foreground: oklch(0.72 0.008 90);
+  --accent: oklch(0.28 0.022 86);
+  --accent-foreground: oklch(0.96 0.01 86);
+  --destructive: oklch(0.62 0.21 25);
+  --destructive-foreground: oklch(0.98 0.005 90);
+  --border: oklch(0.32 0.012 280);
+  --input: oklch(0.34 0.012 280);
+  --ring: oklch(0.79 0.106 86);
 }
 
 @theme inline {
@@ -131,33 +128,69 @@
   }
 
   ::selection {
-    background-color: color-mix(in oklch, var(--primary) 22%, transparent);
+    background-color: color-mix(in oklch, var(--primary) 30%, transparent);
+    color: var(--foreground);
   }
 }
 
 @layer utilities {
-  /* Subtle academic backdrop: a faint indigo aurora over warm paper. */
+  /* Global film grain — eliminates flat digital gradients. Sits above page
+     content (pointer-events none) but below the navbar and modals. */
+  .noise-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* A gold aurora bleeding from the top, over obsidian. */
   .bg-aurora {
     background-image:
       radial-gradient(
-        60rem 40rem at 75% -10%,
-        color-mix(in oklch, var(--primary) 12%, transparent),
+        58rem 40rem at 70% -12%,
+        color-mix(in oklch, var(--primary) 18%, transparent),
         transparent 60%
       ),
       radial-gradient(
-        45rem 35rem at 10% 10%,
-        color-mix(in oklch, var(--chart-2) 9%, transparent),
+        42rem 34rem at 8% 4%,
+        color-mix(in oklch, var(--chart-2) 14%, transparent),
         transparent 55%
       );
   }
 
-  /* Faint dotted grid, like graph paper. */
+  /* Faint architectural grid, like an atelier blueprint. */
   .bg-grid {
     background-image: radial-gradient(
-      color-mix(in oklch, var(--foreground) 8%, transparent) 1px,
+      color-mix(in oklch, var(--foreground) 9%, transparent) 1px,
       transparent 1px
     );
-    background-size: 22px 22px;
+    background-size: 26px 26px;
+  }
+
+  /* Hairline gold ring used to lift premium surfaces off the felt. */
+  .ring-luxe {
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, var(--foreground) 8%, transparent),
+      0 30px 80px -40px color-mix(in oklch, var(--primary) 40%, transparent);
+  }
+
+  /* Magnetic interaction — every button/link gets weighted hover motion. */
+  .magnetic {
+    transition:
+      transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      color 0.25s ease,
+      box-shadow 0.25s ease,
+      opacity 0.25s ease;
+  }
+  .magnetic:hover {
+    transform: scale(1.03);
+  }
+  .magnetic:active {
+    transform: scale(0.97);
   }
 
   .text-balance {

@@ -15,9 +15,14 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  baseMimeType,
+  extForMime,
+  uploadLectureAndGenerate,
+  MAX_BYTES,
+  type CaptureStage,
+} from "@/lib/upload-lecture";
 
-const BUCKET = "lectures";
-const MAX_BYTES = 100 * 1024 * 1024; // 100 MB — raise the bucket limit to match.
 const ACCEPTED = [
   "audio/mpeg",
   "audio/mp3",
@@ -33,9 +38,7 @@ const ACCEPTED = [
   "audio/x-flac",
 ];
 
-type Stage = "idle" | "uploading" | "analyzing";
-
-const STAGE_COPY: Record<Exclude<Stage, "idle">, string> = {
+const STAGE_COPY: Record<Exclude<CaptureStage, "idle">, string> = {
   uploading: "Uploading your recording…",
   analyzing: "Atlas is listening and writing your notes…",
 };
@@ -59,7 +62,7 @@ export function Uploader({ userId }: { userId: string }) {
   const [duration, setDuration] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [stage, setStage] = useState<Stage>("idle");
+  const [stage, setStage] = useState<CaptureStage>("idle");
 
   const busy = stage !== "idle";
 
@@ -107,41 +110,21 @@ export function Uploader({ userId }: { userId: string }) {
   async function generate() {
     if (!file) return;
     const supabase = createClient();
+    const mimeType = baseMimeType(file.type || "audio/mpeg");
+    const ext = file.name.split(".").pop()?.toLowerCase() || extForMime(mimeType);
 
     try {
-      setStage("uploading");
-      const ext = file.name.split(".").pop()?.toLowerCase() || "audio";
-      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-      const mimeType = file.type || "audio/mpeg";
-
-      const { error: uploadError } = await supabase.storage
-        .from(BUCKET)
-        .upload(path, file, { contentType: mimeType, upsert: false });
-
-      if (uploadError) {
-        throw new Error(
-          uploadError.message.includes("exceeded")
-            ? "The file is larger than your storage bucket allows. Raise the bucket's file size limit in Supabase."
-            : `Upload failed: ${uploadError.message}`
-        );
-      }
-
-      setStage("analyzing");
-      const res = await fetch("/api/notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          path,
-          mimeType,
-          durationSeconds: duration ? Math.round(duration) : null,
-        }),
+      const { id } = await uploadLectureAndGenerate({
+        supabase,
+        userId,
+        data: file,
+        mimeType,
+        ext,
+        durationSeconds: duration,
+        onStage: setStage,
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Something went wrong.");
-
       toast.success("Your notes are ready!");
-      router.push(`/notes/${data.id}`);
+      router.push(`/notes/${id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
       setStage("idle");
