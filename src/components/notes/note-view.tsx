@@ -17,7 +17,7 @@ import { notesBodyToHtml, sanitizeNoteHtml } from "@/lib/notes-html";
 import { SummaryCard } from "./summary-card";
 import { TranscriptPanel } from "./transcript-panel";
 import { SourceBullet } from "./source-bubble";
-import { ConceptCard } from "./concept-card";
+import { KeyConceptsGrid } from "./concept-card";
 import { RichNoteEditor } from "./rich-note-editor";
 
 /** Coerce a bullet (old `string` shape or new `NotePoint`) to a NotePoint. */
@@ -233,28 +233,29 @@ export function NoteView({
         {shown.keyConcepts.length > 0 && (
           <section>
             <h3 className="text-xl font-semibold tracking-tight">Key concepts</h3>
-            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-              {shown.keyConcepts.map((concept, i) =>
-                editMode ? (
-                  <ConceptBlock
-                    key={i}
-                    concept={concept}
-                    onTerm={(v) => update((d) => void (d.keyConcepts[i].term = v))}
-                    onDefinition={(v) =>
-                      update((d) => void (d.keyConcepts[i].definition = v))
-                    }
-                  />
-                ) : (
-                  <ConceptCard
-                    key={i}
-                    concept={concept}
-                    context={[saved.subject, saved.title]
-                      .filter(Boolean)
-                      .join(" — ")}
-                  />
-                )
+            <div className="mt-4">
+              {editMode ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {draft.keyConcepts.map((concept, i) => (
+                    <ConceptBlock
+                      key={i}
+                      concept={concept}
+                      onTerm={(v) => update((d) => void (d.keyConcepts[i].term = v))}
+                      onDefinition={(v) =>
+                        update((d) => void (d.keyConcepts[i].definition = v))
+                      }
+                    />
+                  ))}
+                </div>
+              ) : (
+                <KeyConceptsGrid
+                  concepts={saved.keyConcepts}
+                  context={[saved.subject, saved.title]
+                    .filter(Boolean)
+                    .join(" — ")}
+                />
               )}
-            </dl>
+            </div>
           </section>
         )}
       </article>
