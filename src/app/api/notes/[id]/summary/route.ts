@@ -71,7 +71,13 @@ export async function POST(
       config: {
         systemInstruction: SYSTEM_PROMPT,
         temperature: 0.4,
-        maxOutputTokens: 500,
+        // gemini-2.5-flash is a thinking model and its hidden reasoning tokens
+        // count against maxOutputTokens. A short summary needs no reasoning, so
+        // we disable thinking — otherwise variable thinking length eats the
+        // budget and truncates the visible summary mid-sentence. The raised
+        // ceiling is then pure headroom for the prose itself.
+        thinkingConfig: { thinkingBudget: 0 },
+        maxOutputTokens: 1024,
       },
     });
   } catch (err) {

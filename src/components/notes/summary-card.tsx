@@ -59,6 +59,12 @@ export function SummaryCard({
         full += decoder.decode(value, { stream: true });
         setStreamed(full);
       }
+      // Flush any bytes the streaming decoder was still buffering.
+      const tail = decoder.decode();
+      if (tail) {
+        full += tail;
+        setStreamed(full);
+      }
 
       const final = full.trim();
       if (!final) throw new Error("Atlas returned an empty summary.");
