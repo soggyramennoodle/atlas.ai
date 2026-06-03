@@ -8,6 +8,7 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import { pointText, metaLine, type ExportData } from "./shared";
+import { htmlToExportLines, type InlineRun } from "./html-blocks";
 
 // Clean print palette — ivory page, near-black text, champagne accents.
 const GOLD = "#9a7b34";
@@ -36,6 +37,7 @@ const styles = StyleSheet.create({
   summaryText: { lineHeight: 1.5 },
   h1: { fontSize: 14, fontWeight: 700, marginTop: 16, marginBottom: 8, color: INK },
   h2: { fontSize: 11, fontWeight: 700, marginTop: 10, marginBottom: 5, color: MUTED },
+  para: { marginBottom: 6, lineHeight: 1.5 },
   bulletRow: { flexDirection: "row", marginBottom: 5, paddingRight: 6 },
   dot: { color: GOLD, marginRight: 6 },
   bulletText: { flex: 1, lineHeight: 1.45 },
@@ -55,6 +57,106 @@ const styles = StyleSheet.create({
   },
 });
 
+/** Render inline formatting runs as nested <Text> nodes. */
+function Runs({ runs }: { runs: InlineRun[] }) {
+  return (
+    <>
+      {runs.map((r, i) => (
+        <Text
+          key={i}
+          style={{
+            fontWeight: r.bold ? 700 : 400,
+            fontStyle: r.italic ? "italic" : "normal",
+            textDecoration: r.underline ? "underline" : "none",
+          }}
+        >
+          {r.text}
+        </Text>
+      ))}
+    </>
+  );
+}
+
+/** Rich-text body (edited notes): a flat, page-break-safe line list. */
+function HtmlBody({ html }: { html: string }) {
+  const lines = htmlToExportLines(html);
+  return (
+    <>
+      {lines.map((line, i) => {
+        if (line.type === "h2") {
+          return (
+            <Text key={i} style={styles.h1} minPresenceAhead={40}>
+              <Runs runs={line.runs} />
+            </Text>
+          );
+        }
+        if (line.type === "h3") {
+          return (
+            <Text key={i} style={styles.h2} minPresenceAhead={32}>
+              <Runs runs={line.runs} />
+            </Text>
+          );
+        }
+        if (line.type === "li") {
+          return (
+            <View
+              key={i}
+              style={[styles.bulletRow, { marginLeft: 6 + line.level * 14 }]}
+            >
+              <Text style={styles.dot}>{line.marker ?? "•"}</Text>
+              <Text style={styles.bulletText}>
+                <Runs runs={line.runs} />
+              </Text>
+            </View>
+          );
+        }
+        return (
+          <Text key={i} style={styles.para}>
+            <Runs runs={line.runs} />
+          </Text>
+        );
+      })}
+    </>
+  );
+}
+
+/** Structured body (un-edited notes). */
+function StructuredBody({ notes }: { notes: ExportData["notes"] }) {
+  return (
+    <>
+      {(notes.sections ?? []).map((section, i) => (
+        // No wrap={false}: long sections must be allowed to flow across pages,
+        // otherwise react-pdf overlaps the overflow onto a single page (the
+        // jumbled-text bug). minPresenceAhead keeps a heading with its body.
+        <View key={i}>
+          <Text style={styles.h1} minPresenceAhead={40}>
+            {(i + 1).toString().padStart(2, "0")}  {section.heading}
+          </Text>
+          {(section.points ?? []).map((p, j) => (
+            <View key={j} style={styles.bulletRow}>
+              <Text style={styles.dot}>•</Text>
+              <Text style={styles.bulletText}>{pointText(p)}</Text>
+            </View>
+          ))}
+          {(section.subsections ?? []).map((sub, k) => (
+            <View key={k} style={styles.subBlock}>
+              <Text style={styles.h2} minPresenceAhead={28}>
+                {sub.heading}
+              </Text>
+              {(sub.points ?? []).map((p, j) => (
+                <View key={j} style={styles.bulletRow}>
+                  <Text style={styles.dot}>–</Text>
+                  <Text style={styles.bulletText}>{pointText(p)}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      ))}
+    </>
+  );
+}
+
 function NoteDocument({ data }: { data: ExportData }) {
   const { notes } = data;
   return (
@@ -65,36 +167,17 @@ function NoteDocument({ data }: { data: ExportData }) {
         <View style={styles.rule} />
 
         {notes.summary ? (
-          <View style={styles.summaryBox}>
+          <View style={styles.summaryBox} wrap={false}>
             <Text style={styles.summaryLabel}>SUMMARY</Text>
             <Text style={styles.summaryText}>{notes.summary}</Text>
           </View>
         ) : null}
 
-        {(notes.sections ?? []).map((section, i) => (
-          <View key={i} wrap={false}>
-            <Text style={styles.h1}>
-              {(i + 1).toString().padStart(2, "0")}  {section.heading}
-            </Text>
-            {(section.points ?? []).map((p, j) => (
-              <View key={j} style={styles.bulletRow}>
-                <Text style={styles.dot}>•</Text>
-                <Text style={styles.bulletText}>{pointText(p)}</Text>
-              </View>
-            ))}
-            {(section.subsections ?? []).map((sub, k) => (
-              <View key={k} style={styles.subBlock}>
-                <Text style={styles.h2}>{sub.heading}</Text>
-                {(sub.points ?? []).map((p, j) => (
-                  <View key={j} style={styles.bulletRow}>
-                    <Text style={styles.dot}>–</Text>
-                    <Text style={styles.bulletText}>{pointText(p)}</Text>
-                  </View>
-                ))}
-              </View>
-            ))}
-          </View>
-        ))}
+        {notes.bodyHtml ? (
+          <HtmlBody html={notes.bodyHtml} />
+        ) : (
+          <StructuredBody notes={notes} />
+        )}
 
         {(notes.keyConcepts ?? []).length > 0 ? (
           <View>

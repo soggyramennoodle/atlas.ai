@@ -3,6 +3,7 @@ import { Type, type Schema } from "@google/genai";
 import { createClient } from "@/lib/supabase/server";
 import { getGeminiClient, HELPER_MODEL } from "@/lib/gemini";
 import { mergeMemory, type MemoryDelta } from "@/lib/memory";
+import { htmlToPlainText } from "@/lib/notes-html";
 import type { StructuredNotes, UserMemory } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -17,12 +18,18 @@ interface Body {
 /** Flatten a notes document to a comparable plain-text outline. */
 function toText(n: StructuredNotes): string {
   const lines: string[] = [`# ${n.title}`, n.summary ?? ""];
-  for (const s of n.sections ?? []) {
-    lines.push(`## ${s.heading}`);
-    for (const p of s.points ?? []) lines.push(`- ${pointText(p)}`);
-    for (const sub of s.subsections ?? []) {
-      lines.push(`### ${sub.heading}`);
-      for (const p of sub.points ?? []) lines.push(`  - ${pointText(p)}`);
+  // Once a note has been edited in the rich-text editor, the HTML body is the
+  // source of truth — diff against that instead of the stale baseline sections.
+  if (n.bodyHtml) {
+    lines.push(htmlToPlainText(n.bodyHtml));
+  } else {
+    for (const s of n.sections ?? []) {
+      lines.push(`## ${s.heading}`);
+      for (const p of s.points ?? []) lines.push(`- ${pointText(p)}`);
+      for (const sub of s.subsections ?? []) {
+        lines.push(`### ${sub.heading}`);
+        for (const p of sub.points ?? []) lines.push(`  - ${pointText(p)}`);
+      }
     }
   }
   for (const c of n.keyConcepts ?? []) lines.push(`* ${c.term}: ${c.definition}`);

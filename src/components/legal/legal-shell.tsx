@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+
 export interface LegalSection {
   heading: string;
   body: string[];
@@ -19,7 +22,14 @@ export function LegalShell({
     <main className="relative px-4 pb-24 pt-16 lg:pt-24">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-aurora opacity-50" />
       <article className="relative mx-auto max-w-2xl">
-        <p className="font-mono text-xs uppercase tracking-[0.25em] text-primary">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:-translate-x-0.5 hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+          Back
+        </Link>
+        <p className="mt-8 font-mono text-xs uppercase tracking-[0.25em] text-primary">
           Legal
         </p>
         <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">

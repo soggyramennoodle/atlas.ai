@@ -8,6 +8,56 @@ import {
   AlignmentType,
 } from "docx";
 import { pointText, metaLine, type ExportData } from "./shared";
+import { htmlToExportLines, type InlineRun } from "./html-blocks";
+
+/** Map inline runs to docx TextRuns, preserving bold/italic/underline. */
+function toRuns(runs: InlineRun[]): TextRun[] {
+  return runs.map(
+    (r) =>
+      new TextRun({
+        text: r.text,
+        bold: r.bold,
+        italics: r.italic,
+        underline: r.underline ? {} : undefined,
+      })
+  );
+}
+
+/** Build the note-body paragraphs from edited rich-text HTML. */
+function htmlBodyParagraphs(html: string): Paragraph[] {
+  return htmlToExportLines(html).map((line) => {
+    if (line.type === "h2") {
+      return new Paragraph({
+        heading: HeadingLevel.HEADING_1,
+        children: toRuns(line.runs),
+      });
+    }
+    if (line.type === "h3") {
+      return new Paragraph({
+        heading: HeadingLevel.HEADING_2,
+        children: toRuns(line.runs),
+      });
+    }
+    if (line.type === "li") {
+      // Bullets use docx list formatting; ordered items carry their marker
+      // inline (keeps numbering without a numbering definition).
+      if (line.marker && line.marker !== "•") {
+        return new Paragraph({
+          indent: { left: 360 + line.level * 360 },
+          children: [
+            new TextRun({ text: `${line.marker} ` }),
+            ...toRuns(line.runs),
+          ],
+        });
+      }
+      return new Paragraph({
+        bullet: { level: line.level },
+        children: toRuns(line.runs),
+      });
+    }
+    return new Paragraph({ children: toRuns(line.runs) });
+  });
+}
 
 /** Render a notes document to a .docx buffer with proper heading levels. */
 export async function renderNoteDocx(data: ExportData): Promise<Buffer> {
@@ -37,28 +87,33 @@ export async function renderNoteDocx(data: ExportData): Promise<Buffer> {
     );
   }
 
-  // Sections (H1) → bullets, subsections (H2) → indented bullets
-  (notes.sections ?? []).forEach((section, i) => {
-    children.push(
-      new Paragraph({
-        heading: HeadingLevel.HEADING_1,
-        text: `${(i + 1).toString().padStart(2, "0")}  ${section.heading}`,
-      })
-    );
-    (section.points ?? []).forEach((p) => {
-      children.push(new Paragraph({ text: pointText(p), bullet: { level: 0 } }));
-    });
-    (section.subsections ?? []).forEach((sub) => {
+  // Body: rich-text HTML once edited, else the structured sections.
+  if (notes.bodyHtml) {
+    children.push(...htmlBodyParagraphs(notes.bodyHtml));
+  } else {
+    // Sections (H1) → bullets, subsections (H2) → indented bullets
+    (notes.sections ?? []).forEach((section, i) => {
       children.push(
-        new Paragraph({ heading: HeadingLevel.HEADING_2, text: sub.heading })
+        new Paragraph({
+          heading: HeadingLevel.HEADING_1,
+          text: `${(i + 1).toString().padStart(2, "0")}  ${section.heading}`,
+        })
       );
-      (sub.points ?? []).forEach((p) => {
+      (section.points ?? []).forEach((p) => {
+        children.push(new Paragraph({ text: pointText(p), bullet: { level: 0 } }));
+      });
+      (section.subsections ?? []).forEach((sub) => {
         children.push(
-          new Paragraph({ text: pointText(p), bullet: { level: 1 } })
+          new Paragraph({ heading: HeadingLevel.HEADING_2, text: sub.heading })
         );
+        (sub.points ?? []).forEach((p) => {
+          children.push(
+            new Paragraph({ text: pointText(p), bullet: { level: 1 } })
+          );
+        });
       });
     });
-  });
+  }
 
   // Key concepts — bold term, definition beneath
   if ((notes.keyConcepts ?? []).length > 0) {

@@ -32,7 +32,7 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
           <motion.div variants={item} className="flex justify-center">
             <span className="group inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.07] px-4 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary backdrop-blur">
               <AudioLines className="size-3.5" />
-              Your private study atelier
+              A note taker, made for you
             </span>
           </motion.div>
 

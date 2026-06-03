@@ -310,6 +310,81 @@
   }
 }
 
+/* Note body typography — shared by the rich-text editor and the read-only
+   view so an edited note reads identically to how it was written (§1). */
+.note-prose {
+  color: var(--foreground);
+  line-height: 1.7;
+  font-size: 1rem;
+}
+.note-prose:focus {
+  outline: none;
+}
+.note-prose > * + * {
+  margin-top: 0.85rem;
+}
+.note-prose h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 1.9rem;
+}
+.note-prose h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 1.4rem;
+  color: color-mix(in oklch, var(--foreground) 92%, transparent);
+}
+.note-prose p {
+  text-wrap: pretty;
+}
+.note-prose ul,
+.note-prose ol {
+  padding-left: 1.4rem;
+}
+.note-prose ul {
+  list-style: none;
+}
+.note-prose ul > li {
+  position: relative;
+}
+.note-prose ul > li::before {
+  content: "";
+  position: absolute;
+  left: -1.05rem;
+  top: 0.72em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--primary) 65%, transparent);
+}
+.note-prose ol {
+  list-style: decimal;
+}
+.note-prose li {
+  margin-top: 0.4rem;
+  padding-left: 0.15rem;
+}
+.note-prose li::marker {
+  color: var(--muted-foreground);
+}
+.note-prose strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.note-prose u {
+  text-decoration-color: color-mix(in oklch, var(--primary) 60%, transparent);
+  text-underline-offset: 2px;
+}
+/* TipTap placeholder for an empty document. */
+.note-prose p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
 @property --atlas-angle {
   syntax: "<angle>";
   initial-value: 0deg;

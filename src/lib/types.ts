@@ -48,6 +48,14 @@ export interface StructuredNotes {
    * Optional because notes generated before this field existed won't have it.
    */
   transcript?: string;
+  /**
+   * Rich-text HTML of the note body, produced once the student edits the note
+   * in the word-processor editor. When present it is the source of truth for
+   * the body (sections/points are kept only as the original AI baseline, used
+   * for the memory diff). Absent for freshly generated, un-edited notes —
+   * those still render from the structured `sections`.
+   */
+  bodyHtml?: string;
 }
 
 /** A saved note row as stored in the database. */

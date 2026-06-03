@@ -59,8 +59,12 @@ export function PrivacyTrust() {
           </div>
 
           <p className="mt-7 text-sm text-muted-foreground">
-            Read our{" "}
+            Read about{" "}
             <Link href="/privacy" className="text-primary hover:underline">
+              our approach to privacy
+            </Link>
+            , our{" "}
+            <Link href="/privacy-policy" className="text-primary hover:underline">
               Privacy Policy
             </Link>{" "}
             and{" "}

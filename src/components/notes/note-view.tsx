@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Pencil, Save, X } from "lucide-react";
+import { Check, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import type {
   KeyConcept,
@@ -11,14 +11,14 @@ import type {
   StructuredNotes,
 } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { LearningOverlay, type LearningState } from "./learning-overlay";
+import { notesBodyToHtml, sanitizeNoteHtml } from "@/lib/notes-html";
 import { SummaryCard } from "./summary-card";
 import { TranscriptPanel } from "./transcript-panel";
 import { SourceBullet } from "./source-bubble";
 import { ConceptCard } from "./concept-card";
+import { RichNoteEditor } from "./rich-note-editor";
 
 /** Coerce a bullet (old `string` shape or new `NotePoint`) to a NotePoint. */
 function toPoint(p: NotePoint | string): NotePoint {
@@ -46,10 +46,14 @@ const clone = <T,>(v: T): T =>
     ? structuredClone(v)
     : (JSON.parse(JSON.stringify(v)) as T);
 
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+type SaveStatus = "idle" | "saving" | "saved";
+
 /**
  * Renderer + editor for a set of structured lecture notes. View mode mirrors
- * Gemini's output; edit mode (§3) turns every field into a Midnight-Luxe input
- * and, on save, persists the note and triggers the AI-memory animation (§2).
+ * Gemini's output; edit mode (§1) turns the whole note body into one continuous
+ * word-processor canvas, autosaving as you type with a quiet "Saved" indicator.
  */
 export function NoteView({
   note,
@@ -60,64 +64,17 @@ export function NoteView({
   const [saved, setSaved] = useState<StructuredNotes>(initial);
   const [draft, setDraft] = useState<StructuredNotes>(() => clone(initial));
   const [editMode, setEditMode] = useState(false);
-  const [savingState, setSaving] = useState(false);
-  const [learning, setLearning] = useState<LearningState>(null);
+  const [status, setStatus] = useState<SaveStatus>("idle");
+  const [editorSeed, setEditorSeed] = useState("");
 
-  const dirty = useMemo(
-    () => JSON.stringify(draft) !== JSON.stringify(saved),
-    [draft, saved]
-  );
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+  const originalRef = useRef<StructuredNotes>(initial);
+  const savedRef = useRef(saved);
+  savedRef.current = saved;
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function startEditing() {
-    setDraft(clone(saved));
-    setEditMode(true);
-  }
-
-  function discard() {
-    if (dirty && !confirm("Discard your changes to these notes?")) return;
-    setDraft(clone(saved));
-    setEditMode(false);
-  }
-
-  async function save() {
-    if (!dirty) {
-      setEditMode(false);
-      return;
-    }
-    setSaving(true);
-    const previous = saved; // pre-edit version, for the memory diff
-    try {
-      const res = await fetch(`/api/notes/${note.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: draft }),
-      });
-      if (!res.ok) throw new Error();
-      setSaved(clone(draft));
-      setEditMode(false);
-
-      // §2: learn from the edits. Best-effort and non-blocking.
-      setLearning("learning");
-      void fetch("/api/memory/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          noteId: note.id,
-          original: previous,
-          edited: draft,
-        }),
-      }).catch(() => {});
-      // Hold the learning treatment ~2.5s, then a brief success state.
-      window.setTimeout(() => setLearning("done"), 2500);
-      window.setTimeout(() => setLearning(null), 3900);
-    } catch {
-      toast.error("Couldn't save your changes. Please try again.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  // ── field updaters (immutable) ──────────────────────────────────────────
   const update = (fn: (d: StructuredNotes) => void) =>
     setDraft((prev) => {
       const next = clone(prev);
@@ -125,51 +82,123 @@ export function NoteView({
       return next;
     });
 
+  // ── persistence ──────────────────────────────────────────────────────────
+  const persist = useCallback(async () => {
+    const payload = clone(draftRef.current);
+    if (same(payload, savedRef.current)) return;
+    setStatus("saving");
+    try {
+      const res = await fetch(`/api/notes/${note.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: payload }),
+      });
+      if (!res.ok) throw new Error();
+      setSaved(payload);
+      setStatus("saved");
+      if (fadeTimer.current) clearTimeout(fadeTimer.current);
+      fadeTimer.current = setTimeout(
+        () => setStatus((s) => (s === "saved" ? "idle" : s)),
+        2000
+      );
+    } catch {
+      setStatus("idle");
+      toast.error("Couldn't save your changes. Retrying as you type.");
+    }
+  }, [note.id]);
+
+  // Debounced autosave whenever the draft drifts from what's saved.
+  useEffect(() => {
+    if (!editMode || same(draft, saved)) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => void persist(), 1100);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [draft, saved, editMode, persist]);
+
+  useEffect(
+    () => () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (fadeTimer.current) clearTimeout(fadeTimer.current);
+    },
+    []
+  );
+
+  function startEditing() {
+    const base = clone(saved);
+    setDraft(base);
+    originalRef.current = clone(saved);
+    setEditorSeed(saved.bodyHtml ?? notesBodyToHtml(saved));
+    setEditMode(true);
+  }
+
+  async function done() {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    const edited = clone(draftRef.current);
+    const changed = !same(edited, originalRef.current);
+    if (!same(edited, savedRef.current)) await persist();
+    setEditMode(false);
+
+    // §1 carry-over of the old memory feature: learn from the edits, quietly.
+    if (changed) {
+      void fetch("/api/memory/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          noteId: note.id,
+          original: originalRef.current,
+          edited,
+        }),
+      }).catch(() => {});
+    }
+  }
+
   const shown = editMode ? draft : saved;
 
   return (
     <div className="relative">
       {/* Notes-section toolbar */}
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-5 flex items-center justify-between gap-3">
         <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
           {editMode ? "Editing notes" : "Lecture notes"}
         </h2>
-        {!editMode && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={startEditing}
-            className="gap-2"
-          >
-            <Pencil className="size-3.5" />
-            Edit notes
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          <AutosaveIndicator status={editMode ? status : "idle"} />
+          {editMode ? (
+            <Button size="sm" onClick={done} className="gap-2">
+              <Check className="size-3.5" />
+              Done
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={startEditing}
+              className="gap-2"
+            >
+              <Pencil className="size-3.5" />
+              Edit notes
+            </Button>
+          )}
+        </div>
       </div>
 
-      <motion.article
-        animate={{
-          boxShadow: editMode
-            ? "0 0 0 1px color-mix(in oklch, var(--primary) 45%, transparent)"
-            : "0 0 0 0px transparent",
-        }}
-        transition={{ duration: 0.3 }}
-        className={cn(
-          "relative space-y-10 rounded-[1.5rem] transition",
-          editMode && "bg-primary/[0.02] p-4 sm:p-6"
-        )}
-        style={{ filter: learning ? "blur(2px)" : "none" }}
-      >
+      <article className="relative space-y-10">
         {/* Summary */}
         {editMode ? (
           <section className="rounded-[1.5rem] border bg-primary/[0.04] p-6 sm:p-7">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-primary">
               Summary
             </h3>
-            <Textarea
+            <AutoTextarea
               value={draft.summary}
-              onChange={(e) => update((d) => void (d.summary = e.target.value))}
-              className="mt-3 min-h-24"
+              onChange={(v) => update((d) => void (d.summary = v))}
+              className="mt-3 w-full resize-none bg-transparent text-pretty leading-relaxed text-foreground/90 focus:outline-none"
+              placeholder="A short overview of the lecture…"
             />
           </section>
         ) : (
@@ -181,30 +210,24 @@ export function NoteView({
           <TranscriptPanel transcript={saved.transcript} />
         )}
 
-        {/* Detailed sections */}
-        <div className="space-y-9">
-          {shown.sections.map((section, i) => (
-            <SectionBlock
-              key={i}
-              index={i}
-              section={section}
-              editMode={editMode}
-              onHeading={(v) => update((d) => void (d.sections[i].heading = v))}
-              onPoint={(j, v) =>
-                update((d) => void (d.sections[i].points[j].text = v))
-              }
-              onSubHeading={(k, v) =>
-                update((d) => void (d.sections[i].subsections![k].heading = v))
-              }
-              onSubPoint={(k, j, v) =>
-                update(
-                  (d) =>
-                    void (d.sections[i].subsections![k].points[j].text = v)
-                )
-              }
-            />
-          ))}
-        </div>
+        {/* Note body — one continuous canvas in edit mode */}
+        {editMode ? (
+          <RichNoteEditor
+            initialHtml={editorSeed}
+            onChange={(html) => update((d) => void (d.bodyHtml = html))}
+          />
+        ) : saved.bodyHtml ? (
+          <div
+            className="note-prose"
+            dangerouslySetInnerHTML={{ __html: sanitizeNoteHtml(saved.bodyHtml) }}
+          />
+        ) : (
+          <div className="space-y-9">
+            {saved.sections.map((section, i) => (
+              <SectionView key={i} index={i} section={section} />
+            ))}
+          </div>
+        )}
 
         {/* Key concepts */}
         {shown.keyConcepts.length > 0 && (
@@ -216,9 +239,7 @@ export function NoteView({
                   <ConceptBlock
                     key={i}
                     concept={concept}
-                    onTerm={(v) =>
-                      update((d) => void (d.keyConcepts[i].term = v))
-                    }
+                    onTerm={(v) => update((d) => void (d.keyConcepts[i].term = v))}
                     onDefinition={(v) =>
                       update((d) => void (d.keyConcepts[i].definition = v))
                     }
@@ -236,66 +257,79 @@ export function NoteView({
             </dl>
           </section>
         )}
-
-        <LearningOverlay state={learning} />
-      </motion.article>
-
-      {/* Floating save / discard bar */}
-      <AnimatePresence>
-        {editMode && (
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 24 }}
-            transition={{ type: "spring", stiffness: 360, damping: 30 }}
-            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border bg-card/95 p-1.5 shadow-2xl backdrop-blur-xl ring-luxe"
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={discard}
-              disabled={savingState}
-              className="gap-1.5"
-            >
-              <X className="size-4" />
-              Discard
-            </Button>
-            <Button
-              size="sm"
-              onClick={save}
-              disabled={savingState}
-              className="gap-1.5"
-            >
-              {savingState ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Save className="size-4" />
-              )}
-              Save changes
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </article>
     </div>
   );
 }
 
-function SectionBlock({
+/** A small "Saved" pill that fades in after a save and out ~2s later (§1). */
+function AutosaveIndicator({ status }: { status: SaveStatus }) {
+  return (
+    <AnimatePresence>
+      {status !== "idle" && (
+        <motion.span
+          key={status}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.3 }}
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
+        >
+          {status === "saving" ? (
+            <>
+              <Loader2 className="size-3 animate-spin" />
+              Saving…
+            </>
+          ) : (
+            <>
+              <Check className="size-3 text-emerald-400" />
+              Saved
+            </>
+          )}
+        </motion.span>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/** Borderless textarea that grows with its content — used for the summary. */
+function AutoTextarea({
+  value,
+  onChange,
+  className,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+  placeholder?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      rows={2}
+      className={className}
+    />
+  );
+}
+
+/** Read-only structured section (legacy notes without rich-text body). */
+function SectionView({
   index,
   section,
-  editMode,
-  onHeading,
-  onPoint,
-  onSubHeading,
-  onSubPoint,
 }: {
   index: number;
   section: NoteSection;
-  editMode: boolean;
-  onHeading: (v: string) => void;
-  onPoint: (j: number, v: string) => void;
-  onSubHeading: (k: number, v: string) => void;
-  onSubPoint: (k: number, j: number, v: string) => void;
 }) {
   return (
     <section className="scroll-mt-24">
@@ -303,47 +337,23 @@ function SectionBlock({
         <span className="font-mono text-sm text-muted-foreground">
           {(index + 1).toString().padStart(2, "0")}
         </span>
-        {editMode ? (
-          <Input
-            value={section.heading}
-            onChange={(e) => onHeading(e.target.value)}
-            className="text-xl font-semibold"
-          />
-        ) : (
-          <h3 className="text-xl font-semibold tracking-tight">
-            {section.heading}
-          </h3>
-        )}
+        <h3 className="text-xl font-semibold tracking-tight">
+          {section.heading}
+        </h3>
       </div>
 
       <ul className="mt-4 space-y-2.5">
         {section.points.map((point, j) => (
           <li key={j} className="flex gap-3 leading-relaxed">
             <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-primary/60" />
-            {editMode ? (
-              <Textarea
-                value={point.text}
-                onChange={(e) => onPoint(j, e.target.value)}
-                className="min-h-16 flex-1"
-              />
-            ) : (
-              <SourceBullet text={point.text} excerpt={point.source_excerpt} />
-            )}
+            <SourceBullet text={point.text} excerpt={point.source_excerpt} />
           </li>
         ))}
       </ul>
 
       {section.subsections?.map((sub, k) => (
         <div key={k} className="mt-5 border-l-2 border-border pl-5">
-          {editMode ? (
-            <Input
-              value={sub.heading}
-              onChange={(e) => onSubHeading(k, e.target.value)}
-              className="font-medium"
-            />
-          ) : (
-            <h4 className="font-medium tracking-tight">{sub.heading}</h4>
-          )}
+          <h4 className="font-medium tracking-tight">{sub.heading}</h4>
           <ul className="mt-2.5 space-y-2">
             {sub.points.map((point, j) => (
               <li
@@ -351,15 +361,7 @@ function SectionBlock({
                 className="flex gap-3 text-sm leading-relaxed text-muted-foreground"
               >
                 <span className="mt-2 size-1.5 shrink-0 rounded-full bg-border" />
-                {editMode ? (
-                  <Textarea
-                    value={point.text}
-                    onChange={(e) => onSubPoint(k, j, e.target.value)}
-                    className="min-h-14 flex-1"
-                  />
-                ) : (
-                  <SourceBullet text={point.text} excerpt={point.source_excerpt} />
-                )}
+                <SourceBullet text={point.text} excerpt={point.source_excerpt} />
               </li>
             ))}
           </ul>
@@ -386,10 +388,10 @@ function ConceptBlock({
         onChange={(e) => onTerm(e.target.value)}
         className="font-semibold"
       />
-      <Textarea
+      <AutoTextarea
         value={concept.definition}
-        onChange={(e) => onDefinition(e.target.value)}
-        className="mt-2 min-h-16"
+        onChange={onDefinition}
+        className="mt-2 w-full resize-none bg-transparent text-sm leading-relaxed text-muted-foreground focus:outline-none"
       />
     </div>
   );

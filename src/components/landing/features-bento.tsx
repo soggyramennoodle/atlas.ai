@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   ListChecks,
   Layers,
   BookMarked,
   Clock,
-  ShieldCheck,
+  ArrowRight,
 } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
 import { cn } from "@/lib/utils";
@@ -24,7 +25,7 @@ function Cell({
     <Reveal
       delay={delay}
       className={cn(
-        "glow-card group relative overflow-hidden rounded-[1.75rem] border bg-card/70 p-6 transition hover:border-primary/30",
+        "glow-card group relative flex flex-col overflow-hidden rounded-[1.75rem] border bg-card/70 p-6 transition hover:border-primary/30",
         className
       )}
     >
@@ -33,37 +34,42 @@ function Cell({
   );
 }
 
-/** Looping waveform that "writes" note lines. */
+/** Looping waveform that "writes" note lines — fills the tall hero card. */
 function WaveToNotes() {
   return (
-    <div className="mt-6 flex items-end gap-4">
-      <div className="flex h-24 items-center gap-[3px]">
-        {Array.from({ length: 16 }).map((_, i) => (
-          <motion.span
-            key={i}
-            className="w-[3px] rounded-full bg-gradient-to-t from-primary/40 to-primary"
-            animate={{ height: ["20%", "90%", "35%", "65%", "25%"] }}
-            transition={{
-              duration: 1.8,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.07,
-            }}
-            style={{ height: "40%" }}
-          />
-        ))}
+    <div className="mt-6 flex flex-1 flex-col gap-4 rounded-2xl border bg-background/30 p-5">
+      <div className="flex items-center gap-4">
+        <div className="flex h-12 items-center gap-[3px]">
+          {Array.from({ length: 18 }).map((_, i) => (
+            <motion.span
+              key={i}
+              className="w-[3px] rounded-full bg-gradient-to-t from-primary/40 to-primary"
+              animate={{ height: ["25%", "90%", "40%", "70%", "30%"] }}
+              transition={{
+                duration: 1.8,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 0.07,
+              }}
+              style={{ height: "40%" }}
+            />
+          ))}
+        </div>
+        <span className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-primary">
+          transcribing…
+        </span>
       </div>
-      <div className="flex-1 space-y-2.5">
-        {[0, 1, 2].map((i) => (
+      <div className="flex flex-1 flex-col justify-center gap-2.5">
+        {[0, 1, 2, 3, 4].map((i) => (
           <motion.div
             key={i}
             className="h-2 rounded-full bg-foreground/10"
-            animate={{ width: ["40%", "90%", "60%"] }}
+            animate={{ width: ["35%", "92%", "58%"] }}
             transition={{
               duration: 3,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: i * 0.4,
+              delay: i * 0.35,
             }}
           />
         ))}
@@ -75,7 +81,7 @@ function WaveToNotes() {
 /** A particle orbiting a definition dot. */
 function OrbitDot() {
   return (
-    <div className="mt-6 grid h-24 place-items-center">
+    <div className="mt-6 grid h-24 flex-1 place-items-center">
       <div className="relative size-20">
         <div className="absolute inset-0 rounded-full border border-dashed border-primary/25" />
         <div className="absolute inset-0 animate-spin-slow">
@@ -92,7 +98,7 @@ function OrbitDot() {
 /** Pulsing concentric clock ring. */
 function PulseClock() {
   return (
-    <div className="mt-6 grid h-24 place-items-center">
+    <div className="mt-6 grid h-24 flex-1 place-items-center">
       <div className="relative grid size-16 place-items-center rounded-full bg-primary/10 ring-1 ring-primary/20 animate-pulse-ring">
         <Clock className="size-6 text-primary" />
       </div>
@@ -100,24 +106,66 @@ function PulseClock() {
   );
 }
 
-/** Fanned, breathing stack of cards. */
-function FannedCards() {
+/** Realistic, tangible note cards — what a student would actually have. */
+function LibraryCards() {
+  const cards = [
+    {
+      title: "Lecture 4 — Mitosis",
+      tag: "Biology",
+      x: -52,
+      rot: -7,
+      z: 10,
+      lines: 3,
+    },
+    {
+      title: "Limits & Continuity",
+      tag: "Calculus",
+      x: 0,
+      rot: 2,
+      z: 20,
+      lines: 4,
+    },
+    {
+      title: "The French Revolution",
+      tag: "History",
+      x: 52,
+      rot: 8,
+      z: 10,
+      lines: 3,
+    },
+  ];
   return (
-    <div className="mt-6 grid h-24 place-items-center">
-      <div className="relative h-16 w-24">
-        {[-8, 0, 8].map((deg, i) => (
+    <div className="mt-6 grid h-40 flex-1 place-items-center">
+      <div className="relative h-36 w-full">
+        {cards.map((c, i) => (
           <motion.div
-            key={deg}
-            className="absolute left-1/2 top-1/2 h-16 w-12 -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-background/70"
-            style={{ rotate: deg, originY: 1 }}
-            animate={{ y: [0, -4, 0] }}
+            key={c.title}
+            className="absolute left-1/2 top-1/2 w-36 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border/80 bg-gradient-to-b from-card to-background/80 p-3 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.7)]"
+            style={{ rotate: `${c.rot}deg`, x: c.x, zIndex: c.z }}
+            animate={{ y: [0, -5, 0] }}
             transition={{
-              duration: 3,
+              duration: 3.4,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: i * 0.2,
+              delay: i * 0.3,
             }}
-          />
+          >
+            <p className="truncate text-[0.7rem] font-semibold tracking-tight text-foreground/90">
+              {c.title}
+            </p>
+            <div className="mt-2 space-y-1.5">
+              {Array.from({ length: c.lines }).map((_, j) => (
+                <div
+                  key={j}
+                  className="h-1.5 rounded-full bg-foreground/10"
+                  style={{ width: `${90 - j * 14}%` }}
+                />
+              ))}
+            </div>
+            <span className="mt-2.5 inline-block rounded-full bg-primary/15 px-2 py-0.5 text-[0.6rem] font-medium text-primary">
+              {c.tag}
+            </span>
+          </motion.div>
         ))}
       </div>
     </div>
@@ -179,7 +227,7 @@ export function FeaturesBento() {
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
               Every lecture saved and searchable — a notebook for the whole term.
             </p>
-            <FannedCards />
+            <LibraryCards />
           </Cell>
 
           <Cell delay={0.06}>
@@ -194,24 +242,32 @@ export function FeaturesBento() {
             <PulseClock />
           </Cell>
 
+          {/* Atlas Enclave — privacy. Lock emoji is part of the brand (§3d). */}
           <Cell delay={0.12} className="sm:col-span-2">
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-                  <ShieldCheck className="size-5" />
+            <div className="flex h-full items-start justify-between gap-6">
+              <div className="flex h-full flex-col">
+                <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-xl leading-none ring-1 ring-primary/20">
+                  🔒
                 </span>
                 <h3 className="mt-4 font-semibold tracking-tight">
-                  Private by default
+                  Atlas Enclave
                 </h3>
                 <p className="mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">
-                  Recordings and notes are tied to your account and protected
-                  with database row-level security. Your keys never leave the
-                  server.
+                  Recordings and notes live in a private space tied to your
+                  account and protected with database row-level security. Never
+                  sold, never shared, never used to train anyone else&apos;s AI.
                 </p>
+                <Link
+                  href="/privacy"
+                  className="group/cta mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary"
+                >
+                  Learn how we protect you
+                  <ArrowRight className="size-4 transition-transform group-hover/cta:translate-x-0.5" />
+                </Link>
               </div>
               <div className="hidden shrink-0 sm:block">
-                <div className="relative grid size-20 place-items-center rounded-2xl border bg-background/40 animate-breathe">
-                  <ShieldCheck className="size-8 text-primary" />
+                <div className="relative grid size-20 place-items-center rounded-2xl border bg-background/40 text-3xl animate-breathe">
+                  🔒
                 </div>
               </div>
             </div>
