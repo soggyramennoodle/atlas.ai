@@ -238,23 +238,23 @@
     background-size: 26px 26px;
   }
 
-  /* Drifting ambient blooms for the shared spatial canvas (see
+  /* Ambient blooms for the shared spatial canvas (see
      components/spatial-background.tsx). Big, soft, blurred discs of the AI
-     palette that slowly wander for a sense of living depth.
+     palette.
 
-     The motion itself is cheap — only `transform`/`opacity` animate and each
-     bloom is its own compositor layer, so the blur is rasterized once and just
-     re-composited. The cost that previously stalled Chrome came from stacking
-     many `backdrop-filter` (frosted glass) surfaces ON TOP of this moving
-     backdrop: each one re-blurs its backdrop every frame the blooms move. That
-     stack has been cut down (the feature-bento cards no longer use
-     backdrop-filter), so the drift is affordable again. Keep the count of
-     live backdrop-filter surfaces over this layer small. */
+     STATIC by design. Frosted glass (`backdrop-filter`) is used pervasively
+     across the app shell — the sidebar, theme toggle, recording dock, stat
+     cards, settings panels, the notes summary card. Each of those must
+     re-rasterize its blurred backdrop on every frame this background moves, so
+     a drifting bloom multiplied into a continuous, app-wide GPU stall that
+     dragged the whole machine in Chrome. Keeping the canvas still lets every
+     glass blur be cached once. Depth comes from the layered radials, not
+     motion. (If ambient motion is wanted back, it has to live ABOVE the glass —
+     not behind it — or the glass has to stop using backdrop-filter.) */
   .spatial-bloom {
     position: absolute;
     border-radius: 9999px;
     filter: blur(70px);
-    will-change: transform, opacity;
     transform: translateZ(0);
     backface-visibility: hidden;
   }
@@ -268,7 +268,6 @@
       color-mix(in oklch, var(--chart-1) 30%, transparent),
       transparent 68%
     );
-    animation: atlas-bloom-a 26s ease-in-out infinite;
   }
   .spatial-bloom--b {
     bottom: -16%;
@@ -280,12 +279,6 @@
       color-mix(in oklch, var(--chart-3) 26%, transparent),
       transparent 66%
     );
-    animation: atlas-bloom-b 32s ease-in-out infinite;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .spatial-bloom {
-      animation: none !important;
-    }
   }
 
   /* Glass depth ring — a bright specular top edge, a faint full-perimeter
@@ -807,6 +800,19 @@
 }
 @keyframes atlas-angle {
   to { --atlas-angle: 360deg; }
+}
+/* Compositor-only loops for the feature-bento "transcribing" mock. Driving
+   these through Framer ran ~23 JS animations on the main thread continuously;
+   as CSS transforms they run on the compositor for ~no cost. */
+@keyframes atlas-wave {
+  0%, 100% { transform: scaleY(0.3); }
+  25% { transform: scaleY(0.9); }
+  50% { transform: scaleY(0.4); }
+  75% { transform: scaleY(0.7); }
+}
+@keyframes atlas-line {
+  0%, 100% { transform: scaleX(0.4); }
+  50% { transform: scaleX(0.92); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   ListChecks,
   Layers,
@@ -41,17 +40,13 @@ function WaveToNotes() {
       <div className="flex items-center gap-4">
         <div className="flex h-12 items-end gap-[3px]">
           {Array.from({ length: 18 }).map((_, i) => (
-            <motion.span
+            <span
               key={i}
               className="h-full w-[3px] origin-bottom rounded-full bg-gradient-to-t from-primary/40 to-primary transform-gpu"
-              animate={{ scaleY: [0.25, 0.9, 0.4, 0.7, 0.3] }}
-              transition={{
-                duration: 1.8,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.07,
+              style={{
+                transform: "scaleY(0.4)",
+                animation: `atlas-wave 1.8s ease-in-out ${(i * 0.07).toFixed(2)}s infinite`,
               }}
-              style={{ scaleY: 0.4 }}
             />
           ))}
         </div>
@@ -61,17 +56,13 @@ function WaveToNotes() {
       </div>
       <div className="flex flex-1 flex-col justify-center gap-2.5">
         {[0, 1, 2, 3, 4].map((i) => (
-          <motion.div
+          <div
             key={i}
             className="h-2 w-full origin-left rounded-full bg-foreground/10 transform-gpu"
-            animate={{ scaleX: [0.35, 0.92, 0.58] }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.35,
+            style={{
+              transform: "scaleX(0.4)",
+              animation: `atlas-line 3s ease-in-out ${(i * 0.35).toFixed(2)}s infinite`,
             }}
-            style={{ scaleX: 0.35 }}
           />
         ))}
       </div>
@@ -138,17 +129,13 @@ function LibraryCards() {
   return (
     <div className="mt-6 grid h-40 flex-1 place-items-center">
       <div className="relative h-36 w-full">
-        {cards.map((c, i) => (
-          <motion.div
+        {cards.map((c) => (
+          <div
             key={c.title}
-            className="absolute left-1/2 top-1/2 w-36 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border/80 bg-gradient-to-b from-card to-background/80 p-3 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.7)]"
-            style={{ rotate: `${c.rot}deg`, x: c.x, zIndex: c.z }}
-            animate={{ y: [0, -5, 0] }}
-            transition={{
-              duration: 3.4,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.3,
+            className="absolute left-1/2 top-1/2 w-36 rounded-xl border border-border/80 bg-gradient-to-b from-card to-background/80 p-3 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.7)]"
+            style={{
+              transform: `translate(-50%, -50%) translateX(${c.x}px) rotate(${c.rot}deg)`,
+              zIndex: c.z,
             }}
           >
             <p className="truncate text-[0.7rem] font-semibold tracking-tight text-foreground/90">
@@ -166,7 +153,7 @@ function LibraryCards() {
             <span className="mt-2.5 inline-block rounded-full bg-primary/15 px-2 py-0.5 text-[0.6rem] font-medium text-primary">
               {c.tag}
             </span>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>
