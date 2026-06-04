@@ -88,6 +88,11 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/newsroom" className="hover:text-foreground">
+                    Newsroom
+                  </Link>
+                </li>
+                <li>
                   <Link href="/upload" className="hover:text-foreground">
                     Record a lecture
                   </Link>

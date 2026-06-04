@@ -12,22 +12,44 @@ import {
   Menu,
   X,
   Sparkles,
+  Newspaper,
+  Megaphone,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  external?: boolean;
+};
+
+const BASE_NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/upload", label: "Record a lecture", icon: Mic },
+  { href: "/newsroom", label: "What's new", icon: Newspaper },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+function NavLinks({
+  isAdmin,
+  onNavigate,
+}: {
+  isAdmin?: boolean;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
+  const nav: NavItem[] = isAdmin
+    ? [
+        ...BASE_NAV,
+        { href: "/admin/newsroom", label: "Publish news", icon: Megaphone },
+      ]
+    : BASE_NAV;
   return (
     <nav className="flex flex-col gap-1">
-      {NAV.map((item) => {
+      {nav.map((item) => {
         const active =
           pathname === item.href ||
           (item.href !== "/dashboard" && pathname.startsWith(item.href));
@@ -86,9 +108,11 @@ function Profile({ email }: { email: string }) {
 
 function SidebarBody({
   email,
+  isAdmin,
   onNavigate,
 }: {
   email: string;
+  isAdmin?: boolean;
   onNavigate?: () => void;
 }) {
   return (
@@ -101,7 +125,7 @@ function SidebarBody({
         <Logo beta />
       </Link>
 
-      <NavLinks onNavigate={onNavigate} />
+      <NavLinks isAdmin={isAdmin} onNavigate={onNavigate} />
 
       {/* Upsell / spacer */}
       <div className="mt-auto space-y-4">
@@ -136,14 +160,20 @@ function SidebarBody({
   );
 }
 
-export function AppSidebar({ email }: { email: string }) {
+export function AppSidebar({
+  email,
+  isAdmin,
+}: {
+  email: string;
+  isAdmin?: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       {/* Desktop fixed sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r bg-background/60 backdrop-blur-xl lg:block">
-        <SidebarBody email={email} />
+        <SidebarBody email={email} isAdmin={isAdmin} />
       </aside>
 
       {/* Mobile top bar */}
@@ -185,7 +215,11 @@ export function AppSidebar({ email }: { email: string }) {
               >
                 <X className="size-4" />
               </button>
-              <SidebarBody email={email} onNavigate={() => setOpen(false)} />
+              <SidebarBody
+                email={email}
+                isAdmin={isAdmin}
+                onNavigate={() => setOpen(false)}
+              />
             </motion.aside>
           </>
         )}

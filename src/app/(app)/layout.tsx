@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isNewsroomAdmin } from "@/lib/newsroom";
 import { AppSidebar } from "@/components/app/app-sidebar";
 import { RecordingProvider } from "@/components/recording/recording-context";
 import { RecordingDock } from "@/components/recording/recording-dock";
@@ -36,7 +37,7 @@ export default async function AppLayout({
           aria-hidden
           className="pointer-events-none fixed inset-0 -z-10 bg-grid opacity-30 [mask-image:radial-gradient(75%_60%_at_50%_0%,black,transparent)]"
         />
-        <AppSidebar email={user.email ?? ""} />
+        <AppSidebar email={user.email ?? ""} isAdmin={isNewsroomAdmin(user.email)} />
         <div className="lg:pl-64">
           <div className="pt-16 lg:pt-0">{children}</div>
         </div>
