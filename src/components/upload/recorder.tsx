@@ -2,11 +2,26 @@
 
 import { useMemo } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Download, Loader2, Lock, Mic, Pause, Play, Sparkles, Square, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  Download,
+  Loader2,
+  Lock,
+  Mic,
+  Pause,
+  Play,
+  RefreshCcw,
+  Sparkles,
+  Square,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { type CaptureStage } from "@/lib/upload-lecture";
-import { useRecording } from "@/components/recording/recording-context";
+import {
+  useRecording,
+  type ProcessingIssue,
+} from "@/components/recording/recording-context";
 import { AiGlow } from "@/components/ui/ai-glow";
 
 function formatClock(s: number) {
@@ -22,8 +37,24 @@ function formatClock(s: number) {
  * live transcript fill the right half.
  */
 export function Recorder() {
-  const { phase, seconds, levels, clip, stage, busy, failed, start, pause, resume, stop, discard, generate, download } =
-    useRecording();
+  const {
+    phase,
+    seconds,
+    levels,
+    clip,
+    stage,
+    busy,
+    processingIssue,
+    failed,
+    start,
+    pause,
+    resume,
+    stop,
+    discard,
+    generate,
+    clearProcessingIssue,
+    download,
+  } = useRecording();
   const reduceMotion = useReducedMotion();
 
   const live = phase === "recording" || phase === "paused";
@@ -235,7 +266,14 @@ export function Recorder() {
         </AnimatePresence>
       </div>
 
-      <ProcessingOverlay stage={stage} />
+      <ProcessingOverlay
+        stage={stage}
+        issue={processingIssue}
+        onRetry={generate}
+        onClear={clearProcessingIssue}
+        onDiscard={discard}
+        onDownload={download}
+      />
     </div>
   );
 }
@@ -314,35 +352,149 @@ const STAGE_COPY: Record<Exclude<CaptureStage, "idle">, string> = {
   analyzing: "Atlas is listening and writing your notes…",
 };
 
-function ProcessingOverlay({ stage }: { stage: CaptureStage }) {
+const STAGE_DETAIL: Record<Exclude<CaptureStage, "idle">, string> = {
+  uploading: "Sending the audio into your private Atlas workspace.",
+  analyzing: "Keep this tab open while Atlas listens for the important parts.",
+};
+
+function ProcessingOverlay({
+  stage,
+  issue,
+  onRetry,
+  onClear,
+  onDiscard,
+  onDownload,
+}: {
+  stage: CaptureStage;
+  issue: ProcessingIssue | null;
+  onRetry: () => void;
+  onClear: () => void;
+  onDiscard: () => void;
+  onDownload: () => void;
+}) {
+  const reduceMotion = useReducedMotion();
+  const visible = stage !== "idle" || !!issue;
+  const failed = !!issue;
+  const title = issue?.title ?? (stage === "idle" ? "" : STAGE_COPY[stage]);
+  const detail =
+    issue?.message ?? (stage === "idle" ? "" : STAGE_DETAIL[stage]);
+
   return (
     <AnimatePresence>
-      {stage !== "idle" && (
+      {visible && (
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={reduceMotion ? false : { opacity: 0, filter: "blur(4px)" }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 grid place-items-center bg-background/85 px-4 backdrop-blur-md"
+          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, filter: "blur(3px)" }}
+          transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-background/88 px-4 backdrop-blur-xl"
         >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-aurora opacity-50"
+          />
           <motion.div
-            initial={{ scale: 0.96, y: 10 }}
+            initial={reduceMotion ? false : { scale: 0.96, y: 8 }}
             animate={{ scale: 1, y: 0 }}
-            className="glass-panel w-full max-w-sm rounded-[2rem] p-8 text-center shadow-2xl ring-luxe"
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : { type: "spring", duration: 0.42, bounce: 0 }
+            }
+            className="relative flex w-full max-w-xl flex-col items-center text-center"
           >
-            <div className="relative mx-auto grid size-20 place-items-center">
-              <motion.span
-                className="absolute inset-0 rounded-full border-2 border-primary/30"
-                animate={{ scale: [1, 1.18, 1], opacity: [0.6, 0, 0.6] }}
-                transition={{ duration: 2, repeat: Infinity }}
+            <div className="relative grid size-72 place-items-center sm:size-80">
+              <motion.div
+                aria-hidden
+                className={cn(
+                  "absolute inset-0 rounded-full opacity-90 blur-[1px]",
+                  failed ? "saturate-[0.85]" : "saturate-125"
+                )}
+                animate={reduceMotion ? undefined : { rotate: 360 }}
+                transition={{ duration: failed ? 18 : 8, repeat: Infinity, ease: "linear" }}
+              >
+                <span
+                  className={cn(
+                    "absolute left-1/2 top-1 size-28 -translate-x-1/2 rounded-full blur-2xl",
+                    failed ? "bg-destructive/55" : "bg-[#6C63FF]/70"
+                  )}
+                />
+                <span className="absolute right-2 top-1/3 size-24 rounded-full bg-[#4FC3F7]/60 blur-2xl" />
+                <span
+                  className={cn(
+                    "absolute bottom-2 left-1/2 size-32 -translate-x-1/2 rounded-full blur-2xl",
+                    failed ? "bg-[#FFB347]/35" : "bg-[#FFB347]/55"
+                  )}
+                />
+                <span className="absolute left-0 top-1/3 size-24 rounded-full bg-[#B39DDB]/60 blur-2xl" />
+              </motion.div>
+
+              <motion.div
+                aria-hidden
+                className="absolute inset-[12%] rounded-full border border-primary/10"
+                animate={
+                  reduceMotion
+                    ? undefined
+                    : {
+                        scale: [0.98, 1.02, 0.99],
+                        opacity: failed ? [0.32, 0.46, 0.32] : [0.35, 0.68, 0.35],
+                      }
+                }
+                transition={{ duration: 3.8, repeat: Infinity, ease: [0.22, 1, 0.36, 1] }}
               />
-              <span className="grid size-16 place-items-center rounded-full bg-primary/10 text-primary">
-                <Mic className="size-7" />
-              </span>
+              <div className="absolute inset-[28%] rounded-full bg-background/70 blur-2xl" />
+              <div className="relative z-10 grid size-40 place-items-center rounded-full bg-background/30 text-primary shadow-[0_0_80px_-28px_color-mix(in_oklch,var(--primary)_90%,transparent)] backdrop-blur-md">
+                {failed ? (
+                  <AlertCircle className="size-8 text-destructive" />
+                ) : (
+                  <Sparkles className="size-8" />
+                )}
+              </div>
             </div>
-            <p className="mt-6 font-medium">{STAGE_COPY[stage]}</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Longer lectures take a little longer — please keep this tab open.
+
+            <p className="mt-2 font-display text-2xl font-semibold tracking-tight">
+              {title}
             </p>
+            <p className="mt-3 max-w-md text-pretty text-sm leading-6 text-muted-foreground">
+              {detail}
+            </p>
+
+            {failed && (
+              <div className="mt-7 flex w-full max-w-md flex-col gap-3 sm:flex-row sm:justify-center">
+                {issue?.kind === "silent" ? (
+                  <Button onClick={onDiscard} size="lg" className="h-12 gap-2">
+                    <Mic className="size-4" />
+                    Record again
+                  </Button>
+                ) : (
+                  <Button onClick={onRetry} size="lg" className="h-12 gap-2">
+                    <RefreshCcw className="size-4" />
+                    Try again
+                  </Button>
+                )}
+                <Button
+                  onClick={() => {
+                    onDownload();
+                    onClear();
+                  }}
+                  variant="outline"
+                  size="lg"
+                  className="h-12 gap-2"
+                >
+                  <Download className="size-4" />
+                  Download audio
+                </Button>
+                <Button
+                  onClick={onDiscard}
+                  variant="ghost"
+                  size="lg"
+                  className="h-12 gap-2"
+                >
+                  <Trash2 className="size-4" />
+                  Discard
+                </Button>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}

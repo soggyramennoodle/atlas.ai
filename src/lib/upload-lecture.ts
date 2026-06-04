@@ -46,6 +46,7 @@ interface UploadArgs {
   durationSeconds: number | null;
   /** Best-effort in-browser live transcript (§7). Used only as a fallback. */
   liveTranscript?: string | null;
+  signal?: AbortSignal;
   onStage: (stage: Exclude<CaptureStage, "idle">) => void;
 }
 
@@ -62,6 +63,7 @@ export async function uploadLectureAndGenerate({
   ext,
   durationSeconds,
   liveTranscript,
+  signal,
   onStage,
 }: UploadArgs): Promise<{ id: string }> {
   onStage("uploading");
@@ -83,6 +85,7 @@ export async function uploadLectureAndGenerate({
   const res = await fetch("/api/notes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    signal,
     body: JSON.stringify({
       path,
       mimeType,

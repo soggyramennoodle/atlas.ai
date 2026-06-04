@@ -23,13 +23,26 @@ export const BARS = 32;
 const IDLE_LEVELS = () => Array(BARS).fill(0.04) as number[];
 const METER_FRAME_MS = 72;
 const TRANSCRIPT_FRAME_MS = 180;
+const SILENCE_PEAK_THRESHOLD = 0.075;
+const SILENCE_MIN_ACTIVE_MS = 500;
+const SILENCE_MIN_DURATION_SECONDS = 2;
+const PROCESSING_TIMEOUT_MS = 120_000;
 
 export type RecordingPhase = "idle" | "recording" | "paused" | "recorded";
+
+export type ProcessingIssueKind = "silent" | "timeout" | "failed";
+
+export interface ProcessingIssue {
+  kind: ProcessingIssueKind;
+  title: string;
+  message: string;
+}
 
 interface Clip {
   url: string;
   blob: Blob;
   mime: string;
+  silent: boolean;
 }
 
 interface RecordingValue {
@@ -39,6 +52,7 @@ interface RecordingValue {
   clip: Clip | null;
   stage: CaptureStage;
   busy: boolean;
+  processingIssue: ProcessingIssue | null;
   /** True after a generation attempt failed — surfaces the "download" escape hatch. */
   failed: boolean;
   /** Live (best-effort) in-browser transcript captured while recording. */
@@ -53,6 +67,7 @@ interface RecordingValue {
   stop: () => void;
   discard: () => void;
   generate: () => Promise<void>;
+  clearProcessingIssue: () => void;
   /** Save the captured recording to disk (for re-upload after a failed run). */
   download: () => void;
 }
@@ -133,6 +148,7 @@ export function RecordingProvider({
   const [levels, setLevels] = useState<number[]>(IDLE_LEVELS);
   const [clip, setClip] = useState<Clip | null>(null);
   const [stage, setStage] = useState<CaptureStage>("idle");
+  const [processingIssue, setProcessingIssue] = useState<ProcessingIssue | null>(null);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [sessionLabel, setSessionLabel] = useState("Untitled Lecture");
   const [transcriptSupported, setTranscriptSupported] = useState(false);
@@ -145,6 +161,7 @@ export function RecordingProvider({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const rafRef = useRef<number | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const secondsRef = useRef(0);
   const mimeRef = useRef<string>("");
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const finalTranscriptRef = useRef("");
@@ -154,6 +171,9 @@ export function RecordingProvider({
   const pendingTranscriptRef = useRef("");
   const transcriptFlushRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transcriptKickoffRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const audioPeakRef = useRef(0);
+  const activeAudioMsRef = useRef(0);
+  const generationRunRef = useRef(0);
 
   const busy = stage !== "idle";
 
@@ -213,6 +233,20 @@ export function RecordingProvider({
     }, TRANSCRIPT_FRAME_MS - elapsed);
   }, []);
 
+  const resetAudioActivity = useCallback(() => {
+    audioPeakRef.current = 0;
+    activeAudioMsRef.current = 0;
+  }, []);
+
+  const clipWouldBeSilent = useCallback(
+    (durationSeconds: number) =>
+      durationSeconds >= SILENCE_MIN_DURATION_SECONDS &&
+      audioPeakRef.current < SILENCE_PEAK_THRESHOLD &&
+      activeAudioMsRef.current < SILENCE_MIN_ACTIVE_MS &&
+      !finalTranscriptRef.current.trim(),
+    []
+  );
+
   // Cleanup on unmount.
   useEffect(() => {
     return () => {
@@ -233,9 +267,14 @@ export function RecordingProvider({
         lastMeterAtRef.current = now;
         const next: number[] = [];
         const step = Math.floor(buf.length / BARS) || 1;
+        let peak = 0;
         for (let i = 0; i < BARS; i++) {
-          next.push(Math.max(0.04, buf[i * step] / 255));
+          const level = buf[i * step] / 255;
+          peak = Math.max(peak, level);
+          next.push(Math.max(0.04, level));
         }
+        audioPeakRef.current = Math.max(audioPeakRef.current, peak);
+        if (peak >= SILENCE_PEAK_THRESHOLD) activeAudioMsRef.current += METER_FRAME_MS;
         setLevels(next);
       }
       rafRef.current = requestAnimationFrame(loop);
@@ -304,6 +343,9 @@ export function RecordingProvider({
     finalTranscriptRef.current = "";
     pendingTranscriptRef.current = "";
     lastTranscriptAtRef.current = 0;
+    setProcessingIssue(null);
+    resetAudioActivity();
+    generationRunRef.current += 1;
     setLiveTranscript("");
 
     const AudioCtx =
@@ -333,7 +375,12 @@ export function RecordingProvider({
         return;
       }
       const url = URL.createObjectURL(blob);
-      setClip({ url, blob, mime: baseMimeType(mime) });
+      setClip({
+        url,
+        blob,
+        mime: baseMimeType(mime),
+        silent: clipWouldBeSilent(secondsRef.current),
+      });
       setPhase("recorded");
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
@@ -347,14 +394,30 @@ export function RecordingProvider({
     rec.start();
 
     setSeconds(0);
+    secondsRef.current = 0;
     setPhase("recording");
     runMeter();
-    tickRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+    tickRef.current = setInterval(() => {
+      setSeconds((s) => {
+        const next = s + 1;
+        secondsRef.current = next;
+        return next;
+      });
+    }, 1000);
     transcriptKickoffRef.current = setTimeout(() => {
       transcriptKickoffRef.current = null;
       if (mediaRecorderRef.current?.state === "recording") startTranscription();
     }, 180);
-  }, [busy, phase, runMeter, startTranscription, stopMeter, teardown]);
+  }, [
+    busy,
+    clipWouldBeSilent,
+    phase,
+    resetAudioActivity,
+    runMeter,
+    startTranscription,
+    stopMeter,
+    teardown,
+  ]);
 
   const pause = useCallback(() => {
     const rec = mediaRecorderRef.current;
@@ -388,7 +451,13 @@ export function RecordingProvider({
         /* ignore */
       }
     }
-    tickRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+    tickRef.current = setInterval(() => {
+      setSeconds((s) => {
+        const next = s + 1;
+        secondsRef.current = next;
+        return next;
+      });
+    }, 1000);
   }, [runMeter]);
 
   const stop = useCallback(() => {
@@ -413,49 +482,123 @@ export function RecordingProvider({
     if (clip) URL.revokeObjectURL(clip.url);
     setClip(null);
     setSeconds(0);
+    secondsRef.current = 0;
     setLevels(IDLE_LEVELS());
     setLiveTranscript("");
     pendingTranscriptRef.current = "";
+    setProcessingIssue(null);
+    resetAudioActivity();
+    generationRunRef.current += 1;
     setSessionLabel("Untitled Lecture");
     setFailed(false);
     setPhase("idle");
     teardown();
-  }, [clip, teardown]);
+  }, [clip, resetAudioActivity, teardown]);
 
   const generate = useCallback(async () => {
     if (!clip) return;
     setFailed(false);
+    setProcessingIssue(null);
+
+    if (clip.silent) {
+      const issueRunId = generationRunRef.current + 1;
+      generationRunRef.current = issueRunId;
+      setStage("analyzing");
+      window.setTimeout(() => {
+        if (generationRunRef.current !== issueRunId) return;
+        setStage("idle");
+        setFailed(true);
+        setProcessingIssue({
+          kind: "silent",
+          title: "Atlas couldn't hear anything",
+          message:
+            "This recording looks silent, so there isn't enough audio to turn into notes. Try recording again with your mic closer or upload another file.",
+        });
+      }, 500);
+      return;
+    }
+
+    const runId = generationRunRef.current + 1;
+    generationRunRef.current = runId;
+    const controller = new AbortController();
+    let timedOut = false;
+    let timeoutId: number | null = null;
+
     const supabase = createClient();
     try {
-      const { id } = await uploadLectureAndGenerate({
-        supabase,
-        userId,
-        data: clip.blob,
-        mimeType: clip.mime,
-        ext: extForMime(clip.mime),
-        durationSeconds: seconds || null,
-        liveTranscript: liveTranscript || null,
-        onStage: setStage,
-      });
+      const { id } = await Promise.race([
+        uploadLectureAndGenerate({
+          supabase,
+          userId,
+          data: clip.blob,
+          mimeType: clip.mime,
+          ext: extForMime(clip.mime),
+          durationSeconds: seconds || null,
+          liveTranscript: liveTranscript || null,
+          signal: controller.signal,
+          onStage: (nextStage) => {
+            if (generationRunRef.current === runId && !timedOut) {
+              setStage(nextStage);
+            }
+          },
+        }),
+        new Promise<never>((_, reject) => {
+          timeoutId = window.setTimeout(() => {
+            timedOut = true;
+            controller.abort();
+            reject(new Error("processing-timeout"));
+          }, PROCESSING_TIMEOUT_MS);
+        }),
+      ]);
+      if (generationRunRef.current !== runId) return;
       toast.success("Your notes are ready!");
       // Reset session before navigating to the new note.
       URL.revokeObjectURL(clip.url);
       setClip(null);
       setSeconds(0);
+      secondsRef.current = 0;
       setLevels(IDLE_LEVELS());
       setLiveTranscript("");
       setSessionLabel("Untitled Lecture");
+      setProcessingIssue(null);
       setPhase("idle");
       setStage("idle");
       router.push(`/notes/${id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong.");
+      if (generationRunRef.current !== runId) return;
       setStage("idle");
       // Keep the clip around (phase stays "recorded") and offer a download so
       // the student can save the audio and re-upload it later.
       setFailed(true);
+      if (timedOut) {
+        setProcessingIssue({
+          kind: "timeout",
+          title: "Atlas is taking too long",
+          message:
+            "This recording took longer than expected to process. You can try again, download the audio, or record a shorter clip.",
+        });
+        toast.error("Processing took too long.");
+        return;
+      }
+
+      const message = err instanceof Error ? err.message : "Something went wrong.";
+      setProcessingIssue({
+        kind: "failed",
+        title: "Atlas couldn't process this",
+        message:
+          message === "processing-timeout"
+            ? "This recording took longer than expected to process."
+            : message,
+      });
+      toast.error(message);
+    } finally {
+      if (timeoutId) window.clearTimeout(timeoutId);
     }
   }, [clip, liveTranscript, router, seconds, userId]);
+
+  const clearProcessingIssue = useCallback(() => {
+    setProcessingIssue(null);
+  }, []);
 
   const download = useCallback(() => {
     if (!clip) return;
@@ -478,6 +621,7 @@ export function RecordingProvider({
     clip,
     stage,
     busy,
+    processingIssue,
     failed,
     liveTranscript,
     transcriptSupported,
@@ -489,6 +633,7 @@ export function RecordingProvider({
     stop,
     discard,
     generate,
+    clearProcessingIssue,
     download,
   };
 
