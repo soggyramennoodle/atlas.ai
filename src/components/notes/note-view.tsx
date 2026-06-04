@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertCircle, Check, Loader2, Pencil } from "lucide-react";
+import { AlertCircle, Check, Loader2, Pencil, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import type {
   KeyConcept,
@@ -290,22 +290,39 @@ export function NoteView({
         )}
 
         {/* Key concepts */}
-        {shown.keyConcepts.length > 0 && (
+        {(editMode || shown.keyConcepts.length > 0) && (
           <section>
             <h3 className="font-display text-xl font-semibold tracking-tight">Key concepts</h3>
             <div className="mt-4">
               {editMode ? (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {draft.keyConcepts.map((concept, i) => (
-                    <ConceptBlock
-                      key={i}
-                      concept={concept}
-                      onTerm={(v) => update((d) => void (d.keyConcepts[i].term = v))}
-                      onDefinition={(v) =>
-                        update((d) => void (d.keyConcepts[i].definition = v))
-                      }
-                    />
-                  ))}
+                <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {draft.keyConcepts.map((concept, i) => (
+                      <ConceptBlock
+                        key={i}
+                        concept={concept}
+                        onTerm={(v) => update((d) => void (d.keyConcepts[i].term = v))}
+                        onDefinition={(v) =>
+                          update((d) => void (d.keyConcepts[i].definition = v))
+                        }
+                        onRemove={() =>
+                          update((d) => void d.keyConcepts.splice(i, 1))
+                        }
+                      />
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      update((d) =>
+                        void d.keyConcepts.push({ term: "", definition: "" })
+                      )
+                    }
+                    className="inline-flex items-center gap-2 rounded-full border border-dashed px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
+                  >
+                    <Plus className="size-4" />
+                    Add concept
+                  </button>
                 </div>
               ) : (
                 <KeyConceptsGrid
@@ -465,26 +482,38 @@ function SectionView({
   );
 }
 
-/** Edit-mode inputs for a single key concept. */
+/** Edit-mode inputs for a single key concept, with a remove control. */
 function ConceptBlock({
   concept,
   onTerm,
   onDefinition,
+  onRemove,
 }: {
   concept: KeyConcept;
   onTerm: (v: string) => void;
   onDefinition: (v: string) => void;
+  onRemove: () => void;
 }) {
   return (
-    <div className="rounded-2xl border bg-card p-5">
+    <div className="group/concept relative rounded-2xl border bg-card p-5">
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label="Remove concept"
+        className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-full text-muted-foreground/70 opacity-0 transition hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 group-hover/concept:opacity-100 motion-reduce:opacity-100"
+      >
+        <X className="size-4" />
+      </button>
       <Input
         value={concept.term}
         onChange={(e) => onTerm(e.target.value)}
-        className="font-semibold"
+        placeholder="Concept"
+        className="pr-9 font-semibold"
       />
       <AutoTextarea
         value={concept.definition}
         onChange={onDefinition}
+        placeholder="Definition"
         className="mt-2 w-full resize-none bg-transparent text-sm leading-relaxed text-muted-foreground focus:outline-none"
       />
     </div>
