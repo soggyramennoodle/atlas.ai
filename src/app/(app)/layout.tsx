@@ -30,13 +30,9 @@ export default async function AppLayout({
   return (
     <RecordingProvider userId={user.id}>
       <div className="relative min-h-screen">
-        {/* Spatial canvas — a fixed aurora + blueprint grid so every app
-            surface floats on the deep, living background. */}
-        <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-aurora opacity-70" />
-        <div
-          aria-hidden
-          className="pointer-events-none fixed inset-0 -z-10 bg-grid opacity-30 [mask-image:radial-gradient(75%_60%_at_50%_0%,black,transparent)]"
-        />
+        {/* The shared spatial canvas (aurora + grid + drifting blooms) is now
+            mounted once at the root layout, so every app surface floats on the
+            same living background. */}
         <AppSidebar email={user.email ?? ""} isAdmin={isNewsroomAdmin(user.email)} />
         <div className="lg:pl-64">
           <div className="pt-16 lg:pt-0">{children}</div>

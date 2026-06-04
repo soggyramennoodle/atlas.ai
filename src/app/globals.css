@@ -226,6 +226,49 @@
     background-size: 26px 26px;
   }
 
+  /* Drifting ambient blooms for the shared spatial canvas (see
+     components/spatial-background.tsx). Big, soft, blurred discs of the AI
+     palette that slowly wander. Only transform/opacity animate, and each is its
+     own compositor layer, so the blur is rasterized once and merely composited
+     — no per-frame repaint, no scroll jank. */
+  .spatial-bloom {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(70px);
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  .spatial-bloom--a {
+    top: -12%;
+    right: -6%;
+    width: 42rem;
+    height: 42rem;
+    background: radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklch, var(--chart-1) 30%, transparent),
+      transparent 68%
+    );
+    animation: atlas-bloom-a 26s ease-in-out infinite;
+  }
+  .spatial-bloom--b {
+    bottom: -16%;
+    left: -10%;
+    width: 38rem;
+    height: 38rem;
+    background: radial-gradient(
+      circle at 50% 50%,
+      color-mix(in oklch, var(--chart-3) 26%, transparent),
+      transparent 66%
+    );
+    animation: atlas-bloom-b 32s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spatial-bloom {
+      animation: none !important;
+    }
+  }
+
   /* Glass depth ring — a bright specular top edge, a faint full-perimeter
      highlight, and a soft indigo-tinted ambient shadow that floats the surface
      off the canvas. (Legacy name kept; meaning is now "glass", not "gold".) */
@@ -721,6 +764,14 @@
 @keyframes atlas-gradient {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+@keyframes atlas-bloom-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  50% { transform: translate3d(-7%, 6%, 0) scale(1.12); opacity: 1; }
+}
+@keyframes atlas-bloom-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); opacity: 0.75; }
+  50% { transform: translate3d(8%, -5%, 0) scale(0.92); opacity: 0.95; }
 }
 @keyframes atlas-pulse-ring {
   0% { transform: scale(1); opacity: 0.7; }

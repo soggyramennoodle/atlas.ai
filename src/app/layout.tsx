@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SpatialBackground } from "@/components/spatial-background";
 import "./globals.css";
 
 const sans = Inter({
@@ -45,6 +46,7 @@ export default function RootLayout({
     >
       <body className="relative min-h-full flex flex-col font-sans">
         <ThemeProvider>
+          <SpatialBackground />
           <div aria-hidden className="noise-overlay" />
           {children}
           <ThemeToggle />

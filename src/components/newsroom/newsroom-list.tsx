@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  LayoutGroup,
+  useReducedMotion,
+} from "framer-motion";
 import { ArticleCard } from "@/components/newsroom/article-card";
 import {
   CATEGORY_META,
@@ -28,11 +33,18 @@ type ListArticle = Pick<
 type Filter = "all" | NewsroomCategory;
 
 /**
- * Client list for the public Newsroom: a featured lead story, category filter
- * tabs (only those present in the data), and an animated grid of cards.
+ * Client list for the public Newsroom: category filter tabs, a featured lead
+ * story (on the "All" view), and a grid of cards.
+ *
+ * Motion: filtering does a single keyed crossfade of the whole content block —
+ * opacity + a small transform only, never `layout`. Animating per-card layout
+ * positions (the previous approach) forced a full grid reflow on every toggle,
+ * which is what caused the jank. The tabs sit above the content so they never
+ * shift when the featured lead appears/disappears.
  */
 export function NewsroomList({ articles }: { articles: ListArticle[] }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const reduce = useReducedMotion();
 
   // The lead story: the pinned/featured one, else the most recent (the list
   // arrives newest-first). The lead is only shown on the unfiltered view.
@@ -63,25 +75,11 @@ export function NewsroomList({ articles }: { articles: ListArticle[] }) {
     })),
   ];
 
-  return (
-    <div className="space-y-10">
-      {/* Featured lead — only on the "All" view so filtering feels focused. */}
-      <AnimatePresence initial={false} mode="popLayout">
-        {filter === "all" && lead && (
-          <motion.div
-            key="lead"
-            layout
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
-            <ArticleCard article={lead} featured />
-          </motion.div>
-        )}
-      </AnimatePresence>
+  const showLead = filter === "all" && lead;
 
-      {/* Filter tabs */}
+  return (
+    <div className="space-y-8">
+      {/* Filter tabs — pinned above the content so they never reflow. */}
       {tabs.length > 2 && (
         <LayoutGroup>
           <div
@@ -98,7 +96,7 @@ export function NewsroomList({ articles }: { articles: ListArticle[] }) {
                   aria-selected={active}
                   onClick={() => setFilter(tab.value)}
                   className={cn(
-                    "relative rounded-full px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "relative rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     active
                       ? "text-primary-foreground"
                       : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
@@ -108,7 +106,7 @@ export function NewsroomList({ articles }: { articles: ListArticle[] }) {
                     <motion.span
                       layoutId="newsroom-tab"
                       className="absolute inset-0 -z-10 rounded-full bg-primary"
-                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                      transition={{ type: "spring", stiffness: 420, damping: 34 }}
                     />
                   )}
                   {tab.label}
@@ -119,29 +117,35 @@ export function NewsroomList({ articles }: { articles: ListArticle[] }) {
         </LayoutGroup>
       )}
 
-      {/* Grid */}
-      {rest.length > 0 ? (
-        <motion.div layout className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence mode="popLayout">
-            {rest.map((article) => (
-              <motion.div
-                key={article.id}
-                layout
-                initial={{ opacity: 0, scale: 0.97 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.97 }}
-                transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-              >
-                <ArticleCard article={article} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+      {/* Content — one keyed crossfade per filter change. No layout tweening. */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={filter}
+          initial={{ opacity: 0, y: reduce ? 0 : 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{
+            opacity: 0,
+            y: reduce ? 0 : -6,
+            transition: { duration: reduce ? 0.08 : 0.13, ease: "easeIn" },
+          }}
+          transition={{ duration: reduce ? 0.12 : 0.24, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-8"
+        >
+          {showLead && <ArticleCard article={lead} featured />}
+
+          {rest.length > 0 ? (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {rest.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-dashed bg-card/40 py-12 text-center text-sm text-muted-foreground">
+              Nothing under this category yet.
+            </p>
+          )}
         </motion.div>
-      ) : (
-        <p className="rounded-2xl border border-dashed bg-card/40 py-12 text-center text-sm text-muted-foreground">
-          Nothing under this category yet.
-        </p>
-      )}
+      </AnimatePresence>
     </div>
   );
 }
