@@ -46,7 +46,10 @@ export function Faq() {
           const isOpen = open === i;
           return (
             <Reveal key={item.q} delay={i * 0.05}>
-              <div className="glass overflow-hidden rounded-2xl">
+              {/* Self-frosted (translucent fill, no live backdrop-filter): a
+                  stack of FAQ rows over the drifting background blooms would
+                  otherwise re-blur every frame and stall Chrome. */}
+              <div className="overflow-hidden rounded-2xl border bg-card/75 shadow-sm">
                 <button
                   onClick={() => setOpen(isOpen ? null : i)}
                   className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"

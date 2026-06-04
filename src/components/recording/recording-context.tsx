@@ -11,7 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { canCaptureDeviceAudio } from "@/lib/utils";
+import { deviceAudioSupport, type DeviceAudioSupport } from "@/lib/utils";
 import {
   baseMimeType,
   extForMime,
@@ -76,9 +76,12 @@ interface RecordingValue {
   transcriptSupported: boolean;
   /**
    * Whether this device can capture another tab/app's audio (virtual lectures).
-   * False on phones/tablets, where screen-share audio capture isn't available.
+   * False on phones/tablets and on Safari/Firefox, where screen-share audio
+   * capture isn't available.
    */
   deviceCaptureSupported: boolean;
+  /** Why device capture is unavailable, so the UI can show honest guidance. */
+  deviceCaptureSupport: DeviceAudioSupport;
   /** Audio source of the active (or most recent) session. */
   source: RecordingSource;
   /**
@@ -181,6 +184,8 @@ export function RecordingProvider({
   const [sessionLabel, setSessionLabel] = useState("Untitled Lecture");
   const [transcriptSupported, setTranscriptSupported] = useState(false);
   const [deviceCaptureSupported, setDeviceCaptureSupported] = useState(true);
+  const [deviceCaptureSupport, setDeviceCaptureSupport] =
+    useState<DeviceAudioSupport>("ok");
   const [failed, setFailed] = useState(false);
   const [source, setSource] = useState<RecordingSource>("microphone");
   const [liveTranscriptActive, setLiveTranscriptActive] = useState(false);
@@ -222,8 +227,11 @@ export function RecordingProvider({
     // hydration-safe (the server can't know about SpeechRecognition).
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTranscriptSupported(!!getSpeechRecognition());
-    // Virtual (device-audio) capture needs getDisplayMedia, which mobile lacks.
-    setDeviceCaptureSupported(canCaptureDeviceAudio());
+    // Virtual (device-audio) capture needs getDisplayMedia with a working audio
+    // track — absent on mobile and on Safari/Firefox.
+    const support = deviceAudioSupport();
+    setDeviceCaptureSupport(support);
+    setDeviceCaptureSupported(support === "ok");
   }, []);
 
   const stopMeter = useCallback(() => {
@@ -365,14 +373,21 @@ export function RecordingProvider({
   const start = useCallback(async (nextSource: RecordingSource = "microphone") => {
     if (busy || phase !== "idle") return;
 
-    // Virtual lectures capture another tab/app's audio via screen-share, which
-    // mobile browsers don't support. Bail out early with an honest message
-    // instead of letting the share picker fail or silently capture no audio.
-    if (nextSource === "device" && !canCaptureDeviceAudio()) {
-      toast.error(
-        "Recording a virtual lecture is only available on a computer — open Atlas on your laptop or desktop to capture device audio."
-      );
-      return;
+    // Virtual lectures capture another tab/app's audio via screen-share. Mobile
+    // browsers don't support it, and Safari/Firefox expose the picker but never
+    // return an audio track — so bail out early with an honest, browser-specific
+    // message instead of letting the share picker fail or silently capture no
+    // audio.
+    if (nextSource === "device") {
+      const support = deviceAudioSupport();
+      if (support !== "ok") {
+        toast.error(
+          support === "browser"
+            ? "Virtual lectures need Chrome or Edge — Safari and Firefox can’t capture a tab’s audio. Open Atlas in Chrome to record a lecture playing on your screen."
+            : "Recording a virtual lecture is only available on a computer — open Atlas on your laptop or desktop to capture device audio."
+        );
+        return;
+      }
     }
 
     const mime = pickMimeType();
@@ -796,6 +811,7 @@ export function RecordingProvider({
     liveTranscript,
     transcriptSupported,
     deviceCaptureSupported,
+    deviceCaptureSupport,
     source,
     liveTranscriptActive,
     sessionLabel,

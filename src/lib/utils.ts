@@ -6,22 +6,42 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Whether this device can capture another tab/app's audio for a "virtual"
- * lecture. Capturing device audio relies on `getDisplayMedia` (screen-share),
- * which mobile browsers either don't implement or expose without working audio
- * capture — so virtual lectures are a computer-only feature. Client-only:
- * returns `false` during SSR where `navigator` is undefined.
+ * Why virtual (device-audio) lecture capture is or isn't available here:
+ * - "ok":      a Chromium desktop browser that can capture tab/system audio.
+ * - "mobile":  a phone/tablet — `getDisplayMedia` is missing or audio-less.
+ * - "browser": a desktop browser (Safari, Firefox) that exposes
+ *              `getDisplayMedia` but NEVER returns an audio track, so virtual
+ *              lectures physically can't work. Safari has no "Share audio"
+ *              option at all; Firefox ignores the audio constraint.
+ *
+ * Client-only: returns "mobile" (disabled) during SSR where `navigator` is
+ * undefined.
  */
-export function canCaptureDeviceAudio(): boolean {
-  if (typeof navigator === "undefined") return false;
-  if (typeof navigator.mediaDevices?.getDisplayMedia !== "function") return false;
-  // iPadOS reports a desktop UA but still lacks getDisplayMedia, so the feature
-  // check above already covers it; this UA test keeps phones/tablets out even
-  // where a non-functional stub is exposed.
+export type DeviceAudioSupport = "ok" | "mobile" | "browser";
+
+export function deviceAudioSupport(): DeviceAudioSupport {
+  if (typeof navigator === "undefined") return "mobile";
+  if (typeof navigator.mediaDevices?.getDisplayMedia !== "function") return "mobile";
+
   const ua = navigator.userAgent || "";
+  // iPadOS reports a desktop UA but still lacks working display audio, and the
+  // feature check above already covers most of mobile; this keeps the rest out.
   const isMobile =
     /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle|BlackBerry|Opera Mini|IEMobile|Windows Phone/i.test(
       ua
     );
-  return !isMobile;
+  if (isMobile) return "mobile";
+
+  // Only Chromium-based desktop browsers (Chrome, Edge, Opera, Brave, …) return
+  // an audio track from getDisplayMedia. Safari and Firefox expose the API but
+  // give video only, so virtual capture always fails there — gate it out.
+  const isChromium = /Chrome|Chromium|CriOS|Edg|OPR/i.test(ua);
+  return isChromium ? "ok" : "browser";
+}
+
+/**
+ * Convenience boolean: whether device audio can actually be captured here.
+ */
+export function canCaptureDeviceAudio(): boolean {
+  return deviceAudioSupport() === "ok";
 }

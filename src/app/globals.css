@@ -228,9 +228,16 @@
 
   /* Drifting ambient blooms for the shared spatial canvas (see
      components/spatial-background.tsx). Big, soft, blurred discs of the AI
-     palette that slowly wander. Only transform/opacity animate, and each is its
-     own compositor layer, so the blur is rasterized once and merely composited
-     — no per-frame repaint, no scroll jank. */
+     palette that slowly wander for a sense of living depth.
+
+     The motion itself is cheap — only `transform`/`opacity` animate and each
+     bloom is its own compositor layer, so the blur is rasterized once and just
+     re-composited. The cost that previously stalled Chrome came from stacking
+     many `backdrop-filter` (frosted glass) surfaces ON TOP of this moving
+     backdrop: each one re-blurs its backdrop every frame the blooms move. That
+     stack has been cut down (the feature-bento cards no longer use
+     backdrop-filter), so the drift is affordable again. Keep the count of
+     live backdrop-filter surfaces over this layer small. */
   .spatial-bloom {
     position: absolute;
     border-radius: 9999px;

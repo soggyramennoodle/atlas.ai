@@ -18,7 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, type DeviceAudioSupport } from "@/lib/utils";
 import { type CaptureStage } from "@/lib/upload-lecture";
 import {
   useRecording,
@@ -51,6 +51,7 @@ export function Recorder() {
     processingIssue,
     failed,
     deviceCaptureSupported,
+    deviceCaptureSupport,
     start,
     pause,
     resume,
@@ -135,6 +136,7 @@ export function Recorder() {
                 <SourcePicker
                   onPick={start}
                   deviceSupported={deviceCaptureSupported}
+                  deviceSupport={deviceCaptureSupport}
                 />
               )}
 
@@ -284,9 +286,11 @@ export function Recorder() {
 function SourcePicker({
   onPick,
   deviceSupported,
+  deviceSupport,
 }: {
   onPick: (source: RecordingSource) => void;
   deviceSupported: boolean;
+  deviceSupport: DeviceAudioSupport;
 }) {
   return (
     <div className="w-full space-y-3 text-left">
@@ -306,19 +310,38 @@ function SourcePicker({
           desc={
             deviceSupported
               ? "Capture a lecture playing in another tab or app — plus your mic for questions."
-              : "Capture a lecture playing on your screen. Only available on a computer."
+              : deviceSupport === "browser"
+                ? "Capture a lecture playing on your screen. Needs Chrome or Edge."
+                : "Capture a lecture playing on your screen. Only available on a computer."
           }
           onClick={() => onPick("device")}
           disabled={!deviceSupported}
-          badge={deviceSupported ? undefined : "Computer only"}
+          badge={
+            deviceSupported
+              ? undefined
+              : deviceSupport === "browser"
+                ? "Chrome or Edge"
+                : "Computer only"
+          }
         />
       </div>
       <p className="px-1 text-center text-xs text-muted-foreground/80">
         {deviceSupported ? (
           <>
-            Virtual lectures ask you to share a browser tab (or your whole
-            screen) and tick{" "}
-            <span className="font-medium text-foreground/80">“Share audio.”</span>
+            Virtual lectures ask you to share a browser tab and tick{" "}
+            <span className="font-medium text-foreground/80">
+              “Share tab audio.”
+            </span>{" "}
+            <span className="text-muted-foreground/70">
+              (Sharing a whole screen only carries audio on Windows.)
+            </span>
+          </>
+        ) : deviceSupport === "browser" ? (
+          <>
+            Safari and Firefox can&apos;t capture a tab&apos;s audio — open Atlas
+            in <span className="font-medium text-foreground/80">Chrome</span> or{" "}
+            <span className="font-medium text-foreground/80">Edge</span> to record
+            a lecture playing on your screen.
           </>
         ) : (
           <>
