@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
         {
           heading: "Information We Collect",
           body: [
-            "Account information: the email address you sign in with and the profile details you choose to provide (name, institution, program, year, and expected graduation).",
+            "Account information: the email address you sign in with, the oAuth provider you sign in with (if applicable), and the profile details you choose to provide (name, institution, program, year, and expected graduation).",
             "Lecture content: the audio you record or upload, and the structured notes, summaries, transcripts, and edits generated from or made to it.",
             "Usage information: basic technical data such as device and browser type, and the interactions needed to operate the service (for example, when a note is created or exported).",
           ],
@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
         {
           heading: "How We Use Your Information",
           body: [
-            "We use your information to provide and improve the service: to transcribe and analyze your recordings, generate and store your notes, sync your library across sessions, and personalize future note-taking based on your edits.",
+            "We use your information to provide and improve the service: to transcribe and analyze your recordings, generate and store your notes, sync your library across sessions, and personalize future note-taking based on your info.",
             "We do not use your personal notes or recordings to train third-party AI models, and we do not use them for advertising.",
           ],
         },
@@ -42,8 +42,8 @@ export default function PrivacyPolicyPage() {
         {
           heading: "Data Retention",
           body: [
-            "Your lecture audio is retained only as long as needed to generate your notes, after which it is removed from the processing service. Your notes and account information are retained for as long as your account is active.",
-            "When you delete a note, its stored audio is deleted with it. When you delete your account, we remove your associated content within a reasonable period, except where retention is required by law.",
+            "Your lecture audio is retained only as long as needed to generate your notes, after which it is removed from the processing service, and deleted from our server. Your notes and account information are retained for as long as your account is active.",
+            "When you delete a note, the transcription, note summary, and course code/name are deleted as well. When you delete your account, we remove your associated content within a reasonable period, except where retention is required by law.",
           ],
         },
         {
@@ -62,7 +62,7 @@ export default function PrivacyPolicyPage() {
         {
           heading: "Children’s Privacy",
           body: [
-            "Atlas is intended for students in higher education and is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us with personal information, please contact us and we will delete it.",
+            "Atlas is intended and built for students in higher education and is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us with personal information, please contact us and we will take necessary measures, as required by law.",
           ],
         },
         {
