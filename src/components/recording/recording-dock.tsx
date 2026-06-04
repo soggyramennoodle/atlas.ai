@@ -22,8 +22,22 @@ function clock(s: number) {
 export function RecordingDock() {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
-  const { phase, seconds, busy, failed, sessionLabel, source, pause, resume, stop, generate, discard, download } =
-    useRecording();
+  const {
+    phase,
+    seconds,
+    busy,
+    failed,
+    recoveredDraft,
+    sessionLabel,
+    source,
+    pause,
+    resume,
+    resumeDraft,
+    stop,
+    generate,
+    discard,
+    download,
+  } = useRecording();
   const SourceIcon = source === "device" ? MonitorSpeaker : Mic;
 
   const onUpload = pathname === "/upload";
@@ -66,7 +80,9 @@ export function RecordingDock() {
                   : phase === "paused"
                     ? "Paused"
                     : phase === "recorded"
-                      ? "Ready"
+                      ? recoveredDraft
+                        ? "Recovered"
+                        : "Ready"
                       : ""}{" "}
                 · {clock(seconds)}
               </p>
@@ -133,6 +149,19 @@ export function RecordingDock() {
               </>
             )}
           </div>
+
+          {phase === "recorded" && recoveredDraft && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={resumeDraft}
+              disabled={busy}
+              className="mt-2 w-full gap-1.5"
+            >
+              <Play className="size-3.5" />
+              Resume recording
+            </Button>
+          )}
 
           {/* Download escape hatch after a failed run. */}
           {phase === "recorded" && failed && (

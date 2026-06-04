@@ -19,6 +19,13 @@ import {
   MAX_BYTES,
   type CaptureStage,
 } from "@/lib/upload-lecture";
+import {
+  appendRecordingDraftChunk,
+  clearRecordingDraft,
+  createRecordingDraft,
+  getRecordingDraft,
+  updateRecordingDraftMetadata,
+} from "@/lib/recording-draft";
 
 export const BARS = 32;
 const IDLE_LEVELS = () => Array(BARS).fill(0.04) as number[];
@@ -27,6 +34,7 @@ const TRANSCRIPT_FRAME_MS = 360;
 const SILENCE_PEAK_THRESHOLD = 0.075;
 const SILENCE_MIN_ACTIVE_MS = 500;
 const SILENCE_MIN_DURATION_SECONDS = 2;
+const RECORDING_DRAFT_SLICE_MS = 4_000;
 // Match the server route's `maxDuration` (300s). Gemini 2.5 Pro on a full
 // lecture routinely takes several minutes, so the old 2-minute client abort
 // killed valid long recordings before the server could ever finish.
@@ -78,6 +86,10 @@ interface RecordingValue {
   stage: CaptureStage;
   busy: boolean;
   processingIssue: ProcessingIssue | null;
+  /** True when the current recorded clip was restored from this device. */
+  recoveredDraft: boolean;
+  /** Last successful local draft save time, if available. */
+  lastSavedAt: number | null;
   /** True after a generation attempt failed — surfaces the "download" escape hatch. */
   failed: boolean;
   /**
@@ -110,6 +122,8 @@ interface RecordingValue {
   sessionLabel: string;
   setSessionLabel: (label: string) => void;
   start: (source?: RecordingSource) => Promise<void>;
+  /** Continue a recovered take by appending a fresh recording segment. */
+  resumeDraft: () => Promise<void>;
   pause: () => void;
   resume: () => void;
   stop: () => void;
@@ -197,6 +211,8 @@ export function RecordingProvider({
   const [stage, setStage] = useState<CaptureStage>("idle");
   const [processingIssue, setProcessingIssue] = useState<ProcessingIssue | null>(null);
   const [sessionLabel, setSessionLabel] = useState("Untitled Lecture");
+  const [recoveredDraft, setRecoveredDraft] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const [transcriptSupported, setTranscriptSupported] = useState(false);
   const [deviceCaptureSupported, setDeviceCaptureSupported] = useState(true);
   const [deviceCaptureSupport, setDeviceCaptureSupport] =
@@ -232,6 +248,8 @@ export function RecordingProvider({
   const audioPeakRef = useRef(0);
   const activeAudioMsRef = useRef(0);
   const generationRunRef = useRef(0);
+  const draftWriteQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const requestIdRef = useRef<string>(crypto.randomUUID());
   // Lets the display-capture "ended" listener call the latest stop() without
   // start() having to depend on it (avoids a circular useCallback reference).
   const stopRef = useRef<(() => void) | null>(null);
@@ -269,6 +287,40 @@ export function RecordingProvider({
 
   const busy = stage !== "idle";
 
+  const enqueueDraftWrite = useCallback((write: () => Promise<void>) => {
+    draftWriteQueueRef.current = draftWriteQueueRef.current
+      .catch(() => {})
+      .then(write)
+      .catch((err) => {
+        console.warn("Recording draft write failed:", err);
+      });
+    return draftWriteQueueRef.current;
+  }, []);
+
+  const draftPatch = useCallback(
+    () => ({
+      seconds: secondsRef.current,
+      liveTranscript: liveTranscriptRef.current,
+      audioPeak: audioPeakRef.current,
+      activeAudioMs: activeAudioMsRef.current,
+      sessionLabel,
+      source,
+      mime: baseMimeType(mimeRef.current || "audio/webm"),
+    }),
+    [sessionLabel, source]
+  );
+
+  const saveDraftMetadata = useCallback(() => {
+    if (!mimeRef.current) return;
+    const queuedAt = Date.now();
+    setLastSavedAt(queuedAt);
+    void enqueueDraftWrite(() =>
+      updateRecordingDraftMetadata(userId, draftPatch()).then(() => {
+        setLastSavedAt(Date.now());
+      })
+    );
+  }, [draftPatch, enqueueDraftWrite, userId]);
+
   useEffect(() => {
     // One-shot, client-only capability check — kept out of render to stay
     // hydration-safe (the server can't know about SpeechRecognition).
@@ -280,6 +332,73 @@ export function RecordingProvider({
     setDeviceCaptureSupport(support);
     setDeviceCaptureSupported(support === "ok");
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreDraft() {
+      try {
+        const draft = await getRecordingDraft(userId);
+        if (cancelled || !draft || draft.chunks.length === 0) return;
+        if (mediaRecorderRef.current || phase !== "idle" || clip) return;
+
+        const blob = new Blob(draft.chunks, { type: draft.metadata.mime });
+        if (blob.size <= 0) {
+          await clearRecordingDraft(userId);
+          return;
+        }
+        if (blob.size > MAX_BYTES) {
+          await clearRecordingDraft(userId);
+          toast.error(
+            `A recovered recording was over ${formatBytes(MAX_BYTES)}, so Atlas couldn't keep it.`
+          );
+          return;
+        }
+
+        const transcript = draft.metadata.liveTranscript || "";
+        const url = URL.createObjectURL(blob);
+        chunksRef.current = [blob];
+        mimeRef.current = draft.metadata.mime;
+        requestIdRef.current = draft.metadata.requestId;
+        secondsRef.current = draft.metadata.seconds;
+        finalTranscriptRef.current = transcript;
+        liveTranscriptRef.current = transcript;
+        pendingTranscriptRef.current = transcript;
+        audioPeakRef.current = draft.metadata.audioPeak;
+        activeAudioMsRef.current = draft.metadata.activeAudioMs;
+
+        setSeconds(draft.metadata.seconds);
+        setSource(draft.metadata.source);
+        setSessionLabel(draft.metadata.sessionLabel || "Untitled Lecture");
+        setLastSavedAt(draft.metadata.updatedAt);
+        setRecoveredDraft(true);
+        emitTranscript(transcript);
+        emitLevels(IDLE_LEVELS());
+        setClip({
+          requestId: draft.metadata.requestId,
+          url,
+          blob,
+          mime: draft.metadata.mime,
+          silent:
+            draft.metadata.seconds >= SILENCE_MIN_DURATION_SECONDS &&
+            draft.metadata.audioPeak < SILENCE_PEAK_THRESHOLD &&
+            draft.metadata.activeAudioMs < SILENCE_MIN_ACTIVE_MS &&
+            !transcript.trim(),
+        });
+        setPhase("recorded");
+        toast.message("Recovered a recording saved on this device.");
+      } catch (err) {
+        console.warn("Recording draft restore failed:", err);
+      }
+    }
+
+    void restoreDraft();
+    return () => {
+      cancelled = true;
+    };
+    // Restore only once for the signed-in user, before any new session starts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   const stopMeter = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -417,8 +536,13 @@ export function RecordingProvider({
     }
   }, [flushTranscript]);
 
-  const start = useCallback(async (nextSource: RecordingSource = "microphone") => {
-    if (busy || phase !== "idle") return;
+  const start = useCallback(async (
+    nextSource: RecordingSource = "microphone",
+    appendToDraft = false
+  ) => {
+    if (busy || (appendToDraft ? phase !== "recorded" || !clip : phase !== "idle")) {
+      return;
+    }
 
     // Virtual lectures capture another tab/app's audio via screen-share. Mobile
     // browsers don't support it, and Safari/Firefox expose the picker but never
@@ -558,22 +682,67 @@ export function RecordingProvider({
     streamRef.current = recordStream;
     sourceStreamsRef.current = opened;
     mimeRef.current = mime;
-    chunksRef.current = [];
-    finalTranscriptRef.current = "";
-    pendingTranscriptRef.current = "";
-    lastTranscriptAtRef.current = 0;
+    const existingClip = appendToDraft ? clip : null;
+    if (existingClip) {
+      URL.revokeObjectURL(existingClip.url);
+      chunksRef.current = [existingClip.blob];
+    } else {
+      chunksRef.current = [];
+      finalTranscriptRef.current = "";
+      pendingTranscriptRef.current = "";
+      lastTranscriptAtRef.current = 0;
+      secondsRef.current = 0;
+      requestIdRef.current = crypto.randomUUID();
+      emitTranscript("");
+      resetAudioActivity();
+      void enqueueDraftWrite(() =>
+        createRecordingDraft({
+          userId,
+          requestId: requestIdRef.current,
+          mime: baseMimeType(mime),
+          source: nextSource,
+          sessionLabel,
+        }).then(() => {
+          setLastSavedAt(Date.now());
+        })
+      );
+    }
+    if (existingClip) {
+      setClip(null);
+      void enqueueDraftWrite(() =>
+        updateRecordingDraftMetadata(userId, {
+          ...draftPatch(),
+          source: nextSource,
+          mime: baseMimeType(mime),
+        }).then(() => {
+          setLastSavedAt(Date.now());
+        })
+      );
+    }
     setProcessingIssue(null);
-    resetAudioActivity();
     generationRunRef.current += 1;
-    emitTranscript("");
     setSource(nextSource);
+    setRecoveredDraft(false);
+    setFailed(false);
 
     audioCtxRef.current = ctx;
     analyserRef.current = analyser;
 
     const rec = new MediaRecorder(recordStream, { mimeType: mime });
     rec.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
+      if (e.data.size <= 0) return;
+      chunksRef.current.push(e.data);
+      const savedAt = Date.now();
+      setLastSavedAt(savedAt);
+      void enqueueDraftWrite(() =>
+        appendRecordingDraftChunk(userId, e.data, {
+          ...draftPatch(),
+          source: nextSource,
+          mime: baseMimeType(mime),
+        }).then(() => {
+          setLastSavedAt(Date.now());
+        })
+      );
     };
     rec.onstop = () => {
       stopMeter();
@@ -581,17 +750,21 @@ export function RecordingProvider({
       if (blob.size > MAX_BYTES) {
         toast.error(`That recording is over ${formatBytes(MAX_BYTES)}. Try a shorter session.`);
         setPhase("idle");
+        setLastSavedAt(null);
+        void enqueueDraftWrite(() => clearRecordingDraft(userId));
         teardown();
         return;
       }
       const url = URL.createObjectURL(blob);
       setClip({
-        requestId: crypto.randomUUID(),
+        requestId: requestIdRef.current,
         url,
         blob,
         mime: baseMimeType(mime),
         silent: clipWouldBeSilent(secondsRef.current),
       });
+      setRecoveredDraft(false);
+      saveDraftMetadata();
       setPhase("recorded");
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
@@ -604,16 +777,16 @@ export function RecordingProvider({
     };
 
     mediaRecorderRef.current = rec;
-    rec.start();
+    rec.start(RECORDING_DRAFT_SLICE_MS);
 
-    setSeconds(0);
-    secondsRef.current = 0;
+    if (!appendToDraft) setSeconds(0);
     setPhase("recording");
     runMeter();
     tickRef.current = setInterval(() => {
       setSeconds((s) => {
         const next = s + 1;
         secondsRef.current = next;
+        if (next % 5 === 0) saveDraftMetadata();
         return next;
       });
     }, 1000);
@@ -629,19 +802,30 @@ export function RecordingProvider({
     }
   }, [
     busy,
+    clip,
     clipWouldBeSilent,
+    draftPatch,
+    enqueueDraftWrite,
     phase,
     emitTranscript,
     resetAudioActivity,
     runMeter,
+    saveDraftMetadata,
     startTranscription,
     stopMeter,
+    sessionLabel,
     teardown,
+    userId,
   ]);
 
   const pause = useCallback(() => {
     const rec = mediaRecorderRef.current;
     if (!rec || rec.state !== "recording") return;
+    try {
+      rec.requestData();
+    } catch {
+      /* ignore */
+    }
     rec.pause();
     setPhase("paused");
     stopMeter();
@@ -655,7 +839,8 @@ export function RecordingProvider({
       /* ignore */
     }
     if (tickRef.current) clearInterval(tickRef.current);
-  }, [stopMeter, emitLevels]);
+    saveDraftMetadata();
+  }, [stopMeter, emitLevels, saveDraftMetadata]);
 
   const resume = useCallback(() => {
     const rec = mediaRecorderRef.current;
@@ -675,10 +860,11 @@ export function RecordingProvider({
       setSeconds((s) => {
         const next = s + 1;
         secondsRef.current = next;
+        if (next % 5 === 0) saveDraftMetadata();
         return next;
       });
     }, 1000);
-  }, [runMeter]);
+  }, [runMeter, saveDraftMetadata]);
 
   const stop = useCallback(() => {
     const rec = mediaRecorderRef.current;
@@ -695,14 +881,45 @@ export function RecordingProvider({
     } catch {
       /* ignore */
     }
+    try {
+      rec.requestData();
+    } catch {
+      /* ignore */
+    }
+    saveDraftMetadata();
     rec.stop();
-  }, [stopMeter, emitLevels]);
+  }, [stopMeter, emitLevels, saveDraftMetadata]);
 
   // Keep stopRef pointing at the latest stop() so the display-capture "ended"
   // listener (set up in start()) can end a session without a circular dep.
   useEffect(() => {
     stopRef.current = stop;
   }, [stop]);
+
+  useEffect(() => {
+    const flushActiveDraft = () => {
+      const rec = mediaRecorderRef.current;
+      if (!rec || rec.state === "inactive") return;
+      try {
+        rec.requestData();
+      } catch {
+        /* ignore */
+      }
+      saveDraftMetadata();
+    };
+
+    window.addEventListener("pagehide", flushActiveDraft);
+    document.addEventListener("visibilitychange", flushActiveDraft);
+    return () => {
+      window.removeEventListener("pagehide", flushActiveDraft);
+      document.removeEventListener("visibilitychange", flushActiveDraft);
+    };
+  }, [saveDraftMetadata]);
+
+  const resumeDraft = useCallback(async () => {
+    if (!clip) return;
+    await start(source, true);
+  }, [clip, source, start]);
 
   const discard = useCallback(() => {
     if (clip) URL.revokeObjectURL(clip.url);
@@ -715,11 +932,23 @@ export function RecordingProvider({
     setProcessingIssue(null);
     resetAudioActivity();
     generationRunRef.current += 1;
+    requestIdRef.current = crypto.randomUUID();
     setSessionLabel("Untitled Lecture");
     setFailed(false);
+    setRecoveredDraft(false);
+    setLastSavedAt(null);
     setPhase("idle");
     teardown();
-  }, [clip, resetAudioActivity, teardown, emitLevels, emitTranscript]);
+    void enqueueDraftWrite(() => clearRecordingDraft(userId));
+  }, [
+    clip,
+    resetAudioActivity,
+    teardown,
+    emitLevels,
+    emitTranscript,
+    enqueueDraftWrite,
+    userId,
+  ]);
 
   const generate = useCallback(async () => {
     if (!clip) return;
@@ -793,9 +1022,12 @@ export function RecordingProvider({
       emitLevels(IDLE_LEVELS());
       emitTranscript("");
       setSessionLabel("Untitled Lecture");
+      setRecoveredDraft(false);
+      setLastSavedAt(null);
       setProcessingIssue(null);
       setPhase("idle");
       setStage("idle");
+      void enqueueDraftWrite(() => clearRecordingDraft(userId));
       router.push(`/notes/${result.id}`);
     } catch (err) {
       if (generationRunRef.current !== runId) return;
@@ -827,7 +1059,7 @@ export function RecordingProvider({
     } finally {
       if (timeoutId) window.clearTimeout(timeoutId);
     }
-  }, [clip, router, seconds, userId, emitLevels, emitTranscript]);
+  }, [clip, router, seconds, userId, emitLevels, emitTranscript, enqueueDraftWrite]);
 
   const clearProcessingIssue = useCallback(() => {
     setProcessingIssue(null);
@@ -858,6 +1090,8 @@ export function RecordingProvider({
     stage,
     busy,
     processingIssue,
+    recoveredDraft,
+    lastSavedAt,
     failed,
     transcriptSupported,
     deviceCaptureSupported,
@@ -867,6 +1101,7 @@ export function RecordingProvider({
     sessionLabel,
     setSessionLabel,
     start,
+    resumeDraft,
     pause,
     resume,
     stop,

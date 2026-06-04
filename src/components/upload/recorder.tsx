@@ -11,6 +11,7 @@ import {
   MonitorSpeaker,
   Pause,
   Play,
+  Save,
   Sparkles,
   Square,
   Trash2,
@@ -32,6 +33,14 @@ function formatClock(s: number) {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
+function formatSavedAt(ms: number | null) {
+  if (!ms) return "Saved on this device";
+  return `Saved ${new Date(ms).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  })}`;
+}
+
 /**
  * In-browser recorder UI (§7). All recording state lives in RecordingContext so
  * a session survives navigation; this component is the full-page presentation.
@@ -47,9 +56,12 @@ export function Recorder() {
     busy,
     processingIssue,
     failed,
+    recoveredDraft,
+    lastSavedAt,
     deviceCaptureSupported,
     deviceCaptureSupport,
     start,
+    resumeDraft,
     pause,
     resume,
     stop,
@@ -171,6 +183,27 @@ export function Recorder() {
 
               {phase === "recorded" && (
                 <div className="w-full space-y-5">
+                  {recoveredDraft && (
+                    <div className="space-y-3 rounded-2xl border border-primary/30 bg-primary/[0.06] p-4 text-left">
+                      <div>
+                        <p className="text-sm font-medium">Recovered recording</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {formatSavedAt(lastSavedAt)}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={resumeDraft}
+                        disabled={busy}
+                        variant="outline"
+                        size="lg"
+                        className="h-11 w-full gap-2"
+                      >
+                        <Play className="size-4" />
+                        Resume recording
+                      </Button>
+                    </div>
+                  )}
+
                   {clip && (
                     <audio controls src={clip.url} className="w-full" preload="metadata" />
                   )}
@@ -228,6 +261,12 @@ export function Recorder() {
               <Lock className="size-3 text-primary" />
               Secured by Atlas Enclave
             </span>
+            {(live || recoveredDraft) && (
+              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/40 px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
+                <Save className="size-3 text-primary" />
+                {formatSavedAt(lastSavedAt)}
+              </span>
+            )}
           </div>
         </div>
 
