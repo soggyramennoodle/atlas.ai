@@ -21,7 +21,8 @@ export default function PrivacyPolicyPage() {
           heading: "Information We Collect",
           body: [
             "Account information: the email address you sign in with, the oAuth provider you sign in with (if applicable), and the profile details you choose to provide (name, institution, program, year, and expected graduation).",
-            "Lecture content: the audio you record or upload, and the structured notes, summaries, transcripts, and edits generated from or made to it.",
+            "Lecture content (physical lectures): the audio you record or upload, and the structured notes, summaries, transcripts, and edits generated from or made to it.",
+            "Lecture content (virtual lectures): the screen recording of your chosen tab, window, or entire screen, and the notes, summaries, transcripts, and edits generated from or made to it.",
             "Usage information: basic technical data such as device and browser type, and the interactions needed to operate the service (for example, when a note is created or exported).",
           ],
         },
@@ -30,6 +31,7 @@ export default function PrivacyPolicyPage() {
           body: [
             "We use your information to provide and improve the service: to transcribe and analyze your recordings, generate and store your notes, sync your library across sessions, and personalize future note-taking based on your info.",
             "We do not use your personal notes or recordings to train third-party AI models, and we do not use them for advertising.",
+            "We do not look at your screen recording, while you share your screen for virtual lectures. Our AI also does not see the recording; we only collect and extract the system audio from your device, in order to capture virtual lecture content. All screen recordings are temporarily stored to our Cloudflare server, and are deleted after the notes are generated.",
           ],
         },
         {
@@ -43,6 +45,7 @@ export default function PrivacyPolicyPage() {
           heading: "Data Retention",
           body: [
             "Your lecture audio is retained only as long as needed to generate your notes, after which it is removed from the processing service, and deleted from our server. Your notes and account information are retained for as long as your account is active.",
+            "Your screen recording is only retained to extract the audio/transcript, in order to generate your notes, after which, the screen recording is deleted from our servers. Our AI never sees this screen recording; only the extracted audio.",
             "When you delete a note, the transcription, note summary, and course code/name are deleted as well. When you delete your account, we remove your associated content within a reasonable period, except where retention is required by law.",
           ],
         },
