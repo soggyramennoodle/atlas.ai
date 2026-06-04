@@ -67,7 +67,7 @@ export function CapturePanel({ userId }: { userId: string }) {
         )}
       </AnimatePresence>
 
-      <div className={recordingLive ? "" : "mx-auto mt-7 max-w-2xl"}>
+      <div className={mode === "record" ? "mt-7" : "mx-auto mt-7 max-w-2xl"}>
         {mode === "record" ? (
           <motion.div key="record" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <Recorder />

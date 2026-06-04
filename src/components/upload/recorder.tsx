@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Download, Loader2, Lock, Mic, Pause, Play, Sparkles, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,23 +24,18 @@ function formatClock(s: number) {
 export function Recorder() {
   const { phase, seconds, levels, clip, stage, busy, failed, start, pause, resume, stop, discard, generate, download } =
     useRecording();
+  const reduceMotion = useReducedMotion();
 
   const live = phase === "recording" || phase === "paused";
 
   return (
     <div className="relative">
-      <motion.div
-        layout
-        className={cn(
-          "grid gap-5",
-          live ? "lg:grid-cols-2" : "grid-cols-1"
-        )}
-      >
+      <div className="grid gap-5 lg:grid-cols-2">
         {/* Control box */}
-        <motion.div
-          layout
+        <div
           className={cn(
-            "glass-panel relative z-10 overflow-hidden rounded-[2rem] p-6 ring-luxe sm:p-8",
+            "glass-panel relative z-10 overflow-hidden rounded-[2rem] p-6 ring-luxe transition-transform duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] sm:p-8 motion-reduce:transition-none lg:will-change-transform",
+            !live && "lg:translate-x-[calc(50%+0.625rem)]",
             phase === "paused" && "border-destructive/50"
           )}
         >
@@ -82,13 +77,13 @@ export function Recorder() {
                 <motion.span
                   key={i}
                   className={cn(
-                    "w-[3px] rounded-full bg-gradient-to-t",
+                    "h-full w-[3px] origin-center rounded-full bg-gradient-to-t transform-gpu",
                     phase === "paused"
                       ? "from-destructive/40 to-destructive"
                       : "from-primary/40 to-primary"
                   )}
-                  animate={{ height: `${Math.max(6, v * 90)}%` }}
-                  transition={{ duration: 0.12, ease: "easeOut" }}
+                  animate={{ scaleY: Math.max(0.08, v * 0.9) }}
+                  transition={{ duration: reduceMotion ? 0 : 0.1, ease: [0.22, 1, 0.36, 1] }}
                   style={{ opacity: live ? 1 : 0.35 }}
                 />
               ))}
@@ -210,7 +205,7 @@ export function Recorder() {
               Atlas Enclave · private &amp; encrypted
             </span>
           </div>
-        </motion.div>
+        </div>
 
         {/* Immersive aura + floating transcript (recording/paused only). No box,
             no border, no background — the glow bleeds freely into the page as
@@ -220,25 +215,25 @@ export function Recorder() {
           {live && (
             <motion.div
               key="ambient"
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 24 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-0 min-h-[24rem] lg:min-h-full"
+              initial={reduceMotion ? false : { opacity: 0, filter: "blur(6px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, filter: "blur(3px)" }}
+              transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="relative z-0 min-h-[24rem] will-change-[opacity,filter] lg:min-h-full"
             >
               {/* Bleed the glow well beyond its logical cell on every side. */}
               <div className="pointer-events-none absolute -inset-x-16 -inset-y-10 -z-10 overflow-visible">
                 <AiGlow
                   mode={phase === "paused" ? "idle" : "active"}
                   blend
-                  blur={72}
+                  blur={56}
                 />
               </div>
               <FluidTranscript />
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
 
       <ProcessingOverlay stage={stage} />
     </div>
@@ -252,6 +247,7 @@ export function Recorder() {
  */
 function FluidTranscript() {
   const { liveTranscript, transcriptSupported, phase } = useRecording();
+  const reduceMotion = useReducedMotion();
 
   const lines = useMemo(() => {
     const words = liveTranscript.split(/\s+/).filter(Boolean);
@@ -280,27 +276,27 @@ function FluidTranscript() {
       >
         {placeholder ? (
           <motion.p
-            initial={{ opacity: 0 }}
+            initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 0.7 }}
+            transition={{ duration: reduceMotion ? 0 : 0.2 }}
             className="text-pretty text-sm text-foreground/70"
           >
             {placeholder}
           </motion.p>
         ) : (
-          <AnimatePresence mode="popLayout" initial={false}>
+          <AnimatePresence initial={false}>
             {lines.map((line, idx) => {
               const t = lines.length > 1 ? idx / (lines.length - 1) : 1;
               const opacity = 0.2 + 0.75 * t;
               return (
                 <motion.p
                   key={line.key}
-                  layout
-                  initial={{ opacity: 0, y: 18 }}
+                  initial={reduceMotion ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity, y: 0 }}
-                  exit={{ opacity: 0, y: -18 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
                   className="text-pretty text-lg font-medium leading-snug text-foreground"
-                  style={{ scale: 0.9 + 0.1 * t }}
+                  style={{ scale: 0.92 + 0.08 * t }}
                 >
                   {line.text}
                 </motion.p>

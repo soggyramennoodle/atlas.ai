@@ -19,8 +19,10 @@ import {
   type CaptureStage,
 } from "@/lib/upload-lecture";
 
-export const BARS = 40;
+export const BARS = 32;
 const IDLE_LEVELS = () => Array(BARS).fill(0.04) as number[];
+const METER_FRAME_MS = 72;
+const TRANSCRIPT_FRAME_MS = 180;
 
 export type RecordingPhase = "idle" | "recording" | "paused" | "recorded";
 
@@ -147,6 +149,11 @@ export function RecordingProvider({
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const finalTranscriptRef = useRef("");
   const wantTranscriptRef = useRef(false);
+  const lastMeterAtRef = useRef(0);
+  const lastTranscriptAtRef = useRef(0);
+  const pendingTranscriptRef = useRef("");
+  const transcriptFlushRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transcriptKickoffRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const busy = stage !== "idle";
 
@@ -166,6 +173,10 @@ export function RecordingProvider({
     stopMeter();
     if (tickRef.current) clearInterval(tickRef.current);
     tickRef.current = null;
+    if (transcriptFlushRef.current) clearTimeout(transcriptFlushRef.current);
+    transcriptFlushRef.current = null;
+    if (transcriptKickoffRef.current) clearTimeout(transcriptKickoffRef.current);
+    transcriptKickoffRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     audioCtxRef.current?.close().catch(() => {});
@@ -180,6 +191,27 @@ export function RecordingProvider({
     }
     recognitionRef.current = null;
   }, [stopMeter]);
+
+  const flushTranscript = useCallback((next: string) => {
+    pendingTranscriptRef.current = next;
+    const now = performance.now();
+    const elapsed = now - lastTranscriptAtRef.current;
+
+    if (elapsed >= TRANSCRIPT_FRAME_MS) {
+      if (transcriptFlushRef.current) clearTimeout(transcriptFlushRef.current);
+      transcriptFlushRef.current = null;
+      lastTranscriptAtRef.current = now;
+      setLiveTranscript(next);
+      return;
+    }
+
+    if (transcriptFlushRef.current) return;
+    transcriptFlushRef.current = setTimeout(() => {
+      transcriptFlushRef.current = null;
+      lastTranscriptAtRef.current = performance.now();
+      setLiveTranscript(pendingTranscriptRef.current);
+    }, TRANSCRIPT_FRAME_MS - elapsed);
+  }, []);
 
   // Cleanup on unmount.
   useEffect(() => {
@@ -196,12 +228,16 @@ export function RecordingProvider({
     const buf = new Uint8Array(analyser.frequencyBinCount);
     const loop = () => {
       analyser.getByteFrequencyData(buf);
-      const next: number[] = [];
-      const step = Math.floor(buf.length / BARS) || 1;
-      for (let i = 0; i < BARS; i++) {
-        next.push(Math.max(0.04, buf[i * step] / 255));
+      const now = performance.now();
+      if (now - lastMeterAtRef.current >= METER_FRAME_MS) {
+        lastMeterAtRef.current = now;
+        const next: number[] = [];
+        const step = Math.floor(buf.length / BARS) || 1;
+        for (let i = 0; i < BARS; i++) {
+          next.push(Math.max(0.04, buf[i * step] / 255));
+        }
+        setLevels(next);
       }
-      setLevels(next);
       rafRef.current = requestAnimationFrame(loop);
     };
     loop();
@@ -221,7 +257,7 @@ export function RecordingProvider({
         if (r.isFinal) finalTranscriptRef.current += r[0].transcript + " ";
         else interim += r[0].transcript;
       }
-      setLiveTranscript((finalTranscriptRef.current + interim).trim());
+      flushTranscript((finalTranscriptRef.current + interim).trim());
     };
     // Web Speech stops itself periodically; restart while still wanted.
     recognition.onend = () => {
@@ -241,7 +277,7 @@ export function RecordingProvider({
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [flushTranscript]);
 
   const start = useCallback(async () => {
     if (busy || phase !== "idle") return;
@@ -266,6 +302,8 @@ export function RecordingProvider({
     mimeRef.current = mime;
     chunksRef.current = [];
     finalTranscriptRef.current = "";
+    pendingTranscriptRef.current = "";
+    lastTranscriptAtRef.current = 0;
     setLiveTranscript("");
 
     const AudioCtx =
@@ -298,6 +336,11 @@ export function RecordingProvider({
       setClip({ url, blob, mime: baseMimeType(mime) });
       setPhase("recorded");
       streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      audioCtxRef.current?.close().catch(() => {});
+      audioCtxRef.current = null;
+      analyserRef.current = null;
+      mediaRecorderRef.current = null;
     };
 
     mediaRecorderRef.current = rec;
@@ -306,8 +349,11 @@ export function RecordingProvider({
     setSeconds(0);
     setPhase("recording");
     runMeter();
-    startTranscription();
     tickRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+    transcriptKickoffRef.current = setTimeout(() => {
+      transcriptKickoffRef.current = null;
+      if (mediaRecorderRef.current?.state === "recording") startTranscription();
+    }, 180);
   }, [busy, phase, runMeter, startTranscription, stopMeter, teardown]);
 
   const pause = useCallback(() => {
@@ -316,6 +362,8 @@ export function RecordingProvider({
     rec.pause();
     setPhase("paused");
     stopMeter();
+    if (transcriptKickoffRef.current) clearTimeout(transcriptKickoffRef.current);
+    transcriptKickoffRef.current = null;
     setLevels(IDLE_LEVELS());
     wantTranscriptRef.current = false;
     try {
@@ -347,6 +395,11 @@ export function RecordingProvider({
     const rec = mediaRecorderRef.current;
     if (!rec || rec.state === "inactive") return;
     if (tickRef.current) clearInterval(tickRef.current);
+    tickRef.current = null;
+    if (transcriptKickoffRef.current) clearTimeout(transcriptKickoffRef.current);
+    transcriptKickoffRef.current = null;
+    stopMeter();
+    setLevels(IDLE_LEVELS());
     wantTranscriptRef.current = false;
     try {
       recognitionRef.current?.stop();
@@ -354,7 +407,7 @@ export function RecordingProvider({
       /* ignore */
     }
     rec.stop();
-  }, []);
+  }, [stopMeter]);
 
   const discard = useCallback(() => {
     if (clip) URL.revokeObjectURL(clip.url);
@@ -362,6 +415,7 @@ export function RecordingProvider({
     setSeconds(0);
     setLevels(IDLE_LEVELS());
     setLiveTranscript("");
+    pendingTranscriptRef.current = "";
     setSessionLabel("Untitled Lecture");
     setFailed(false);
     setPhase("idle");

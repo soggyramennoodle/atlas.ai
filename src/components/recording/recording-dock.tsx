@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Download, Loader2, Mic, Pause, Play, Sparkles, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,7 @@ function clock(s: number) {
  */
 export function RecordingDock() {
   const pathname = usePathname();
+  const reduceMotion = useReducedMotion();
   const { phase, seconds, levels, busy, failed, sessionLabel, pause, resume, stop, generate, discard, download } =
     useRecording();
 
@@ -31,10 +32,14 @@ export function RecordingDock() {
     <AnimatePresence>
       {show && (
         <motion.div
-          initial={{ opacity: 0, y: 24, scale: 0.96 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 24, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 24, scale: 0.96 }}
-          transition={{ type: "spring", stiffness: 340, damping: 30 }}
+          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96 }}
+          transition={
+            reduceMotion
+              ? { duration: 0 }
+              : { type: "spring", stiffness: 340, damping: 30 }
+          }
           className={cn(
             "fixed bottom-5 left-5 z-50 w-72 overflow-hidden rounded-[1.25rem] border bg-card/95 p-4 shadow-2xl backdrop-blur-xl ring-luxe",
             phase === "paused" && "border-destructive/50"
@@ -73,11 +78,11 @@ export function RecordingDock() {
                 <motion.span
                   key={i}
                   className={cn(
-                    "w-[3px] flex-1 rounded-full",
+                    "h-full w-[3px] flex-1 origin-center rounded-full transform-gpu",
                     phase === "paused" ? "bg-destructive/50" : "bg-primary/70"
                   )}
-                  animate={{ height: `${Math.max(8, v * 100)}%` }}
-                  transition={{ duration: 0.12 }}
+                  animate={{ scaleY: Math.max(0.1, v) }}
+                  transition={{ duration: reduceMotion ? 0 : 0.1, ease: [0.22, 1, 0.36, 1] }}
                 />
               ))}
             </div>
