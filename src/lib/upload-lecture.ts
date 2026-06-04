@@ -36,6 +36,33 @@ export function extForMime(mime: string): string {
   return map[base] ?? "audio";
 }
 
+/**
+ * Parse a JSON API response defensively. An empty or non-JSON body means the
+ * server crashed, ran out of memory, timed out, or was killed mid-request
+ * (common when a long/large recording exhausts the function's time or memory
+ * budget) — and `Response.json()` would throw a cryptic "Unexpected end of JSON
+ * input". Surface a clear, actionable error that includes the HTTP status so
+ * the real cause is diagnosable from the message alone.
+ */
+async function parseJsonResponse(
+  res: Response,
+  context: string
+): Promise<Record<string, unknown>> {
+  const text = await res.text();
+  if (!text.trim()) {
+    throw new Error(
+      `${context} the server ended the request without a response (HTTP ${res.status}). A long recording can exceed the processing limit — try a shorter clip, or check the server logs.`
+    );
+  }
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    throw new Error(
+      `${context} the server returned an unexpected response (HTTP ${res.status}). Please try again.`
+    );
+  }
+}
+
 interface UploadArgs {
   supabase: SupabaseClient;
   userId: string;
@@ -83,9 +110,12 @@ export async function uploadLectureAndGenerate({
       requestId: stableId,
     }),
   });
-  const presign = await presignRes.json();
+  const presign = await parseJsonResponse(
+    presignRes,
+    "Could not prepare the upload —"
+  );
   if (!presignRes.ok) {
-    throw new Error(presign.error || "Could not prepare the upload.");
+    throw new Error((presign.error as string) || "Could not prepare the upload.");
   }
 
   const r2Key = presign.key as string;
@@ -117,13 +147,13 @@ export async function uploadLectureAndGenerate({
     }),
   });
 
-  const result = await res.json();
-  if (!res.ok) throw new Error(result.error || "Something went wrong.");
+  const result = await parseJsonResponse(res, "Atlas couldn't process this —");
+  if (!res.ok) throw new Error((result.error as string) || "Something went wrong.");
   return {
     id: result.id as string,
     status:
       result.status === "processing" || result.status === "failed"
-        ? result.status
+        ? (result.status as GenerationStatus)
         : "ready",
   };
 }

@@ -27,7 +27,10 @@ const TRANSCRIPT_FRAME_MS = 180;
 const SILENCE_PEAK_THRESHOLD = 0.075;
 const SILENCE_MIN_ACTIVE_MS = 500;
 const SILENCE_MIN_DURATION_SECONDS = 2;
-const PROCESSING_TIMEOUT_MS = 120_000;
+// Match the server route's `maxDuration` (300s). Gemini 2.5 Pro on a full
+// lecture routinely takes several minutes, so the old 2-minute client abort
+// killed valid long recordings before the server could ever finish.
+const PROCESSING_TIMEOUT_MS = 300_000;
 
 function formatBytes(bytes: number) {
   const mb = bytes / (1024 * 1024);
