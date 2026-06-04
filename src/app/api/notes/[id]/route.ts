@@ -42,9 +42,11 @@ export async function PATCH(
         { status: 400 }
       );
     }
+    // Only update the JSON document — do not sync title/subject from the blob
+    // to the top-level columns. Those columns are authoritative and are written
+    // only by explicit body.title / body.subject edits (e.g. CourseCapsule).
+    // Syncing from content would clobber user edits with stale AI-generated values.
     update.content = body.content;
-    update.title = body.content.title;
-    update.subject = body.content.subject || null;
   }
   if (typeof body.title === "string") update.title = body.title.trim();
   if (body.subject !== undefined) {
