@@ -21,6 +21,13 @@ create table if not exists public.notes (
 create index if not exists notes_user_id_created_at_idx
   on public.notes (user_id, created_at desc);
 
+-- Idempotency key for note generation. The app keeps `audio_path` after raw
+-- audio deletion as a non-sensitive job key, so reloads/retries cannot start
+-- duplicate paid generation for the same uploaded recording.
+create unique index if not exists notes_user_id_audio_path_key
+  on public.notes (user_id, audio_path)
+  where audio_path is not null;
+
 -- Row Level Security: a user can only ever see/touch their own notes.
 alter table public.notes enable row level security;
 

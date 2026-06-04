@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Loader2, Pencil } from "lucide-react";
+import { AlertCircle, Check, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import type {
   KeyConcept,
@@ -48,6 +48,7 @@ const clone = <T,>(v: T): T =>
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 type SaveStatus = "idle" | "saving" | "saved";
+const PROCESSING_STALE_MS = 6 * 60_000;
 
 /**
  * Renderer + editor for a set of structured lecture notes. View mode mirrors
@@ -57,7 +58,7 @@ type SaveStatus = "idle" | "saving" | "saved";
 export function NoteView({
   note,
 }: {
-  note: { id: string; content: StructuredNotes };
+  note: { id: string; content: StructuredNotes; createdAt?: string };
 }) {
   const initial = useMemo(() => normalizeNotes(note.content), [note.content]);
   const [saved, setSaved] = useState<StructuredNotes>(initial);
@@ -65,6 +66,7 @@ export function NoteView({
   const [editMode, setEditMode] = useState(false);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [editorSeed, setEditorSeed] = useState("");
+  const [staleProcessing, setStaleProcessing] = useState(false);
 
   const draftRef = useRef(draft);
   const originalRef = useRef<StructuredNotes>(initial);
@@ -79,6 +81,18 @@ export function NoteView({
   useEffect(() => {
     savedRef.current = saved;
   }, [saved]);
+
+  useEffect(() => {
+    if (saved.status !== "processing" || !note.createdAt) return;
+
+    const createdAtMs = new Date(note.createdAt).getTime();
+    const remaining = PROCESSING_STALE_MS - (Date.now() - createdAtMs);
+    const timer = window.setTimeout(
+      () => setStaleProcessing(true),
+      Math.max(0, remaining + 1000)
+    );
+    return () => window.clearTimeout(timer);
+  }, [note.createdAt, saved.status]);
 
   const update = (fn: (d: StructuredNotes) => void) =>
     setDraft((prev) => {
@@ -197,6 +211,21 @@ export function NoteView({
   }
 
   const shown = editMode ? draft : saved;
+  const displayStatus =
+    staleProcessing && saved.status === "processing" ? "failed" : saved.status;
+
+  if (displayStatus === "processing" || displayStatus === "failed") {
+    return (
+      <ProcessingNoteState
+        failed={displayStatus === "failed"}
+        message={
+          staleProcessing
+            ? "Atlas couldn't finish processing this recording. Try recording again or upload a shorter, clearer file."
+            : saved.summary
+        }
+      />
+    );
+  }
 
   return (
     <div className="relative">
@@ -290,6 +319,39 @@ export function NoteView({
           </section>
         )}
       </article>
+    </div>
+  );
+}
+
+function ProcessingNoteState({
+  failed,
+  message,
+}: {
+  failed: boolean;
+  message: string;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border bg-card/70 px-6 py-12 text-center ring-luxe">
+      <div className="pointer-events-none absolute inset-x-10 top-8 h-20 rounded-full bg-primary/15 blur-3xl" />
+      <span
+        className={
+          failed
+            ? "relative mx-auto grid size-14 place-items-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/25"
+            : "relative mx-auto grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/25"
+        }
+      >
+        {failed ? (
+          <AlertCircle className="size-6" />
+        ) : (
+          <Loader2 className="size-6 animate-spin" />
+        )}
+      </span>
+      <h2 className="relative mt-5 font-display text-2xl font-semibold tracking-tight">
+        {failed ? "Processing failed" : "Still processing"}
+      </h2>
+      <p className="relative mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+        {message}
+      </p>
     </div>
   );
 }

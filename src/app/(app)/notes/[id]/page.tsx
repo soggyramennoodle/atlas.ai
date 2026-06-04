@@ -84,7 +84,9 @@ export default async function NotePage({
         </header>
 
         <div className="mt-10">
-          <NoteView note={{ id: note.id, content: note.content }} />
+          <NoteView
+            note={{ id: note.id, content: note.content, createdAt: note.created_at }}
+          />
         </div>
       </div>
     </main>

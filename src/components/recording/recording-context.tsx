@@ -39,6 +39,7 @@ export interface ProcessingIssue {
 }
 
 interface Clip {
+  requestId: string;
   url: string;
   blob: Blob;
   mime: string;
@@ -376,6 +377,7 @@ export function RecordingProvider({
       }
       const url = URL.createObjectURL(blob);
       setClip({
+        requestId: crypto.randomUUID(),
         url,
         blob,
         mime: baseMimeType(mime),
@@ -526,11 +528,12 @@ export function RecordingProvider({
 
     const supabase = createClient();
     try {
-      const { id } = await Promise.race([
+      const result = await Promise.race([
         uploadLectureAndGenerate({
           supabase,
           userId,
           data: clip.blob,
+          requestId: clip.requestId,
           mimeType: clip.mime,
           ext: extForMime(clip.mime),
           durationSeconds: seconds || null,
@@ -551,7 +554,13 @@ export function RecordingProvider({
         }),
       ]);
       if (generationRunRef.current !== runId) return;
-      toast.success("Your notes are ready!");
+      if (result.status === "processing") {
+        toast.message("Atlas is still processing this recording.");
+      } else if (result.status === "failed") {
+        toast.error("Atlas couldn't process this recording.");
+      } else {
+        toast.success("Your notes are ready!");
+      }
       // Reset session before navigating to the new note.
       URL.revokeObjectURL(clip.url);
       setClip(null);
@@ -563,7 +572,7 @@ export function RecordingProvider({
       setProcessingIssue(null);
       setPhase("idle");
       setStage("idle");
-      router.push(`/notes/${id}`);
+      router.push(`/notes/${result.id}`);
     } catch (err) {
       if (generationRunRef.current !== runId) return;
       setStage("idle");

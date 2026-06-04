@@ -32,6 +32,8 @@ export interface KeyConcept {
 }
 
 export interface StructuredNotes {
+  /** Server-side generation state for placeholder/error notes. */
+  status?: "processing" | "failed" | "ready";
   /** A clean, descriptive title for the lecture. */
   title: string;
   /** Optional subject/course inferred from the content (e.g. "Organic Chemistry"). */

@@ -6,6 +6,7 @@ export const LECTURES_BUCKET = "lectures";
 export const MAX_BYTES = 100 * 1024 * 1024; // 100 MB — keep in sync with the bucket limit.
 
 export type CaptureStage = "idle" | "uploading" | "analyzing";
+export type GenerationStatus = "ready" | "processing" | "failed";
 
 /**
  * Strip any codec parameters from a MediaRecorder/file MIME type
@@ -40,6 +41,7 @@ interface UploadArgs {
   supabase: SupabaseClient;
   userId: string;
   data: Blob | File;
+  requestId?: string;
   /** Bare MIME type (no codec params) sent to Storage and Gemini. */
   mimeType: string;
   ext: string;
@@ -48,6 +50,16 @@ interface UploadArgs {
   liveTranscript?: string | null;
   signal?: AbortSignal;
   onStage: (stage: Exclude<CaptureStage, "idle">) => void;
+}
+
+function uploadCanContinue(error: { message?: string; statusCode?: string } | null) {
+  const message = error?.message?.toLowerCase() ?? "";
+  return (
+    error?.statusCode === "409" ||
+    message.includes("already exists") ||
+    message.includes("duplicate") ||
+    message.includes("resource already exists")
+  );
 }
 
 /**
@@ -59,21 +71,23 @@ export async function uploadLectureAndGenerate({
   supabase,
   userId,
   data,
+  requestId,
   mimeType,
   ext,
   durationSeconds,
   liveTranscript,
   signal,
   onStage,
-}: UploadArgs): Promise<{ id: string }> {
+}: UploadArgs): Promise<{ id: string; status: GenerationStatus }> {
   onStage("uploading");
-  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+  const stableId = requestId ?? crypto.randomUUID();
+  const path = `${userId}/${stableId}.${ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from(LECTURES_BUCKET)
     .upload(path, data, { contentType: mimeType, upsert: false });
 
-  if (uploadError) {
+  if (uploadError && !uploadCanContinue(uploadError)) {
     throw new Error(
       uploadError.message.includes("exceeded")
         ? "The recording is larger than your storage bucket allows. Raise the bucket's file size limit in Supabase."
@@ -96,5 +110,11 @@ export async function uploadLectureAndGenerate({
 
   const result = await res.json();
   if (!res.ok) throw new Error(result.error || "Something went wrong.");
-  return { id: result.id as string };
+  return {
+    id: result.id as string,
+    status:
+      result.status === "processing" || result.status === "failed"
+        ? result.status
+        : "ready",
+  };
 }

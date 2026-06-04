@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BookOpen, Clock, Mic } from "lucide-react";
+import { AlertCircle, BookOpen, Clock, Loader2, Mic } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,10 @@ function formatDate(iso: string) {
 function formatDuration(s: number | null) {
   if (!s) return null;
   return `${Math.round(s / 60)} min`;
+}
+
+function displayStatus(note: Pick<NoteRecord, "content" | "created_at">) {
+  return note.content?.status ?? "ready";
 }
 
 /** Consecutive days (ending today or yesterday) that have a recording. */
@@ -69,15 +73,16 @@ export default async function DashboardPage() {
     "id" | "title" | "subject" | "duration_seconds" | "created_at" | "content"
   >[];
 
-  const totalSeconds = notes.reduce(
+  const readyNotes = notes.filter((n) => displayStatus(n) === "ready");
+  const totalSeconds = readyNotes.reduce(
     (sum, n) => sum + (n.duration_seconds ?? 0),
     0
   );
-  const keyConcepts = notes.reduce(
+  const keyConcepts = readyNotes.reduce(
     (sum, n) => sum + (n.content?.keyConcepts?.length ?? 0),
     0
   );
-  const streak = computeStreak(notes.map((n) => n.created_at));
+  const streak = computeStreak(readyNotes.map((n) => n.created_at));
 
   const name =
     profile?.display_name?.trim() || (user.email ?? "there").split("@")[0];
@@ -90,7 +95,7 @@ export default async function DashboardPage() {
     !profile?.grad_year;
 
   const stats: Stat[] = [
-    { icon: "mic", label: "Recordings", value: notes.length },
+    { icon: "mic", label: "Recordings", value: readyNotes.length },
     {
       icon: "clock",
       label: "Hours captured",
@@ -164,46 +169,65 @@ export default async function DashboardPage() {
               </div>
             ) : (
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                {notes.map((note) => (
-                  <Link
-                    key={note.id}
-                    href={`/notes/${note.id}`}
-                    className="glow-card group flex flex-col rounded-2xl border bg-card/75 p-5 transition hover:-translate-y-0.5 hover:border-primary/30"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-                        <BookOpen className="size-5" />
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-emerald-400">
-                        <span className="size-1.5 rounded-full bg-emerald-400" />
-                        Ready
-                      </span>
-                    </div>
-                    <h3 className="mt-4 line-clamp-2 font-semibold leading-snug tracking-tight">
-                      {note.title}
-                    </h3>
-                    <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                      {note.content?.summary}
-                    </p>
-                    <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>{formatDate(note.created_at)}</span>
-                      {formatDuration(note.duration_seconds) && (
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="size-3" />
-                          {formatDuration(note.duration_seconds)}
+                {notes.map((note) => {
+                  const status = displayStatus(note);
+                  const processing = status === "processing";
+                  const failed = status === "failed";
+                  return (
+                    <Link
+                      key={note.id}
+                      href={`/notes/${note.id}`}
+                      className="glow-card group flex flex-col rounded-2xl border bg-card/75 p-5 transition hover:-translate-y-0.5 hover:border-primary/30"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+                          {failed ? (
+                            <AlertCircle className="size-5 text-destructive" />
+                          ) : processing ? (
+                            <Loader2 className="size-5 animate-spin" />
+                          ) : (
+                            <BookOpen className="size-5" />
+                          )}
                         </span>
-                      )}
-                      {note.subject && (
-                        <Badge
-                          variant="secondary"
-                          className="ml-auto font-normal"
+                        <span
+                          className={
+                            failed
+                              ? "inline-flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-destructive"
+                              : processing
+                                ? "inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-primary"
+                                : "inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-emerald-400"
+                          }
                         >
-                          {note.subject}
-                        </Badge>
-                      )}
-                    </div>
-                  </Link>
-                ))}
+                          <span className="size-1.5 rounded-full bg-current" />
+                          {failed ? "Failed" : processing ? "Processing" : "Ready"}
+                        </span>
+                      </div>
+                      <h3 className="mt-4 line-clamp-2 font-semibold leading-snug tracking-tight">
+                        {note.title}
+                      </h3>
+                      <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                        {note.content?.summary}
+                      </p>
+                      <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>{formatDate(note.created_at)}</span>
+                        {formatDuration(note.duration_seconds) && (
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="size-3" />
+                            {formatDuration(note.duration_seconds)}
+                          </span>
+                        )}
+                        {note.subject && (
+                          <Badge
+                            variant="secondary"
+                            className="ml-auto font-normal"
+                          >
+                            {note.subject}
+                          </Badge>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </section>

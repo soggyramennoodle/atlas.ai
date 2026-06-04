@@ -114,7 +114,7 @@ export function Uploader({ userId }: { userId: string }) {
     const ext = file.name.split(".").pop()?.toLowerCase() || extForMime(mimeType);
 
     try {
-      const { id } = await uploadLectureAndGenerate({
+      const { id, status } = await uploadLectureAndGenerate({
         supabase,
         userId,
         data: file,
@@ -123,7 +123,13 @@ export function Uploader({ userId }: { userId: string }) {
         durationSeconds: duration,
         onStage: setStage,
       });
-      toast.success("Your notes are ready!");
+      if (status === "processing") {
+        toast.message("Atlas is still processing this recording.");
+      } else if (status === "failed") {
+        toast.error("Atlas couldn't process this recording.");
+      } else {
+        toast.success("Your notes are ready!");
+      }
       router.push(`/notes/${id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
