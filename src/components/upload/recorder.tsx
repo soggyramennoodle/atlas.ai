@@ -234,7 +234,7 @@ export function Recorder() {
             {/* Atlas Enclave — private & encrypted session badge (§7). */}
             <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/40 px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
               <Lock className="size-3 text-primary" />
-              Atlas Enclave · private &amp; encrypted
+              Secured by Atlas Enclave
             </span>
           </div>
         </div>
