@@ -275,7 +275,7 @@ function ProcessingOverlay({ stage }: { stage: CaptureStage }) {
 
           {/* Full-viewport fluid aura. */}
           <div aria-hidden className="pointer-events-none absolute inset-0">
-            <AiGlow mode="active" blend blur={90} className="!opacity-100" />
+            <AiGlow mode="active" blur={64} density="lean" className="!opacity-100" />
           </div>
 
           <motion.div

@@ -50,6 +50,7 @@ function AiGlowImpl({
   mode = "idle",
   blend = false,
   blur = 48,
+  density = "standard",
   className,
 }: {
   /** "idle" = slow ambient drift; "active" = faster, brighter thinking pulse. */
@@ -58,6 +59,8 @@ function AiGlowImpl({
   blend?: boolean;
   /** Blur radius in px. Larger = softer / more diffuse. */
   blur?: number;
+  /** Fewer large blur layers for full-screen or recording surfaces in Chrome. */
+  density?: "lean" | "standard" | "full";
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -77,6 +80,7 @@ function AiGlowImpl({
   }, []);
 
   const speed = mode === "active" ? 0.55 : 1;
+  const blobs = density === "lean" ? BLOBS.slice(0, 3) : density === "full" ? BLOBS : BLOBS.slice(0, 4);
 
   return (
     <div
@@ -90,7 +94,7 @@ function AiGlowImpl({
         className
       )}
     >
-      {BLOBS.map((b, i) => (
+      {blobs.map((b, i) => (
         <span
           key={i}
           className="ai-blob"

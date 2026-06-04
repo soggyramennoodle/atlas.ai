@@ -22,7 +22,7 @@ const POINTS = [
 /** Landing privacy trust block (§11) tied to Atlas Enclave branding. */
 export function PrivacyTrust() {
   return (
-    <section className="relative mx-auto mt-24 w-full max-w-5xl px-4">
+    <section className="render-section relative mx-auto mt-24 w-full max-w-5xl px-4">
       <div className="relative overflow-hidden rounded-[2.5rem] border bg-card/50 p-8 ring-luxe sm:p-12">
         <div className="pointer-events-none absolute inset-0 bg-aurora opacity-50" />
         <div className="relative">

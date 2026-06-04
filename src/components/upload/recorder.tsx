@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   AlertCircle,
@@ -253,8 +253,8 @@ export function Recorder() {
               <div className="pointer-events-none absolute -inset-x-16 -inset-y-10 -z-10 overflow-visible">
                 <AiGlow
                   mode={phase === "paused" ? "idle" : "active"}
-                  blend
-                  blur={56}
+                  blur={40}
+                  density="lean"
                 />
               </div>
               <FluidTranscript />
@@ -410,12 +410,21 @@ function SourceCard({
  * appears at the bottom while older lines drift upward and fade out.
  */
 function FluidTranscript() {
-  const { liveTranscript, transcriptSupported, liveTranscriptActive, source, phase } =
-    useRecording();
+  const {
+    subscribeTranscript,
+    getLiveTranscript,
+    transcriptSupported,
+    liveTranscriptActive,
+    source,
+    phase,
+  } = useRecording();
+  const [liveTranscript, setLiveTranscript] = useState(() => getLiveTranscript());
   const reduceMotion = useReducedMotion();
 
+  useEffect(() => subscribeTranscript(setLiveTranscript), [subscribeTranscript]);
+
   const lines = useMemo(() => {
-    const words = liveTranscript.split(/\s+/).filter(Boolean);
+    const words = liveTranscript.slice(-700).split(/\s+/).filter(Boolean);
     const out: { key: number; text: string }[] = [];
     const PER_LINE = 8;
     for (let i = 0; i < words.length; i += PER_LINE) {
@@ -534,8 +543,8 @@ function ProcessingOverlay({
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <AiGlow
               mode={failed ? "idle" : "active"}
-              blend
-              blur={90}
+              blur={64}
+              density="lean"
               className="!opacity-100"
             />
           </div>

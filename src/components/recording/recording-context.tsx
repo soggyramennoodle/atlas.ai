@@ -23,7 +23,7 @@ import {
 export const BARS = 32;
 const IDLE_LEVELS = () => Array(BARS).fill(0.04) as number[];
 const METER_FRAME_MS = 72;
-const TRANSCRIPT_FRAME_MS = 180;
+const TRANSCRIPT_FRAME_MS = 360;
 const SILENCE_PEAK_THRESHOLD = 0.075;
 const SILENCE_MIN_ACTIVE_MS = 500;
 const SILENCE_MIN_DURATION_SECONDS = 2;
@@ -80,8 +80,15 @@ interface RecordingValue {
   processingIssue: ProcessingIssue | null;
   /** True after a generation attempt failed — surfaces the "download" escape hatch. */
   failed: boolean;
-  /** Live (best-effort) in-browser transcript captured while recording. */
-  liveTranscript: string;
+  /**
+   * Subscribe to the visible live transcript imperatively. Transcript interim
+   * results can arrive several times a second; keeping them out of provider
+   * state prevents the whole recorder from re-rendering while Chrome is already
+   * recording and compositing the aura.
+   */
+  subscribeTranscript: (cb: (text: string) => void) => () => void;
+  /** Current live transcript text, used for an immediate subscriber prime. */
+  getLiveTranscript: () => string;
   /** Whether the browser supports the Web Speech API live transcription. */
   transcriptSupported: boolean;
   /**
@@ -189,7 +196,6 @@ export function RecordingProvider({
   const [clip, setClip] = useState<Clip | null>(null);
   const [stage, setStage] = useState<CaptureStage>("idle");
   const [processingIssue, setProcessingIssue] = useState<ProcessingIssue | null>(null);
-  const [liveTranscript, setLiveTranscript] = useState("");
   const [sessionLabel, setSessionLabel] = useState("Untitled Lecture");
   const [transcriptSupported, setTranscriptSupported] = useState(false);
   const [deviceCaptureSupported, setDeviceCaptureSupported] = useState(true);
@@ -216,6 +222,7 @@ export function RecordingProvider({
   const mimeRef = useRef<string>("");
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const finalTranscriptRef = useRef("");
+  const liveTranscriptRef = useRef("");
   const wantTranscriptRef = useRef(false);
   const lastMeterAtRef = useRef(0);
   const lastTranscriptAtRef = useRef(0);
@@ -234,6 +241,7 @@ export function RecordingProvider({
   // `meterListenersRef` the subscribed waveform updaters.
   const levelsRef = useRef<number[]>(IDLE_LEVELS());
   const meterListenersRef = useRef<Set<(levels: number[]) => void>>(new Set());
+  const transcriptListenersRef = useRef<Set<(text: string) => void>>(new Set());
   const emitLevels = useCallback((next: number[]) => {
     levelsRef.current = next;
     meterListenersRef.current.forEach((cb) => cb(next));
@@ -246,6 +254,18 @@ export function RecordingProvider({
     };
   }, []);
   const getLevels = useCallback(() => levelsRef.current, []);
+  const emitTranscript = useCallback((next: string) => {
+    liveTranscriptRef.current = next;
+    transcriptListenersRef.current.forEach((cb) => cb(next));
+  }, []);
+  const subscribeTranscript = useCallback((cb: (text: string) => void) => {
+    transcriptListenersRef.current.add(cb);
+    cb(liveTranscriptRef.current);
+    return () => {
+      transcriptListenersRef.current.delete(cb);
+    };
+  }, []);
+  const getLiveTranscript = useCallback(() => liveTranscriptRef.current, []);
 
   const busy = stage !== "idle";
 
@@ -300,7 +320,7 @@ export function RecordingProvider({
       if (transcriptFlushRef.current) clearTimeout(transcriptFlushRef.current);
       transcriptFlushRef.current = null;
       lastTranscriptAtRef.current = now;
-      setLiveTranscript(next);
+      emitTranscript(next);
       return;
     }
 
@@ -308,9 +328,9 @@ export function RecordingProvider({
     transcriptFlushRef.current = setTimeout(() => {
       transcriptFlushRef.current = null;
       lastTranscriptAtRef.current = performance.now();
-      setLiveTranscript(pendingTranscriptRef.current);
+      emitTranscript(pendingTranscriptRef.current);
     }, TRANSCRIPT_FRAME_MS - elapsed);
-  }, []);
+  }, [emitTranscript]);
 
   const resetAudioActivity = useCallback(() => {
     audioPeakRef.current = 0;
@@ -545,7 +565,7 @@ export function RecordingProvider({
     setProcessingIssue(null);
     resetAudioActivity();
     generationRunRef.current += 1;
-    setLiveTranscript("");
+    emitTranscript("");
     setSource(nextSource);
 
     audioCtxRef.current = ctx;
@@ -611,6 +631,7 @@ export function RecordingProvider({
     busy,
     clipWouldBeSilent,
     phase,
+    emitTranscript,
     resetAudioActivity,
     runMeter,
     startTranscription,
@@ -689,7 +710,7 @@ export function RecordingProvider({
     setSeconds(0);
     secondsRef.current = 0;
     emitLevels(IDLE_LEVELS());
-    setLiveTranscript("");
+    emitTranscript("");
     pendingTranscriptRef.current = "";
     setProcessingIssue(null);
     resetAudioActivity();
@@ -698,7 +719,7 @@ export function RecordingProvider({
     setFailed(false);
     setPhase("idle");
     teardown();
-  }, [clip, resetAudioActivity, teardown, emitLevels]);
+  }, [clip, resetAudioActivity, teardown, emitLevels, emitTranscript]);
 
   const generate = useCallback(async () => {
     if (!clip) return;
@@ -740,7 +761,7 @@ export function RecordingProvider({
           mimeType: clip.mime,
           ext: extForMime(clip.mime),
           durationSeconds: seconds || null,
-          liveTranscript: liveTranscript || null,
+          liveTranscript: liveTranscriptRef.current || null,
           signal: controller.signal,
           onStage: (nextStage) => {
             if (generationRunRef.current === runId && !timedOut) {
@@ -770,7 +791,7 @@ export function RecordingProvider({
       setSeconds(0);
       secondsRef.current = 0;
       emitLevels(IDLE_LEVELS());
-      setLiveTranscript("");
+      emitTranscript("");
       setSessionLabel("Untitled Lecture");
       setProcessingIssue(null);
       setPhase("idle");
@@ -806,7 +827,7 @@ export function RecordingProvider({
     } finally {
       if (timeoutId) window.clearTimeout(timeoutId);
     }
-  }, [clip, liveTranscript, router, seconds, userId, emitLevels]);
+  }, [clip, router, seconds, userId, emitLevels, emitTranscript]);
 
   const clearProcessingIssue = useCallback(() => {
     setProcessingIssue(null);
@@ -831,12 +852,13 @@ export function RecordingProvider({
     seconds,
     subscribeMeter,
     getLevels,
+    subscribeTranscript,
+    getLiveTranscript,
     clip,
     stage,
     busy,
     processingIssue,
     failed,
-    liveTranscript,
     transcriptSupported,
     deviceCaptureSupported,
     deviceCaptureSupport,

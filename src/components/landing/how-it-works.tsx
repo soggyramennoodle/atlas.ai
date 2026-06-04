@@ -1,7 +1,5 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
 import { Mic, Ear, NotebookPen } from "lucide-react";
 import { TiltCard } from "@/components/landing/tilt-card";
 import { Reveal } from "@/components/landing/reveal";
@@ -25,21 +23,10 @@ const STEPS = [
 ];
 
 export function HowItWorks() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-  const y1 = useTransform(scrollYProgress, [0, 1], [60, -60]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [110, -110]);
-  const y3 = useTransform(scrollYProgress, [0, 1], [160, -160]);
-  const parallax = [y1, y2, y3];
-
   return (
     <section
-      ref={ref}
       id="how"
-      className="mx-auto max-w-6xl scroll-mt-24 px-4 py-28"
+      className="render-section mx-auto max-w-6xl scroll-mt-24 px-4 py-28"
     >
       <Reveal className="mx-auto max-w-2xl text-center">
         <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
@@ -58,13 +45,12 @@ export function HowItWorks() {
         {STEPS.map((step, i) => (
           <Reveal key={step.title} delay={i * 0.12}>
             <TiltCard className="group relative h-full overflow-hidden rounded-[1.75rem] border bg-card/70 p-7 glow-card">
-              {/* parallax glyph */}
-              <motion.span
-                style={{ y: parallax[i] }}
+              {/* Oversized static glyph: depth without scroll-linked JS work. */}
+              <span
                 className="pointer-events-none absolute -right-2 -top-8 select-none font-display text-[9rem] leading-none text-primary/[0.07]"
               >
                 {i + 1}
-              </motion.span>
+              </span>
               <div className="relative [transform:translateZ(40px)]">
                 <span className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
                   <step.icon className="size-6" />

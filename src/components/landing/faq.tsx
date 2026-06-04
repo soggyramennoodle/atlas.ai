@@ -28,7 +28,7 @@ export function Faq() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="mx-auto max-w-3xl scroll-mt-24 px-4 py-28">
+    <section id="faq" className="render-section mx-auto max-w-3xl scroll-mt-24 px-4 py-28">
       <Reveal className="text-center">
         <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
           FAQ

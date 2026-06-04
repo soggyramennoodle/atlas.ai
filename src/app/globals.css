@@ -65,7 +65,7 @@
   --luxe-shadow-strength: 30%;
   --luxe-inset-strength: 55%;
   --glass-alpha: 68%;
-  --glass-blur: 22px;
+  --glass-blur: 16px;
   --glass-edge: 60%;
   --ai-glow-blend-mode: multiply;
   --theme-duration: 650ms;
@@ -106,7 +106,7 @@
   --luxe-shadow-strength: 55%;
   --luxe-inset-strength: 22%;
   --glass-alpha: 42%;
-  --glass-blur: 26px;
+  --glass-blur: 18px;
   --glass-edge: 24%;
   --ai-glow-blend-mode: screen;
 }
@@ -355,9 +355,17 @@
   .glass-panel {
     position: relative;
     background-color: color-mix(in oklch, var(--card) calc(var(--glass-alpha) + 14%), transparent);
-    backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(1.7);
-    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(1.7);
+    backdrop-filter: blur(calc(var(--glass-blur) + 4px)) saturate(1.55);
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px)) saturate(1.55);
     border: 1px solid color-mix(in oklch, white calc(var(--glass-edge) * 0.55), transparent);
+  }
+
+  /* Skip painting long sections until they approach the viewport. This is
+     especially helpful on the landing page, where Chrome otherwise keeps many
+     decorative cards, grids and glows in the rendering budget at once. */
+  .render-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 760px;
   }
 
   /* Looping motion utilities. */

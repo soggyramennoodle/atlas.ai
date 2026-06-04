@@ -162,7 +162,7 @@ function LibraryCards() {
 
 export function FeaturesBento() {
   return (
-    <section id="features" className="scroll-mt-24 border-y bg-card/20 py-28">
+    <section id="features" className="render-section scroll-mt-24 border-y bg-card/20 py-28">
       <div className="mx-auto max-w-6xl px-4">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">

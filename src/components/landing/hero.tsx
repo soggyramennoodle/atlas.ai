@@ -170,17 +170,13 @@ function OrbitVisual() {
             </p>
             <div className="flex h-20 items-end justify-center gap-[3px]">
               {Array.from({ length: 22 }).map((_, i) => (
-                <motion.span
+                <span
                   key={i}
                   className="h-full w-[3px] origin-bottom rounded-full bg-gradient-to-t from-primary/40 to-primary transform-gpu"
-                  animate={{ scaleY: [0.18, 0.85, 0.32, 0.7, 0.2] }}
-                  transition={{
-                    duration: 1.6,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: i * 0.06,
+                  style={{
+                    transform: "scaleY(0.3)",
+                    animation: `atlas-wave 1.6s ease-in-out ${(i * 0.06).toFixed(2)}s infinite`,
                   }}
-                  style={{ scaleY: 0.3 }}
                 />
               ))}
             </div>
