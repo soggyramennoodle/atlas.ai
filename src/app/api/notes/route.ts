@@ -105,7 +105,7 @@ export async function POST(request: Request) {
       title: notes.title,
       subject: notes.subject || null,
       content: notes,
-      audio_path: path,
+      audio_path: null,
       duration_seconds: durationSeconds ?? null,
     })
     .select("id")
@@ -117,6 +117,15 @@ export async function POST(request: Request) {
       { error: "Notes were generated but could not be saved." },
       { status: 500 }
     );
+  }
+
+  // Delete the raw recording immediately — Atlas Enclave guarantees audio is
+  // never retained beyond the processing window.
+  const { error: storageError } = await supabase.storage
+    .from(BUCKET)
+    .remove([path]);
+  if (storageError) {
+    console.error("Failed to delete recording after processing:", storageError);
   }
 
   return NextResponse.json({ id: inserted.id });
