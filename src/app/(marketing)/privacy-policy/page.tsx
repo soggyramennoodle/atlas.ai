@@ -35,7 +35,7 @@ export default function PrivacyPolicyPage() {
         {
           heading: "Data Sharing & Third Parties",
           body: [
-            "We share data only with the service providers necessary to operate Atlas — for example, our cloud database and storage provider and the AI model provider that performs transcription and note generation. These providers process data on our behalf under contractual confidentiality obligations.",
+            "We share data only with the service providers necessary to operate Atlas, upon their request. For example, our cloud database and storage provider (Supabase) and the AI model provider (Google) that performs transcription and note generation. These providers process data on our behalf under contractual confidentiality obligations, as well as their own privacy policy pertaining to their associated APIs.",
             "We never sell your personal information, and we never share it with advertisers or data brokers. We may disclose information if required by law or to protect the rights, safety, and security of our users and the service.",
           ],
         },
