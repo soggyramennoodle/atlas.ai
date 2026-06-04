@@ -84,21 +84,20 @@ export default function PrivacyPhilosophyPage() {
         {/* What Atlas Enclave means */}
         <section>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
-            The Atlas Enclave
+            Atlas Enclave
           </p>
           <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             A private space that belongs to you.
           </h2>
           <div className="mt-5 space-y-4 text-pretty text-lg leading-relaxed text-muted-foreground">
             <p>
-              Everything you bring to Atlas lives inside the Atlas Enclave — a
-              space scoped to your account alone and protected, row by row, so
-              that no other student and no part of the public can reach it.
+              Everything you bring to Atlas lives inside Atlas Enclave — our
+              system made to protect your account, so
+              that no one, not even us, can reach your information.
             </p>
             <p>
-              The Enclave is a promise as much as it is a system: we don’t sell
-              your data, and we don’t train AI on your personal notes without
-              your say-so. The work you do here stays here.
+              Atlas Enclave is a promise as much as it is a system: we refuse to sell
+              your data, and we don’t train AI on your personal notes, period. The work you do here stays here.
             </p>
           </div>
         </section>
