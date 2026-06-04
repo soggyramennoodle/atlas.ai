@@ -186,14 +186,26 @@
 
 @layer utilities {
   /* Global film grain — eliminates flat digital gradients. Sits above page
-     content (pointer-events none) but below the navbar and modals. */
+     content (pointer-events none) but below the navbar and modals.
+
+     Performance: the SVG carries an explicit 128×128 size so `feTurbulence`
+     (an expensive filter) is rasterized ONCE into a small tile and then cheaply
+     repeated, instead of being scaled to the full Retina viewport and
+     re-rasterized over the animating background — which saturated Chrome's GPU
+     on every page. `stitchTiles='stitch'` keeps the tile seamless, and two
+     octaves are plenty of grain at 2–4% opacity. `transform: translateZ(0)`
+     promotes it to its own cached layer so the page underneath can animate
+     without forcing it to repaint. */
   .noise-overlay {
     position: fixed;
     inset: 0;
     z-index: 1;
     pointer-events: none;
     opacity: var(--noise-opacity);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+    background-repeat: repeat;
+    transform: translateZ(0);
   }
 
   /* A living spatial aurora — three drifting blooms of the AI palette that
