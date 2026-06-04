@@ -10,8 +10,8 @@ export function FinalCta({ ctaHref }: { ctaHref: string }) {
         {/* Layered background treatment — drifting aurora + grid + glow blobs. */}
         <div className="pointer-events-none absolute inset-0 bg-aurora opacity-70" />
         <div className="pointer-events-none absolute inset-0 bg-grid opacity-30 [mask-image:radial-gradient(70%_60%_at_50%_40%,black,transparent)]" />
-        <div className="pointer-events-none absolute -left-24 top-0 size-80 rounded-full bg-primary/20 blur-[100px] animate-float-slow" />
-        <div className="pointer-events-none absolute -right-20 bottom-0 size-80 rounded-full bg-chart-4/20 blur-[100px] animate-float" />
+        <div className="pointer-events-none absolute -left-24 top-0 size-80 rounded-full bg-primary/20 blur-3xl animate-float-slow" />
+        <div className="pointer-events-none absolute -right-20 bottom-0 size-80 rounded-full bg-chart-4/20 blur-3xl animate-float" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
         <div className="relative">

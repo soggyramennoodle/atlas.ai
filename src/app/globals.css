@@ -386,9 +386,13 @@
   .animate-drift {
     animation: atlas-drift 18s ease-in-out infinite alternate;
   }
+  /* Static gradient. Animating `background-position` repaints the element every
+     frame, and on `background-clip: text` (the hero/CTA headlines) that means
+     re-rasterizing the glyphs continuously — a heavy paint cost with several on
+     screen at once. The gradient still reads premium without the flow. */
   .animate-gradient {
     background-size: 200% 200%;
-    animation: atlas-gradient 6s ease infinite;
+    background-position: 0% 50%;
   }
   .animate-pulse-ring::before,
   .animate-pulse-ring::after {
@@ -454,7 +458,9 @@
     mask-composite: exclude;
     opacity: 0.6;
     pointer-events: none;
-    animation: atlas-gradient 9s ease infinite;
+    /* Static — see `.animate-gradient`. A flowing `background-position` here
+       repaints the masked border ring every frame on the notes summary card. */
+    background-position: 0% 50%;
   }
   .ai-ring::after {
     content: "";
