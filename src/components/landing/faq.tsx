@@ -16,7 +16,7 @@ const FAQ = [
   },
   {
     q: "Is my data private?",
-    a: "Yes. You need an account to record, and every recording and note is scoped to you with database row-level security. Your API keys live only on the server.",
+    a: "Yes. You need an account to record lectures, and every recording is deleted after notes are generated. Your notes and personal info stay secure with Atlas Enclave, our privacy solution.",
   },
   {
     q: "Does it work for any subject?",
