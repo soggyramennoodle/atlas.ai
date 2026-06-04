@@ -15,6 +15,20 @@ export interface NotePoint {
   source_excerpt?: string;
 }
 
+export interface BodySource {
+  /** Zero-based order of the list item inside the edited rich-text body. */
+  index: number;
+  /** The edited list-item text this attribution was checked against. */
+  text: string;
+  /**
+   * Whether the edited item is still close to the lecture source, or is a
+   * lecture-derived idea that the student heavily rewrote.
+   */
+  status: "lecture" | "edited" | "user";
+  /** Verbatim lecture/transcript snippet, when the item is sourceable. */
+  source_excerpt?: string;
+}
+
 export interface NoteSubsection {
   heading: string;
   points: NotePoint[];
@@ -58,6 +72,12 @@ export interface StructuredNotes {
    * those still render from the structured `sections`.
    */
   bodyHtml?: string;
+  /**
+   * Source mapping for edited `bodyHtml` list items. Regenerated with the
+   * helper Gemini model after edits so source bubbles can survive light or
+   * moderate rewrites without pretending every user addition came from audio.
+   */
+  bodySources?: BodySource[];
 }
 
 /** A saved note row as stored in the database. */

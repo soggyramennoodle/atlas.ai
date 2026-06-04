@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
-  AlertCircle,
   Download,
   Loader2,
   Lock,
@@ -12,23 +11,20 @@ import {
   MonitorSpeaker,
   Pause,
   Play,
-  RefreshCcw,
   Sparkles,
   Square,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn, type DeviceAudioSupport } from "@/lib/utils";
-import { type CaptureStage } from "@/lib/upload-lecture";
 import {
   BARS,
   useRecording,
-  type ProcessingIssue,
   type RecordingSource,
 } from "@/components/recording/recording-context";
 import { Waveform } from "@/components/recording/waveform";
 import { AiGlow } from "@/components/ui/ai-glow";
-import { ThinkingStatus } from "@/components/upload/thinking-status";
+import { ProcessingOverlay } from "@/components/upload/processing-overlay";
 
 function formatClock(s: number) {
   const m = Math.floor(s / 60);
@@ -483,165 +479,5 @@ function FluidTranscript() {
         )}
       </div>
     </div>
-  );
-}
-
-const STAGE_COPY: Record<Exclude<CaptureStage, "idle">, string> = {
-  uploading: "Saving your recording…",
-  analyzing: "Atlas is writing your notes…",
-};
-
-const STAGE_DETAIL: Record<Exclude<CaptureStage, "idle">, string> = {
-  uploading: "Sending the audio into your private Atlas workspace.",
-  analyzing: "Keep this tab open while Atlas listens for the important parts.",
-};
-
-function ProcessingOverlay({
-  stage,
-  issue,
-  onRetry,
-  onClear,
-  onDiscard,
-  onDownload,
-}: {
-  stage: CaptureStage;
-  issue: ProcessingIssue | null;
-  onRetry: () => void;
-  onClear: () => void;
-  onDiscard: () => void;
-  onDownload: () => void;
-}) {
-  const reduceMotion = useReducedMotion();
-  const visible = stage !== "idle" || !!issue;
-  const failed = !!issue;
-  const title = issue?.title ?? (stage === "idle" ? "" : STAGE_COPY[stage]);
-  const detail =
-    issue?.message ?? (stage === "idle" ? "" : STAGE_DETAIL[stage]);
-  // Rotate the made-up status lines only while Atlas is actively thinking.
-  const thinking = !failed && stage === "analyzing";
-
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-50 grid place-items-center overflow-hidden px-4"
-        >
-          {/* Lightly veil + soften the page behind, but stop short of the frosted
-              wall that used to bury everything. The glow and text above stay
-              perfectly crisp. */}
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-background/45 backdrop-blur-sm"
-          />
-
-          {/* The living aura — the shared fluid AI glow at full viewport bleed,
-              free of any box so it breathes across the whole screen. */}
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            <AiGlow
-              mode={failed ? "idle" : "active"}
-              blur={64}
-              density="lean"
-              className="!opacity-100"
-            />
-          </div>
-
-          <motion.div
-            initial={reduceMotion ? false : { scale: 0.96, y: 8 }}
-            animate={{ scale: 1, y: 0 }}
-            transition={
-              reduceMotion
-                ? { duration: 0 }
-                : { type: "spring", duration: 0.42, bounce: 0 }
-            }
-            className="relative flex w-full max-w-xl flex-col items-center text-center"
-          >
-            {/* A single crisp focal mark — a gently breathing halo around the
-                icon, no longer a contained color wheel. */}
-            <div className="relative grid size-28 place-items-center">
-              <motion.div
-                aria-hidden
-                className={cn(
-                  "absolute inset-0 rounded-full border",
-                  failed ? "border-destructive/25" : "border-primary/20"
-                )}
-                animate={
-                  reduceMotion
-                    ? undefined
-                    : {
-                        scale: [0.96, 1.06, 0.96],
-                        opacity: failed ? [0.3, 0.5, 0.3] : [0.4, 0.75, 0.4],
-                      }
-                }
-                transition={{ duration: 3.6, repeat: Infinity, ease: [0.22, 1, 0.36, 1] }}
-              />
-              <div className="relative z-10 grid size-16 place-items-center rounded-full bg-background/40 text-primary shadow-[0_0_60px_-18px_color-mix(in_oklch,var(--primary)_90%,transparent)] backdrop-blur-md">
-                {failed ? (
-                  <AlertCircle className="size-7 text-destructive" />
-                ) : (
-                  <motion.span
-                    animate={reduceMotion ? undefined : { scale: [1, 1.12, 1] }}
-                    transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <Sparkles className="size-7" />
-                  </motion.span>
-                )}
-              </div>
-            </div>
-
-            <p className="mt-6 font-display text-2xl font-semibold tracking-tight">
-              {title}
-            </p>
-            {thinking ? (
-              <ThinkingStatus />
-            ) : (
-              <p className="mt-3 max-w-md text-pretty text-sm leading-6 text-muted-foreground">
-                {detail}
-              </p>
-            )}
-
-            {failed && (
-              <div className="mt-7 flex w-full max-w-md flex-col gap-3 sm:flex-row sm:justify-center">
-                {issue?.kind === "silent" ? (
-                  <Button onClick={onDiscard} size="lg" className="h-12 gap-2">
-                    <Mic className="size-4" />
-                    Record again
-                  </Button>
-                ) : (
-                  <Button onClick={onRetry} size="lg" className="h-12 gap-2">
-                    <RefreshCcw className="size-4" />
-                    Try again
-                  </Button>
-                )}
-                <Button
-                  onClick={() => {
-                    onDownload();
-                    onClear();
-                  }}
-                  variant="outline"
-                  size="lg"
-                  className="h-12 gap-2"
-                >
-                  <Download className="size-4" />
-                  Download audio
-                </Button>
-                <Button
-                  onClick={onDiscard}
-                  variant="ghost"
-                  size="lg"
-                  className="h-12 gap-2"
-                >
-                  <Trash2 className="size-4" />
-                  Discard
-                </Button>
-              </div>
-            )}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
   );
 }

@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { HTMLElement, NodeType, parse, type Node } from "node-html-parser";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, Check, Loader2, Pencil, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import type {
+  BodySource,
   KeyConcept,
   NotePoint,
   NoteSection,
@@ -12,7 +14,7 @@ import type {
 } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { notesBodyToHtml, sanitizeNoteHtml } from "@/lib/notes-html";
+import { htmlToPlainText, notesBodyToHtml, sanitizeNoteHtml } from "@/lib/notes-html";
 import { SummaryCard } from "./summary-card";
 import { TranscriptPanel } from "./transcript-panel";
 import { SourceBullet } from "./source-bubble";
@@ -186,6 +188,37 @@ export function NoteView({
     setEditMode(true);
   }
 
+  const refreshBodySources = useCallback(async () => {
+    const bodyHtml = draftRef.current.bodyHtml?.trim();
+    if (!bodyHtml) return clone(draftRef.current);
+
+    setStatus("saving");
+    try {
+      const res = await fetch(`/api/notes/${note.id}/sources`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error();
+      const json = (await res.json()) as { content?: StructuredNotes };
+      if (!json.content) throw new Error();
+      const next = normalizeNotes(json.content);
+      setSaved(next);
+      setDraft(next);
+      savedRef.current = next;
+      draftRef.current = next;
+      setStatus("saved");
+      if (fadeTimer.current) clearTimeout(fadeTimer.current);
+      fadeTimer.current = setTimeout(
+        () => setStatus((s) => (s === "saved" ? "idle" : s)),
+        2000
+      );
+      return next;
+    } catch (err) {
+      console.error("Source refresh failed:", err);
+      setStatus("idle");
+      return clone(draftRef.current);
+    }
+  }, [note.id]);
+
   async function done() {
     if (saveTimer.current) {
       clearTimeout(saveTimer.current);
@@ -194,6 +227,7 @@ export function NoteView({
     const edited = clone(draftRef.current);
     const changed = !same(edited, originalRef.current);
     if (!same(edited, savedRef.current)) await persist();
+    const sourced = changed ? await refreshBodySources() : edited;
     setEditMode(false);
 
     // §1 carry-over of the old memory feature: learn from the edits, quietly.
@@ -204,7 +238,7 @@ export function NoteView({
         body: JSON.stringify({
           noteId: note.id,
           original: originalRef.current,
-          edited,
+          edited: sourced,
         }),
       }).catch(() => {});
     }
@@ -277,10 +311,7 @@ export function NoteView({
             onChange={(html) => update((d) => void (d.bodyHtml = html))}
           />
         ) : saved.bodyHtml ? (
-          <div
-            className="note-prose"
-            dangerouslySetInnerHTML={{ __html: sanitizeNoteHtml(saved.bodyHtml) }}
-          />
+          <EditedNoteBody html={saved.bodyHtml} sources={saved.bodySources ?? []} />
         ) : (
           <div className="space-y-9">
             {saved.sections.map((section, i) => (
@@ -371,6 +402,107 @@ function ProcessingNoteState({
       </p>
     </div>
   );
+}
+
+function tagOf(node: Node): string {
+  return node instanceof HTMLElement ? node.rawTagName?.toLowerCase() ?? "" : "";
+}
+
+function EditedNoteBody({
+  html,
+  sources,
+}: {
+  html: string;
+  sources: BodySource[];
+}) {
+  const content = useMemo(() => {
+    const sourceByIndex = new Map(sources.map((source) => [source.index, source]));
+    const root = parse(sanitizeNoteHtml(html), { lowerCaseTagName: true });
+    let listItemIndex = 0;
+
+    const renderChildren = (nodes: Node[], keyPrefix: string, inListItem = false) =>
+      nodes.map((node, index) =>
+        renderNode(node, `${keyPrefix}-${index}`, inListItem)
+      );
+
+    const renderNode = (
+      node: Node,
+      key: string,
+      inListItem = false
+    ): React.ReactNode => {
+      if (node.nodeType === NodeType.TEXT_NODE) return node.text;
+      if (!(node instanceof HTMLElement)) return null;
+
+      const tag = tagOf(node);
+      if (tag === "br") return <br key={key} />;
+      if (tag === "strong" || tag === "b") {
+        return <strong key={key}>{renderChildren(node.childNodes, key, inListItem)}</strong>;
+      }
+      if (tag === "em" || tag === "i") {
+        return <em key={key}>{renderChildren(node.childNodes, key, inListItem)}</em>;
+      }
+      if (tag === "u") {
+        return <u key={key}>{renderChildren(node.childNodes, key, inListItem)}</u>;
+      }
+      if (tag === "h1" || tag === "h2") {
+        return <h2 key={key}>{renderChildren(node.childNodes, key)}</h2>;
+      }
+      if (tag === "h3" || tag === "h4") {
+        return <h3 key={key}>{renderChildren(node.childNodes, key)}</h3>;
+      }
+      if (tag === "p") {
+        const children = renderChildren(node.childNodes, key, inListItem);
+        return inListItem ? <span key={key}>{children}</span> : <p key={key}>{children}</p>;
+      }
+      if (tag === "ul") {
+        return <ul key={key}>{renderChildren(node.childNodes, key)}</ul>;
+      }
+      if (tag === "ol") {
+        return <ol key={key}>{renderChildren(node.childNodes, key)}</ol>;
+      }
+      if (tag === "li") {
+        const currentIndex = listItemIndex;
+        listItemIndex += 1;
+        const source = sourceByIndex.get(currentIndex);
+        const inlineNodes = node.childNodes.filter((child) => {
+          const childTag = tagOf(child);
+          return childTag !== "ul" && childTag !== "ol";
+        });
+        const nestedLists = node.childNodes.filter((child) => {
+          const childTag = tagOf(child);
+          return childTag === "ul" || childTag === "ol";
+        });
+        const text = htmlToPlainText(inlineNodes.map((child) => child.toString()).join(""));
+        const sourceable =
+          source?.source_excerpt && (source.status === "lecture" || source.status === "edited");
+        const sourceStatus: "lecture" | "edited" =
+          source?.status === "edited" ? "edited" : "lecture";
+
+        return (
+          <li key={key}>
+            {sourceable ? (
+              <SourceBullet
+                text={text}
+                excerpt={source.source_excerpt}
+                status={sourceStatus}
+              >
+                {renderChildren(inlineNodes, `${key}-inline`, true)}
+              </SourceBullet>
+            ) : (
+              renderChildren(inlineNodes, `${key}-inline`, true)
+            )}
+            {renderChildren(nestedLists, `${key}-nested`)}
+          </li>
+        );
+      }
+
+      return <p key={key}>{renderChildren(node.childNodes, key)}</p>;
+    };
+
+    return renderChildren(root.childNodes, "edited");
+  }, [html, sources]);
+
+  return <div className="note-prose">{content}</div>;
 }
 
 /** A small "Saved" pill that fades in after a save and out ~2s later (§1). */

@@ -13,9 +13,13 @@ import { Quote } from "lucide-react";
 export function SourceBullet({
   text,
   excerpt,
+  status = "lecture",
+  children,
 }: {
   text: string;
   excerpt?: string;
+  status?: "lecture" | "edited";
+  children?: React.ReactNode;
 }) {
   const [show, setShow] = useState(false);
   const [side, setSide] = useState<"left" | "right">("right");
@@ -40,7 +44,9 @@ export function SourceBullet({
     setShow(false);
   }
 
-  if (!excerpt) return <span className="text-pretty">{text}</span>;
+  if (!excerpt) return <span className="text-pretty">{children ?? text}</span>;
+
+  const label = status === "edited" ? "Lecture-based, edited" : "From the lecture";
 
   return (
     <span
@@ -49,7 +55,7 @@ export function SourceBullet({
       onMouseLeave={onLeave}
       className="relative cursor-help text-pretty underline decoration-primary/25 decoration-dotted underline-offset-4 transition hover:decoration-primary/60"
     >
-      {text}
+      {children ?? text}
       <AnimatePresence>
         {show && (
           <motion.span
@@ -63,7 +69,7 @@ export function SourceBullet({
           >
             <span className="mb-1.5 flex items-center gap-1.5 font-mono text-[0.65rem] uppercase tracking-wider text-primary">
               <Quote className="size-3" />
-              From the lecture
+              {label}
             </span>
             <span className="block text-pretty italic leading-relaxed text-muted-foreground">
               “{excerpt}”
