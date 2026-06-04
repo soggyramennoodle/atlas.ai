@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -42,7 +42,11 @@ const BLOBS: BlobSpec[] = [
   { color: PALETTE.indigo, size: "46%", top: "52%", left: "56%", anim: "e", dur: 31 },
 ];
 
-export function AiGlow({
+// Memoized: the recording aura mounts this while the level meter re-renders
+// its parent ~14×/s. Without memo, the 5 blurred blobs reconcile on every
+// tick; the props here are all primitives, so memo skips that entirely and the
+// CSS drift runs undisturbed on the compositor.
+function AiGlowImpl({
   mode = "idle",
   blend = false,
   blur = 48,
@@ -105,3 +109,5 @@ export function AiGlow({
     </div>
   );
 }
+
+export const AiGlow = memo(AiGlowImpl);

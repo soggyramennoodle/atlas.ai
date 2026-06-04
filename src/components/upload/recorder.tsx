@@ -108,10 +108,13 @@ export function Recorder() {
                     : "Record in browser"}
             </span>
 
-            {/* Waveform */}
+            {/* Waveform. The level meter updates ~14×/s; driving 32 Framer
+                animations on every tick floods the main thread and makes the
+                CSS aura stutter. Plain spans with a CSS transform + transition
+                give the same easing on the compositor, for almost no JS cost. */}
             <div className="mt-7 flex h-24 w-full items-center justify-center gap-[3px]">
               {levels.map((v, i) => (
-                <motion.span
+                <span
                   key={i}
                   className={cn(
                     "h-full w-[3px] origin-center rounded-full bg-gradient-to-t transform-gpu",
@@ -119,9 +122,13 @@ export function Recorder() {
                       ? "from-destructive/40 to-destructive"
                       : "from-primary/40 to-primary"
                   )}
-                  animate={{ scaleY: Math.max(0.08, v * 0.9) }}
-                  transition={{ duration: reduceMotion ? 0 : 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  style={{ opacity: live ? 1 : 0.35 }}
+                  style={{
+                    transform: `scaleY(${Math.max(0.08, v * 0.9)})`,
+                    transition: reduceMotion
+                      ? undefined
+                      : "transform 0.1s cubic-bezier(0.22,1,0.36,1)",
+                    opacity: live ? 1 : 0.35,
+                  }}
                 />
               ))}
             </div>
