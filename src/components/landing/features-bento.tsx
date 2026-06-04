@@ -25,7 +25,7 @@ function Cell({
     <Reveal
       delay={delay}
       className={cn(
-        "glow-card group relative flex flex-col overflow-hidden rounded-[1.75rem] border bg-card/55 p-6 backdrop-blur-xl transition hover:border-primary/30 hover:-translate-y-0.5",
+        "glow-card group relative flex flex-col overflow-hidden rounded-[1.75rem] border bg-card/80 p-6 transition hover:border-primary/30 hover:-translate-y-0.5",
         className
       )}
     >
@@ -39,19 +39,19 @@ function WaveToNotes() {
   return (
     <div className="mt-6 flex flex-1 flex-col gap-4 rounded-2xl border bg-background/30 p-5">
       <div className="flex items-center gap-4">
-        <div className="flex h-12 items-center gap-[3px]">
+        <div className="flex h-12 items-end gap-[3px]">
           {Array.from({ length: 18 }).map((_, i) => (
             <motion.span
               key={i}
-              className="w-[3px] rounded-full bg-gradient-to-t from-primary/40 to-primary"
-              animate={{ height: ["25%", "90%", "40%", "70%", "30%"] }}
+              className="h-full w-[3px] origin-bottom rounded-full bg-gradient-to-t from-primary/40 to-primary transform-gpu"
+              animate={{ scaleY: [0.25, 0.9, 0.4, 0.7, 0.3] }}
               transition={{
                 duration: 1.8,
                 repeat: Infinity,
                 ease: "easeInOut",
                 delay: i * 0.07,
               }}
-              style={{ height: "40%" }}
+              style={{ scaleY: 0.4 }}
             />
           ))}
         </div>
@@ -63,14 +63,15 @@ function WaveToNotes() {
         {[0, 1, 2, 3, 4].map((i) => (
           <motion.div
             key={i}
-            className="h-2 rounded-full bg-foreground/10"
-            animate={{ width: ["35%", "92%", "58%"] }}
+            className="h-2 w-full origin-left rounded-full bg-foreground/10 transform-gpu"
+            animate={{ scaleX: [0.35, 0.92, 0.58] }}
             transition={{
               duration: 3,
               repeat: Infinity,
               ease: "easeInOut",
               delay: i * 0.35,
             }}
+            style={{ scaleX: 0.35 }}
           />
         ))}
       </div>

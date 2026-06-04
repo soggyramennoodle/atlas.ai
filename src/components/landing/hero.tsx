@@ -21,8 +21,11 @@ const item = {
 export function Hero({ ctaHref }: { ctaHref: string }) {
   return (
     <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-4 pb-20 pt-32">
-      {/* Drifting gradient mesh */}
-      <div className="pointer-events-none absolute inset-0 bg-aurora animate-drift" />
+      {/* Gradient mesh. Kept static: it spans the full hero behind frosted
+          glass surfaces (badge, capture card), and animating a full-bleed
+          backdrop forces those glass layers to re-blur every frame — the cause
+          of the Chrome GPU stall. */}
+      <div className="pointer-events-none absolute inset-0 bg-aurora" />
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40 [mask-image:radial-gradient(60%_55%_at_50%_35%,black,transparent)]" />
       {/* vignette */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
@@ -30,7 +33,7 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
       <div className="relative mx-auto flex max-w-5xl flex-col items-center text-center">
         <motion.div variants={container} initial="hidden" animate="show">
           <motion.div variants={item} className="flex justify-center">
-            <span className="group inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.07] px-4 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary backdrop-blur">
+            <span className="group inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.07] px-4 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
               <AudioLines className="size-3.5" />
               A note taker, made for you
             </span>
@@ -138,8 +141,13 @@ function OrbitVisual() {
         </div>
       </div>
 
+      {/* Self-frosted, NOT a live backdrop-filter. This card floats
+          (animate-float), so a real backdrop blur would re-rasterize its
+          backdrop every frame — doubly so over the drifting blooms behind it.
+          A translucent fill + the specular ring keeps the glass read while
+          staying compositor-cheap. */}
       <motion.div
-        className="animate-float mx-auto w-full max-w-2xl overflow-hidden rounded-[1.75rem] glass-panel ring-luxe"
+        className="animate-float relative mx-auto w-full max-w-2xl overflow-hidden rounded-[1.75rem] border bg-card/85 ring-luxe"
         whileHover={{ scale: 1.01 }}
       >
         <div className="flex items-center gap-2 border-b border-foreground/10 bg-background/30 px-4 py-3">
@@ -160,19 +168,19 @@ function OrbitVisual() {
             <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-primary">
               Live audio
             </p>
-            <div className="flex h-20 items-center justify-center gap-[3px]">
+            <div className="flex h-20 items-end justify-center gap-[3px]">
               {Array.from({ length: 22 }).map((_, i) => (
                 <motion.span
                   key={i}
-                  className="w-[3px] rounded-full bg-gradient-to-t from-primary/40 to-primary"
-                  animate={{ height: ["18%", "85%", "32%", "70%", "20%"] }}
+                  className="h-full w-[3px] origin-bottom rounded-full bg-gradient-to-t from-primary/40 to-primary transform-gpu"
+                  animate={{ scaleY: [0.18, 0.85, 0.32, 0.7, 0.2] }}
                   transition={{
                     duration: 1.6,
                     repeat: Infinity,
                     ease: "easeInOut",
                     delay: i * 0.06,
                   }}
-                  style={{ height: "30%" }}
+                  style={{ scaleY: 0.3 }}
                 />
               ))}
             </div>

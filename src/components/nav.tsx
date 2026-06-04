@@ -50,7 +50,11 @@ export function Nav({ email }: { email: string | null }) {
         }}
         transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
         className={cn(
-          "flex w-full max-w-5xl items-center justify-between gap-4 rounded-2xl border px-3 py-2 backdrop-blur-xl sm:px-4"
+          // No backdrop-filter: this wide bar is fixed over the drifting
+          // background blooms, and blurring a moving backdrop forces a re-blur
+          // every frame (a Chrome GPU sink). When scrolled it gets a ~72%
+          // opaque background, so the blur added almost nothing visually anyway.
+          "flex w-full max-w-5xl items-center justify-between gap-4 rounded-2xl border px-3 py-2 sm:px-4"
         )}
       >
         <Link href="/" className="shrink-0 transition hover:-translate-y-px">
