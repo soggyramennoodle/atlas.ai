@@ -223,7 +223,6 @@ export function RecordingProvider({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTranscriptSupported(!!getSpeechRecognition());
     // Virtual (device-audio) capture needs getDisplayMedia, which mobile lacks.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDeviceCaptureSupported(canCaptureDeviceAudio());
   }, []);
 
