@@ -8,6 +8,7 @@ import {
   Loader2,
   Lock,
   Mic,
+  MonitorOff,
   MonitorSpeaker,
   Pause,
   Play,
@@ -49,6 +50,7 @@ export function Recorder() {
     busy,
     processingIssue,
     failed,
+    deviceCaptureSupported,
     start,
     pause,
     resume,
@@ -129,7 +131,12 @@ export function Recorder() {
 
             {/* Controls */}
             <div className="mt-7 flex items-center justify-center gap-3">
-              {phase === "idle" && <SourcePicker onPick={start} />}
+              {phase === "idle" && (
+                <SourcePicker
+                  onPick={start}
+                  deviceSupported={deviceCaptureSupported}
+                />
+              )}
 
               {phase === "recording" && (
                 <>
@@ -274,7 +281,13 @@ export function Recorder() {
  * instantly understands the difference between recording the room and
  * capturing a lecture playing on the device.
  */
-function SourcePicker({ onPick }: { onPick: (source: RecordingSource) => void }) {
+function SourcePicker({
+  onPick,
+  deviceSupported,
+}: {
+  onPick: (source: RecordingSource) => void;
+  deviceSupported: boolean;
+}) {
   return (
     <div className="w-full space-y-3 text-left">
       <p className="text-center text-sm text-muted-foreground">
@@ -288,15 +301,31 @@ function SourcePicker({ onPick }: { onPick: (source: RecordingSource) => void })
           onClick={() => onPick("microphone")}
         />
         <SourceCard
-          icon={MonitorSpeaker}
+          icon={deviceSupported ? MonitorSpeaker : MonitorOff}
           title="Virtual"
-          desc="Capture a lecture playing in another tab or app — plus your mic for questions."
+          desc={
+            deviceSupported
+              ? "Capture a lecture playing in another tab or app — plus your mic for questions."
+              : "Capture a lecture playing on your screen. Only available on a computer."
+          }
           onClick={() => onPick("device")}
+          disabled={!deviceSupported}
+          badge={deviceSupported ? undefined : "Computer only"}
         />
       </div>
       <p className="px-1 text-center text-xs text-muted-foreground/80">
-        Virtual lectures ask you to pick a tab or window and tick{" "}
-        <span className="font-medium text-foreground/80">“Share audio.”</span>
+        {deviceSupported ? (
+          <>
+            Virtual lectures ask you to share a browser tab (or your whole
+            screen) and tick{" "}
+            <span className="font-medium text-foreground/80">“Share audio.”</span>
+          </>
+        ) : (
+          <>
+            Virtual lectures aren&apos;t available on mobile devices — open Atlas
+            on a laptop or desktop to capture a lecture playing on screen.
+          </>
+        )}
       </p>
     </div>
   );
@@ -307,22 +336,47 @@ function SourceCard({
   title,
   desc,
   onClick,
+  disabled = false,
+  badge,
 }: {
   icon: typeof Mic;
   title: string;
   desc: string;
   onClick: () => void;
+  disabled?: boolean;
+  badge?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group flex h-full flex-col items-start gap-2.5 rounded-2xl border border-border/70 bg-background/40 p-4 text-left transition-[transform,border-color,background-color] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      disabled={disabled}
+      aria-disabled={disabled}
+      className={cn(
+        "group flex h-full flex-col items-start gap-2.5 rounded-2xl border border-border/70 bg-background/40 p-4 text-left transition-[transform,border-color,background-color] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none",
+        disabled
+          ? "cursor-not-allowed opacity-55"
+          : "hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/[0.06] active:translate-y-0 motion-reduce:hover:translate-y-0"
+      )}
     >
-      <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary transition-colors duration-200 group-hover:bg-primary/15">
+      <span
+        className={cn(
+          "grid size-10 place-items-center rounded-xl transition-colors duration-200",
+          disabled
+            ? "bg-muted text-muted-foreground"
+            : "bg-primary/10 text-primary group-hover:bg-primary/15"
+        )}
+      >
         <Icon className="size-5" />
       </span>
-      <span className="text-base font-medium leading-none">{title}</span>
+      <span className="flex items-center gap-2 text-base font-medium leading-none">
+        {title}
+        {badge && (
+          <span className="rounded-full border border-border/70 bg-muted/60 px-2 py-0.5 text-[0.6rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            {badge}
+          </span>
+        )}
+      </span>
       <span className="text-pretty text-xs leading-relaxed text-muted-foreground">
         {desc}
       </span>
