@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   AlertCircle,
@@ -349,13 +349,62 @@ function FluidTranscript() {
 
 const STAGE_COPY: Record<Exclude<CaptureStage, "idle">, string> = {
   uploading: "Saving your recording…",
-  analyzing: "Atlas is listening and writing your notes…",
+  analyzing: "Atlas is writing your notes…",
 };
 
 const STAGE_DETAIL: Record<Exclude<CaptureStage, "idle">, string> = {
   uploading: "Sending the audio into your private Atlas workspace.",
   analyzing: "Keep this tab open while Atlas listens for the important parts.",
 };
+
+/**
+ * Playful, made-up status lines that rotate while Atlas "thinks". We can't read
+ * real model progress, so these just keep the wait from feeling dead — each one
+ * crossfades to the next every few seconds.
+ */
+const THINKING_LINES = [
+  "Transcribing the audio…",
+  "Filtering out background noise…",
+  "Following the thread of the lecture…",
+  "Picking out the key concepts…",
+  "Catching definitions and formulas…",
+  "Connecting related ideas…",
+  "Drafting clean, structured notes…",
+  "Highlighting what matters most…",
+  "Tidying up the final layout…",
+  "Almost there — adding the finishing touches…",
+];
+
+/** Rotating status text that swaps every ~4.5s with a soft crossfade. */
+function ThinkingStatus() {
+  const reduceMotion = useReducedMotion();
+  const [i, setI] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(
+      () => setI((p) => (p + 1) % THINKING_LINES.length),
+      4500
+    );
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="mt-3 flex h-6 items-center justify-center">
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={i}
+          initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+          transition={{ duration: reduceMotion ? 0 : 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="text-pretty text-sm leading-6 text-muted-foreground"
+        >
+          {THINKING_LINES[i]}
+        </motion.p>
+      </AnimatePresence>
+    </div>
+  );
+}
 
 function ProcessingOverlay({
   stage,
@@ -378,21 +427,38 @@ function ProcessingOverlay({
   const title = issue?.title ?? (stage === "idle" ? "" : STAGE_COPY[stage]);
   const detail =
     issue?.message ?? (stage === "idle" ? "" : STAGE_DETAIL[stage]);
+  // Rotate the made-up status lines only while Atlas is actively thinking.
+  const thinking = !failed && stage === "analyzing";
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, filter: "blur(4px)" }}
+          initial={reduceMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, filter: "blur(3px)" }}
-          transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-background/88 px-4 backdrop-blur-xl"
+          exit={{ opacity: 0 }}
+          transition={{ duration: reduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed inset-0 z-50 grid place-items-center overflow-hidden px-4"
         >
+          {/* Lightly veil + soften the page behind, but stop short of the frosted
+              wall that used to bury everything. The glow and text above stay
+              perfectly crisp. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-aurora opacity-50"
+            className="absolute inset-0 bg-background/45 backdrop-blur-sm"
           />
+
+          {/* The living aura — the shared fluid AI glow at full viewport bleed,
+              free of any box so it breathes across the whole screen. */}
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <AiGlow
+              mode={failed ? "idle" : "active"}
+              blend
+              blur={90}
+              className="!opacity-100"
+            />
+          </div>
+
           <motion.div
             initial={reduceMotion ? false : { scale: 0.96, y: 8 }}
             animate={{ scale: 1, y: 0 }}
@@ -403,61 +469,49 @@ function ProcessingOverlay({
             }
             className="relative flex w-full max-w-xl flex-col items-center text-center"
           >
-            <div className="relative grid size-72 place-items-center sm:size-80">
+            {/* A single crisp focal mark — a gently breathing halo around the
+                icon, no longer a contained color wheel. */}
+            <div className="relative grid size-28 place-items-center">
               <motion.div
                 aria-hidden
                 className={cn(
-                  "absolute inset-0 rounded-full opacity-90 blur-[1px]",
-                  failed ? "saturate-[0.85]" : "saturate-125"
+                  "absolute inset-0 rounded-full border",
+                  failed ? "border-destructive/25" : "border-primary/20"
                 )}
-                animate={reduceMotion ? undefined : { rotate: 360 }}
-                transition={{ duration: failed ? 18 : 8, repeat: Infinity, ease: "linear" }}
-              >
-                <span
-                  className={cn(
-                    "absolute left-1/2 top-1 size-28 -translate-x-1/2 rounded-full blur-2xl",
-                    failed ? "bg-destructive/55" : "bg-[#6C63FF]/70"
-                  )}
-                />
-                <span className="absolute right-2 top-1/3 size-24 rounded-full bg-[#4FC3F7]/60 blur-2xl" />
-                <span
-                  className={cn(
-                    "absolute bottom-2 left-1/2 size-32 -translate-x-1/2 rounded-full blur-2xl",
-                    failed ? "bg-[#FFB347]/35" : "bg-[#FFB347]/55"
-                  )}
-                />
-                <span className="absolute left-0 top-1/3 size-24 rounded-full bg-[#B39DDB]/60 blur-2xl" />
-              </motion.div>
-
-              <motion.div
-                aria-hidden
-                className="absolute inset-[12%] rounded-full border border-primary/10"
                 animate={
                   reduceMotion
                     ? undefined
                     : {
-                        scale: [0.98, 1.02, 0.99],
-                        opacity: failed ? [0.32, 0.46, 0.32] : [0.35, 0.68, 0.35],
+                        scale: [0.96, 1.06, 0.96],
+                        opacity: failed ? [0.3, 0.5, 0.3] : [0.4, 0.75, 0.4],
                       }
                 }
-                transition={{ duration: 3.8, repeat: Infinity, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 3.6, repeat: Infinity, ease: [0.22, 1, 0.36, 1] }}
               />
-              <div className="absolute inset-[28%] rounded-full bg-background/70 blur-2xl" />
-              <div className="relative z-10 grid size-40 place-items-center rounded-full bg-background/30 text-primary shadow-[0_0_80px_-28px_color-mix(in_oklch,var(--primary)_90%,transparent)] backdrop-blur-md">
+              <div className="relative z-10 grid size-16 place-items-center rounded-full bg-background/40 text-primary shadow-[0_0_60px_-18px_color-mix(in_oklch,var(--primary)_90%,transparent)] backdrop-blur-md">
                 {failed ? (
-                  <AlertCircle className="size-8 text-destructive" />
+                  <AlertCircle className="size-7 text-destructive" />
                 ) : (
-                  <Sparkles className="size-8" />
+                  <motion.span
+                    animate={reduceMotion ? undefined : { scale: [1, 1.12, 1] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <Sparkles className="size-7" />
+                  </motion.span>
                 )}
               </div>
             </div>
 
-            <p className="mt-2 font-display text-2xl font-semibold tracking-tight">
+            <p className="mt-6 font-display text-2xl font-semibold tracking-tight">
               {title}
             </p>
-            <p className="mt-3 max-w-md text-pretty text-sm leading-6 text-muted-foreground">
-              {detail}
-            </p>
+            {thinking ? (
+              <ThinkingStatus />
+            ) : (
+              <p className="mt-3 max-w-md text-pretty text-sm leading-6 text-muted-foreground">
+                {detail}
+              </p>
+            )}
 
             {failed && (
               <div className="mt-7 flex w-full max-w-md flex-col gap-3 sm:flex-row sm:justify-center">
