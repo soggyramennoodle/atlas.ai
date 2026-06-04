@@ -120,7 +120,7 @@ export function OnboardingFlow() {
           ))}
         </div>
 
-        <div className="overflow-hidden rounded-[1.5rem] border bg-card p-8 shadow-2xl ring-luxe">
+        <div className="glass-panel overflow-hidden rounded-[1.5rem] p-8 shadow-2xl ring-luxe">
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={step}
@@ -133,7 +133,7 @@ export function OnboardingFlow() {
               <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
                 Step {step + 1} of {STEPS.length}
               </p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+              <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight">
                 {field.title}
               </h1>
               <div className="mt-6 space-y-2">

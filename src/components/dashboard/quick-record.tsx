@@ -17,7 +17,7 @@ export function QuickRecord() {
           <p className="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
             Quick action
           </p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight">
+          <h2 className="mt-1 font-display text-xl font-semibold tracking-tight">
             Start recording a lecture
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">

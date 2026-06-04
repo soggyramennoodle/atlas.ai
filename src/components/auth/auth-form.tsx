@@ -115,11 +115,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   if (sent) {
     return (
-      <div className="rounded-[1.5rem] border bg-card p-8 text-center shadow-sm">
+      <div className="glass-panel ring-luxe rounded-[1.5rem] p-8 text-center">
         <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
           <Mail className="size-6" />
         </span>
-        <h2 className="mt-5 text-xl font-semibold tracking-tight">
+        <h2 className="mt-5 font-display text-xl font-semibold tracking-tight">
           Check your email
         </h2>
         <p className="mt-2 text-sm text-muted-foreground text-pretty">
@@ -150,8 +150,8 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   }
 
   return (
-    <div className="rounded-[1.5rem] border bg-card p-8 shadow-sm">
-      <h1 className="text-2xl font-semibold tracking-tight">
+    <div className="glass-panel ring-luxe rounded-[1.5rem] p-8">
+      <h1 className="font-display text-2xl font-semibold tracking-tight">
         {isSignup ? "Create your account" : "Welcome back"}
       </h1>
       <p className="mt-1.5 text-sm text-muted-foreground">

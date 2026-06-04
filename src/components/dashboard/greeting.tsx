@@ -51,7 +51,7 @@ export function Greeting({ name }: { name: string }) {
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
         {local?.date || " "}
       </p>
-      <h1 className="mt-2 inline-block text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h1 className="mt-2 inline-block font-display text-3xl font-semibold tracking-tight sm:text-4xl">
         {local?.greeting ?? "Welcome back"},{" "}
         <span className="relative">
           {name}

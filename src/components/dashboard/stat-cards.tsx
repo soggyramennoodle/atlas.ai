@@ -48,7 +48,7 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="glow-card group relative overflow-hidden rounded-2xl border bg-card/70 p-5"
+      className="glow-card group relative overflow-hidden rounded-2xl border bg-card/55 p-5 backdrop-blur-xl"
     >
       <div className="pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-primary/10 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
       <div className="flex items-center justify-between">

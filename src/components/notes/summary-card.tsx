@@ -87,7 +87,7 @@ export function SummaryCard({
   return (
     <motion.section
       className={cn(
-        "relative isolate overflow-hidden rounded-[1.5rem] border bg-primary/[0.04] p-6 sm:p-7"
+        "ai-ring relative isolate overflow-hidden rounded-[1.5rem] bg-primary/[0.04] p-6 backdrop-blur-xl sm:p-7"
       )}
       animate={
         regenerating

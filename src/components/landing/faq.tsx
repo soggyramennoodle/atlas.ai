@@ -35,7 +35,7 @@ export function Faq() {
         </p>
         <h2 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
           Questions,{" "}
-          <span className="font-serif font-normal italic text-primary">
+          <span className="font-display font-semibold tracking-tight text-primary">
             answered
           </span>
         </h2>

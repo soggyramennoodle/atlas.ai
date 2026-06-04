@@ -148,7 +148,7 @@ export default async function DashboardPage() {
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
           <section>
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold tracking-tight">
+              <h2 className="font-display text-lg font-semibold tracking-tight">
                 Recent recordings
               </h2>
               {notes.length > 0 && (
@@ -168,7 +168,7 @@ export default async function DashboardPage() {
                   <Link
                     key={note.id}
                     href={`/notes/${note.id}`}
-                    className="glow-card group flex flex-col rounded-2xl border bg-card/70 p-5 transition hover:-translate-y-0.5 hover:border-primary/30"
+                    className="glow-card group flex flex-col rounded-2xl border bg-card/75 p-5 transition hover:-translate-y-0.5 hover:border-primary/30"
                   >
                     <div className="flex items-center justify-between">
                       <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">

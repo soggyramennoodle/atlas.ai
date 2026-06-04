@@ -32,7 +32,7 @@ export function PrivacyTrust() {
           </span>
           <h2 className="mt-5 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             Your lectures are private.{" "}
-            <span className="font-serif font-normal italic text-primary">
+            <span className="font-display font-semibold tracking-tight text-primary">
               Always.
             </span>
           </h2>

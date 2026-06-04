@@ -25,7 +25,7 @@ function Cell({
     <Reveal
       delay={delay}
       className={cn(
-        "glow-card group relative flex flex-col overflow-hidden rounded-[1.75rem] border bg-card/70 p-6 transition hover:border-primary/30",
+        "glow-card group relative flex flex-col overflow-hidden rounded-[1.75rem] border bg-card/55 p-6 backdrop-blur-xl transition hover:border-primary/30 hover:-translate-y-0.5",
         className
       )}
     >
@@ -182,7 +182,7 @@ export function FeaturesBento() {
           </p>
           <h2 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
             Everything you need from a lecture,{" "}
-            <span className="font-serif font-normal italic text-primary">
+            <span className="font-display font-semibold tracking-tight text-primary">
               written down
             </span>
           </h2>

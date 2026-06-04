@@ -66,7 +66,7 @@ export default async function NotePage({
 
         <header className="mt-6">
           <CourseCapsule noteId={note.id} subject={note.subject} />
-          <h1 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="mt-3 text-balance font-display text-3xl font-semibold tracking-tight sm:text-4xl">
             {note.title}
           </h1>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">

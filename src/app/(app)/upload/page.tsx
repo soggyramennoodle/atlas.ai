@@ -16,16 +16,16 @@ export default async function UploadPage() {
 
   return (
     <main className="relative px-4 pb-24 pt-10 lg:pt-16">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[40rem] bg-aurora opacity-70" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[40rem] bg-aurora opacity-40" />
       <div className="relative mx-auto max-w-2xl text-center">
         <p className="font-mono text-xs uppercase tracking-[0.25em] text-primary">
           New lecture
         </p>
-        <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="mt-4 text-balance font-display text-4xl font-semibold tracking-tight sm:text-5xl">
           Press record.
           <br />
           We&apos;ll take the{" "}
-          <span className="font-serif text-5xl font-normal italic text-primary sm:text-6xl">
+          <span className="font-display text-5xl font-semibold tracking-tight text-primary sm:text-6xl">
             notes.
           </span>
         </h1>

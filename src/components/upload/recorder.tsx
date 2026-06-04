@@ -40,7 +40,7 @@ export function Recorder() {
         <motion.div
           layout
           className={cn(
-            "relative z-10 overflow-hidden rounded-[2rem] border bg-card p-6 ring-luxe sm:p-8",
+            "glass-panel relative z-10 overflow-hidden rounded-[2rem] p-6 ring-luxe sm:p-8",
             phase === "paused" && "border-destructive/50"
           )}
         >
@@ -331,7 +331,7 @@ function ProcessingOverlay({ stage }: { stage: CaptureStage }) {
           <motion.div
             initial={{ scale: 0.96, y: 10 }}
             animate={{ scale: 1, y: 0 }}
-            className="w-full max-w-sm rounded-[2rem] border bg-card p-8 text-center shadow-2xl ring-luxe"
+            className="glass-panel w-full max-w-sm rounded-[2rem] p-8 text-center shadow-2xl ring-luxe"
           >
             <div className="relative mx-auto grid size-20 place-items-center">
               <motion.span

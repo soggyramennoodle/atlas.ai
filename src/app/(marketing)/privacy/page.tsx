@@ -69,7 +69,7 @@ export default function PrivacyPhilosophyPage() {
           </span>
           <h1 className="mx-auto mt-8 max-w-2xl text-balance text-5xl font-semibold leading-[0.98] tracking-tight sm:text-6xl">
             Your thoughts are{" "}
-            <span className="font-serif font-normal italic text-primary">
+            <span className="font-display font-semibold tracking-tight text-primary">
               yours.
             </span>
           </h1>
@@ -136,7 +136,7 @@ export default function PrivacyPhilosophyPage() {
           </p>
           <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             Some lines we will{" "}
-            <span className="font-serif font-normal italic text-primary">
+            <span className="font-display font-semibold tracking-tight text-primary">
               never
             </span>{" "}
             cross.
@@ -204,7 +204,7 @@ export default function PrivacyPhilosophyPage() {
               reason we trust this tool with our own lectures. We’ll keep it that
               way for you, too.
             </p>
-            <p className="mt-6 font-serif text-lg italic text-foreground/90">
+            <p className="mt-6 font-display text-lg text-foreground/90">
               — The Atlas team
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4 text-sm">

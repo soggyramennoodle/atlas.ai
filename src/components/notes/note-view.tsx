@@ -263,7 +263,7 @@ export function NoteView({
         {/* Key concepts */}
         {shown.keyConcepts.length > 0 && (
           <section>
-            <h3 className="text-xl font-semibold tracking-tight">Key concepts</h3>
+            <h3 className="font-display text-xl font-semibold tracking-tight">Key concepts</h3>
             <div className="mt-4">
               {editMode ? (
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -369,7 +369,7 @@ function SectionView({
         <span className="font-mono text-sm text-muted-foreground">
           {(index + 1).toString().padStart(2, "0")}
         </span>
-        <h3 className="text-xl font-semibold tracking-tight">
+        <h3 className="font-display text-xl font-semibold tracking-tight">
           {section.heading}
         </h3>
       </div>

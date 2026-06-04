@@ -10,8 +10,8 @@ import {
 import { pointText, metaLine, type ExportData } from "./shared";
 import { htmlToExportLines, type InlineRun } from "./html-blocks";
 
-// Clean print palette — ivory page, near-black text, champagne accents.
-const GOLD = "#9a7b34";
+// Clean print palette — pearl page, near-black text, indigo brand accents.
+const ACCENT = "#6C63FF";
 const INK = "#1a1a1f";
 const MUTED = "#55555f";
 
@@ -21,15 +21,15 @@ const styles = StyleSheet.create({
   meta: { fontSize: 9, color: MUTED, marginBottom: 4, letterSpacing: 0.4 },
   rule: { borderBottomWidth: 1, borderBottomColor: "#dcdce2", marginVertical: 16 },
   summaryBox: {
-    backgroundColor: "#faf7ef",
+    backgroundColor: "#f2f1fd",
     borderLeftWidth: 3,
-    borderLeftColor: GOLD,
+    borderLeftColor: ACCENT,
     padding: 12,
     marginBottom: 20,
   },
   summaryLabel: {
     fontSize: 8,
-    color: GOLD,
+    color: ACCENT,
     letterSpacing: 1.5,
     marginBottom: 5,
     fontWeight: 700,
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   h2: { fontSize: 11, fontWeight: 700, marginTop: 10, marginBottom: 5, color: MUTED },
   para: { marginBottom: 6, lineHeight: 1.5 },
   bulletRow: { flexDirection: "row", marginBottom: 5, paddingRight: 6 },
-  dot: { color: GOLD, marginRight: 6 },
+  dot: { color: ACCENT, marginRight: 6 },
   bulletText: { flex: 1, lineHeight: 1.45 },
   subBlock: { marginLeft: 12, marginTop: 4, borderLeftWidth: 1, borderLeftColor: "#e4e4ea", paddingLeft: 10 },
   conceptsHeading: { fontSize: 14, fontWeight: 700, marginTop: 20, marginBottom: 8 },

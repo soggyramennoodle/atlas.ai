@@ -43,8 +43,8 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
             Sit back and listen.
             <br />
             <span className="text-muted-foreground">We&apos;ll remember</span>{" "}
-            <span className="font-serif text-6xl font-normal italic sm:text-8xl lg:text-[6.5rem]">
-              <span className="text-gradient-gold animate-gradient">
+            <span className="font-display text-6xl font-semibold tracking-tight sm:text-8xl lg:text-[6.5rem]">
+              <span className="text-gradient-brand animate-gradient">
                 every word.
               </span>
             </span>
@@ -139,7 +139,7 @@ function OrbitVisual() {
       </div>
 
       <motion.div
-        className="animate-float mx-auto w-full max-w-2xl overflow-hidden rounded-[1.75rem] glass shadow-2xl ring-luxe"
+        className="animate-float mx-auto w-full max-w-2xl overflow-hidden rounded-[1.75rem] glass-panel ring-luxe"
         whileHover={{ scale: 1.01 }}
       >
         <div className="flex items-center gap-2 border-b border-foreground/10 bg-background/30 px-4 py-3">
@@ -186,7 +186,7 @@ function OrbitVisual() {
             <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-primary">
               Atlas notes
             </p>
-            <h3 className="mt-2 font-serif text-xl italic">
+            <h3 className="mt-2 font-display text-xl font-semibold tracking-tight">
               The Second Law of Thermodynamics
             </h3>
             <div className="mt-4 space-y-2.5">

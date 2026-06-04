@@ -32,7 +32,7 @@ export function LegalShell({
         <p className="mt-8 font-mono text-xs uppercase tracking-[0.25em] text-primary">
           Legal
         </p>
-        <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="mt-4 text-balance font-display text-4xl font-semibold tracking-tight sm:text-5xl">
           {title}
         </h1>
         <p className="mt-3 text-sm text-muted-foreground">Last updated {updated}</p>
@@ -44,7 +44,7 @@ export function LegalShell({
         <div className="mt-10 space-y-9">
           {sections.map((s, i) => (
             <section key={i}>
-              <h2 className="flex items-baseline gap-3 text-xl font-semibold tracking-tight">
+              <h2 className="flex items-baseline gap-3 font-display text-xl font-semibold tracking-tight">
                 <span className="font-mono text-sm text-muted-foreground">
                   {(i + 1).toString().padStart(2, "0")}
                 </span>

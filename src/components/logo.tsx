@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 /**
  * Atlas mark — a geometric "A" built as a mountain/apex with the titan's
  * orbit arc swept through it (Atlas holding up the world + knowledge mapping).
- * Stroked in currentColor so it inherits the champagne gold.
+ * Stroked in currentColor so it inherits the indigo-violet brand.
  */
 export function AtlasMark({ className }: { className?: string }) {
   return (

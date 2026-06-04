@@ -47,7 +47,7 @@ export function HowItWorks() {
         </p>
         <h2 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
           From recording to{" "}
-          <span className="font-serif font-normal italic text-primary">
+          <span className="font-display font-semibold tracking-tight text-primary">
             study-ready
           </span>{" "}
           in three steps
@@ -61,7 +61,7 @@ export function HowItWorks() {
               {/* parallax glyph */}
               <motion.span
                 style={{ y: parallax[i] }}
-                className="pointer-events-none absolute -right-2 -top-8 select-none font-serif text-[9rem] italic leading-none text-primary/[0.07]"
+                className="pointer-events-none absolute -right-2 -top-8 select-none font-display text-[9rem] leading-none text-primary/[0.07]"
               >
                 {i + 1}
               </motion.span>

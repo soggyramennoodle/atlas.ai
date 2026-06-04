@@ -4,93 +4,110 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Atlas theme system. Light mode keeps the same atelier polish with parchment
-  whites and burnished gold; dark mode preserves the original Midnight Luxe
-  obsidian treatment.
+  Atlas theme system — "Spatial Liquid Glass".
+  Dark mode is the primary, dramatic treatment: a deep near-black space canvas
+  with frosted, translucent glass panels that have real depth and specular
+  edges. Light mode is its luminous twin — bright frosted glass floating on a
+  soft pearl gradient. The brand is indigo-violet (#6C63FF), cohesive with the
+  living AI glow, with a lavender accent.
+
+  Legacy utility class names (ring-luxe, text-gradient-gold, bg-aurora, glass…)
+  are intentionally kept but redefined to the new glass language, so every
+  consuming component is transformed without churn.
 */
 
 :root {
-  --radius: 1.1rem;
+  --radius: 1.25rem;
 
-  --background: oklch(0.985 0.006 90);
-  --foreground: oklch(0.205 0.018 280);
+  /* Luminous pearl canvas, faint cool indigo cast. */
+  --background: oklch(0.975 0.006 285);
+  --foreground: oklch(0.235 0.03 285);
 
-  --card: oklch(0.998 0.002 90);
-  --card-foreground: oklch(0.205 0.018 280);
+  --card: oklch(0.995 0.003 285);
+  --card-foreground: oklch(0.235 0.03 285);
 
-  --popover: oklch(0.998 0.002 90);
-  --popover-foreground: oklch(0.205 0.018 280);
+  --popover: oklch(0.995 0.003 285);
+  --popover-foreground: oklch(0.235 0.03 285);
 
-  --primary: oklch(0.545 0.126 82);
-  --primary-foreground: oklch(0.985 0.006 90);
+  /* Indigo-violet brand — #6C63FF family. */
+  --primary: oklch(0.555 0.205 282);
+  --primary-foreground: oklch(0.99 0.004 285);
 
-  --secondary: oklch(0.935 0.012 88);
-  --secondary-foreground: oklch(0.245 0.018 280);
+  --secondary: oklch(0.94 0.012 285);
+  --secondary-foreground: oklch(0.28 0.03 285);
 
-  --muted: oklch(0.935 0.012 88);
-  --muted-foreground: oklch(0.49 0.018 280);
+  --muted: oklch(0.94 0.01 285);
+  --muted-foreground: oklch(0.5 0.025 285);
 
-  --accent: oklch(0.895 0.045 84);
-  --accent-foreground: oklch(0.245 0.018 280);
+  /* Soft lavender accent. */
+  --accent: oklch(0.915 0.045 290);
+  --accent-foreground: oklch(0.3 0.06 285);
 
   --destructive: oklch(0.58 0.21 25);
-  --destructive-foreground: oklch(0.985 0.006 90);
+  --destructive-foreground: oklch(0.985 0.006 285);
 
-  --border: oklch(0.835 0.017 88);
-  --input: oklch(0.82 0.017 88);
-  --ring: oklch(0.545 0.126 82);
+  --border: oklch(0.86 0.014 285);
+  --input: oklch(0.84 0.016 285);
+  --ring: oklch(0.555 0.205 282);
 
-  --chart-1: oklch(0.545 0.126 82);
-  --chart-2: oklch(0.62 0.11 250);
-  --chart-3: oklch(0.62 0.13 40);
-  --chart-4: oklch(0.58 0.13 330);
-  --chart-5: oklch(0.58 0.11 160);
+  /* The living AI palette, also used by the aurora + brand gradient. */
+  --chart-1: oklch(0.6 0.2 282);   /* indigo  #6C63FF */
+  --chart-2: oklch(0.77 0.12 230); /* blue    #4FC3F7 */
+  --chart-3: oklch(0.74 0.09 300); /* lavender#B39DDB */
+  --chart-4: oklch(0.75 0.16 70);  /* amber   #FFB347 */
+  --chart-5: oklch(0.72 0.13 200); /* cyan          */
 
-  --noise-opacity: 0.026;
-  --aurora-primary-strength: 32%;
-  --aurora-secondary-strength: 24%;
-  --grid-strength: 8%;
-  --luxe-shadow-strength: 54%;
-  --luxe-inset-strength: 16%;
-  --glass-alpha: 72%;
+  --noise-opacity: 0.02;
+  --aurora-primary-strength: 26%;
+  --aurora-secondary-strength: 20%;
+  --grid-strength: 7%;
+  /* "luxe-*" now drive the glass depth ring (kept for class compatibility). */
+  --luxe-shadow-strength: 30%;
+  --luxe-inset-strength: 55%;
+  --glass-alpha: 68%;
+  --glass-blur: 22px;
+  --glass-edge: 60%;
   --ai-glow-blend-mode: multiply;
   --theme-duration: 650ms;
 }
 
 .dark {
-  --background: oklch(0.155 0.012 280);
-  --foreground: oklch(0.965 0.004 90);
-  --card: oklch(0.195 0.013 280);
-  --card-foreground: oklch(0.965 0.004 90);
-  --popover: oklch(0.205 0.013 280);
-  --popover-foreground: oklch(0.965 0.004 90);
-  --primary: oklch(0.79 0.106 86);
-  --primary-foreground: oklch(0.17 0.012 280);
-  --secondary: oklch(0.255 0.013 280);
-  --secondary-foreground: oklch(0.95 0.004 90);
-  --muted: oklch(0.235 0.012 280);
-  --muted-foreground: oklch(0.72 0.008 90);
-  --accent: oklch(0.28 0.022 86);
-  --accent-foreground: oklch(0.96 0.01 86);
-  --destructive: oklch(0.62 0.21 25);
-  --destructive-foreground: oklch(0.98 0.005 90);
-  --border: oklch(0.32 0.012 280);
-  --input: oklch(0.34 0.012 280);
-  --ring: oklch(0.79 0.106 86);
+  /* Deep space canvas — near-black with an indigo undertone. */
+  --background: oklch(0.165 0.022 280);
+  --foreground: oklch(0.97 0.006 285);
+  --card: oklch(0.225 0.026 280);
+  --card-foreground: oklch(0.97 0.006 285);
+  --popover: oklch(0.235 0.028 280);
+  --popover-foreground: oklch(0.97 0.006 285);
+  --primary: oklch(0.7 0.18 285);
+  --primary-foreground: oklch(0.16 0.03 280);
+  --secondary: oklch(0.275 0.024 280);
+  --secondary-foreground: oklch(0.95 0.006 285);
+  --muted: oklch(0.255 0.022 280);
+  --muted-foreground: oklch(0.74 0.018 285);
+  --accent: oklch(0.34 0.05 288);
+  --accent-foreground: oklch(0.95 0.02 290);
+  --destructive: oklch(0.64 0.21 25);
+  --destructive-foreground: oklch(0.98 0.005 285);
+  --border: oklch(0.36 0.022 282);
+  --input: oklch(0.38 0.022 282);
+  --ring: oklch(0.7 0.18 285);
 
-  --chart-1: oklch(0.79 0.106 86);
-  --chart-2: oklch(0.72 0.05 250);
-  --chart-3: oklch(0.7 0.12 40);
-  --chart-4: oklch(0.68 0.1 330);
-  --chart-5: oklch(0.7 0.09 160);
+  --chart-1: oklch(0.72 0.18 285);
+  --chart-2: oklch(0.8 0.12 230);
+  --chart-3: oklch(0.78 0.09 300);
+  --chart-4: oklch(0.8 0.15 70);
+  --chart-5: oklch(0.78 0.13 200);
 
-  --noise-opacity: 0.045;
-  --aurora-primary-strength: 18%;
-  --aurora-secondary-strength: 14%;
-  --grid-strength: 9%;
-  --luxe-shadow-strength: 40%;
-  --luxe-inset-strength: 8%;
-  --glass-alpha: 55%;
+  --noise-opacity: 0.04;
+  --aurora-primary-strength: 30%;
+  --aurora-secondary-strength: 22%;
+  --grid-strength: 8%;
+  --luxe-shadow-strength: 55%;
+  --luxe-inset-strength: 22%;
+  --glass-alpha: 42%;
+  --glass-blur: 26px;
+  --glass-edge: 24%;
   --ai-glow-blend-mode: screen;
 }
 
@@ -121,7 +138,9 @@
   --color-chart-5: var(--chart-5);
 
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-serif), ui-serif, Georgia, serif;
+  /* "serif" slot now carries the geometric display face (Space Grotesk). */
+  --font-serif: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
@@ -177,18 +196,24 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* A theme-aware aurora: softer in dark, brighter in light. */
+  /* A living spatial aurora — three drifting blooms of the AI palette that
+     read as light suspended behind the glass. Softer in light, deeper in dark. */
   .bg-aurora {
     background-image:
       radial-gradient(
-        58rem 40rem at 70% -12%,
-        color-mix(in oklch, var(--primary) var(--aurora-primary-strength), transparent),
-        transparent 60%
+        58rem 42rem at 72% -14%,
+        color-mix(in oklch, var(--chart-1) var(--aurora-primary-strength), transparent),
+        transparent 62%
       ),
       radial-gradient(
-        42rem 34rem at 8% 4%,
+        46rem 36rem at 6% 2%,
         color-mix(in oklch, var(--chart-2) var(--aurora-secondary-strength), transparent),
-        transparent 55%
+        transparent 58%
+      ),
+      radial-gradient(
+        40rem 34rem at 28% 108%,
+        color-mix(in oklch, var(--chart-3) var(--aurora-secondary-strength), transparent),
+        transparent 60%
       );
   }
 
@@ -201,11 +226,22 @@
     background-size: 26px 26px;
   }
 
-  /* Hairline gold ring used to lift premium surfaces off the felt. */
+  /* Glass depth ring — a bright specular top edge, a faint full-perimeter
+     highlight, and a soft indigo-tinted ambient shadow that floats the surface
+     off the canvas. (Legacy name kept; meaning is now "glass", not "gold".) */
   .ring-luxe {
     box-shadow:
-      inset 0 1px 0 0 color-mix(in oklch, var(--foreground) var(--luxe-inset-strength), transparent),
-      0 30px 80px -40px color-mix(in oklch, var(--primary) var(--luxe-shadow-strength), transparent);
+      inset 0 1px 0 0 color-mix(in oklch, white var(--glass-edge), transparent),
+      inset 0 0 0 1px color-mix(in oklch, white calc(var(--glass-edge) * 0.35), transparent),
+      0 24px 70px -34px color-mix(in oklch, var(--primary) var(--luxe-shadow-strength), transparent),
+      0 6px 26px -14px color-mix(in oklch, var(--foreground) 16%, transparent);
+  }
+  .ring-glass {
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white var(--glass-edge), transparent),
+      inset 0 0 0 1px color-mix(in oklch, white calc(var(--glass-edge) * 0.35), transparent),
+      0 24px 70px -34px color-mix(in oklch, var(--primary) var(--luxe-shadow-strength), transparent),
+      0 6px 26px -14px color-mix(in oklch, var(--foreground) 16%, transparent);
   }
 
   /* Magnetic interaction — every button/link gets weighted hover motion. */
@@ -233,24 +269,40 @@
     text-wrap: pretty;
   }
 
-  /* Gold gradient text for hero headlines. */
-  .text-gradient-gold {
+  /* Brand gradient text — indigo → violet → cyan, flowing like the AI glow.
+     (Legacy `.text-gradient-gold` kept as an alias of the new brand gradient.) */
+  .text-gradient-gold,
+  .text-gradient-brand {
     background-image: linear-gradient(
-      120deg,
-      color-mix(in oklch, var(--primary) 70%, white) 0%,
-      var(--primary) 45%,
-      color-mix(in oklch, var(--primary) 60%, var(--chart-3)) 100%
+      110deg,
+      color-mix(in oklch, var(--chart-1) 78%, white) 0%,
+      var(--chart-1) 38%,
+      color-mix(in oklch, var(--chart-1) 60%, var(--chart-2)) 72%,
+      color-mix(in oklch, var(--chart-3) 70%, white) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
-  /* Frosted glass surface. */
+  /* Frosted liquid-glass surface — translucent, saturated, with a specular top
+     edge so it reads as a real pane of glass floating over the canvas. */
   .glass {
     background-color: color-mix(in oklch, var(--card) var(--glass-alpha), transparent);
-    backdrop-filter: blur(16px);
-    border: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    border: 1px solid color-mix(in oklch, white calc(var(--glass-edge) * 0.5), transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white var(--glass-edge), transparent),
+      0 8px 30px -16px color-mix(in oklch, var(--foreground) 20%, transparent);
+  }
+  /* A heavier, more opaque glass for primary panels (hero card, dock, modals). */
+  .glass-panel {
+    position: relative;
+    background-color: color-mix(in oklch, var(--card) calc(var(--glass-alpha) + 14%), transparent);
+    backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(1.7);
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(1.7);
+    border: 1px solid color-mix(in oklch, white calc(var(--glass-edge) * 0.55), transparent);
   }
 
   /* Looping motion utilities. */
@@ -308,6 +360,49 @@
   }
   .shimmer:hover::after {
     animation: atlas-shimmer 0.9s ease;
+  }
+
+  /* Persistent multicolor "AI-powered" ring — a slowly flowing gradient border
+     in the living AI palette (indigo · blue · amber · lavender) that signals a
+     surface is AI-generated, even at rest. Pair with <AiGlow/> for the inner
+     bloom. The border is drawn with a padding-box mask so it never clips text. */
+  .ai-ring {
+    position: relative;
+    isolation: isolate;
+  }
+  .ai-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.25px;
+    background: linear-gradient(
+      120deg,
+      #6c63ff,
+      #4fc3f7,
+      #ffb347,
+      #b39ddb,
+      #6c63ff
+    );
+    background-size: 220% 220%;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.6;
+    pointer-events: none;
+    animation: atlas-gradient 9s ease infinite;
+  }
+  .ai-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    box-shadow: 0 0 34px -8px color-mix(in oklch, var(--chart-1) 55%, transparent);
+    opacity: 0.55;
+    pointer-events: none;
   }
 
   /* Traveling light around a card border on hover. */

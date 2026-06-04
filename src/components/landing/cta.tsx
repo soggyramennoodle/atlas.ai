@@ -21,8 +21,8 @@ export function FinalCta({ ctaHref }: { ctaHref: string }) {
           <h2 className="mx-auto mt-5 max-w-3xl text-balance text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
             Stop scribbling.
             <br />
-            <span className="font-serif text-6xl font-normal italic sm:text-7xl lg:text-[5rem]">
-              <span className="text-gradient-gold animate-gradient">
+            <span className="font-display text-6xl font-semibold tracking-tight sm:text-7xl lg:text-[5rem]">
+              <span className="text-gradient-brand animate-gradient">
                 Start understanding.
               </span>
             </span>

@@ -35,12 +35,12 @@ export default async function SettingsPage() {
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
           Account
         </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
           Settings
         </h1>
 
         {/* Identity header */}
-        <div className="mt-8 overflow-hidden rounded-[1.75rem] border bg-card/70 ring-luxe">
+        <div className="mt-8 overflow-hidden rounded-[1.75rem] border bg-card/55 backdrop-blur-xl ring-luxe">
           <div className="relative h-24 bg-gradient-to-br from-primary/25 via-primary/10 to-transparent">
             <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
           </div>
@@ -52,7 +52,7 @@ export default async function SettingsPage() {
                 </AvatarFallback>
               </Avatar>
               <div className="pb-1">
-                <h2 className="text-xl font-semibold tracking-tight">
+                <h2 className="font-display text-xl font-semibold tracking-tight">
                   {displayName}
                 </h2>
                 <p className="text-sm text-muted-foreground">

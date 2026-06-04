@@ -131,10 +131,10 @@ function ProfileForm({
   }
 
   return (
-    <div className="rounded-[1.75rem] border bg-card/70 p-6 ring-luxe">
+    <div className="rounded-[1.75rem] border bg-card/55 p-6 backdrop-blur-xl ring-luxe">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-semibold tracking-tight">Your profile</h2>
+          <h2 className="font-display font-semibold tracking-tight">Your profile</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Atlas uses this to personalize your notes. Changes save as you go.
           </p>
@@ -189,7 +189,7 @@ function SaveStatus({ status }: { status: "idle" | "saving" | "saved" }) {
 function PrivacyPanel() {
   return (
     <div className="space-y-4">
-      <div className="rounded-[1.75rem] border bg-card/70 p-6 ring-luxe">
+      <div className="rounded-[1.75rem] border bg-card/55 p-6 backdrop-blur-xl ring-luxe">
         <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
           <Lock className="size-3.5" />
           Atlas Enclave
@@ -250,7 +250,7 @@ function AccountPanel({
 }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-[1.75rem] border bg-card/70 p-6">
+      <div className="rounded-[1.75rem] border bg-card/55 p-6 backdrop-blur-xl">
         <h2 className="font-semibold tracking-tight">Account</h2>
         <dl className="mt-5 grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border bg-background/40 p-4">
@@ -268,7 +268,7 @@ function AccountPanel({
         </dl>
       </div>
 
-      <div className="flex items-center justify-between rounded-[1.75rem] border bg-card/70 p-6">
+      <div className="flex items-center justify-between rounded-[1.75rem] border bg-card/55 p-6 backdrop-blur-xl">
         <div>
           <h3 className="font-semibold tracking-tight">Sign out</h3>
           <p className="mt-1 text-sm text-muted-foreground">
