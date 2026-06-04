@@ -30,7 +30,7 @@ export function TranscriptPanel({ transcript }: { transcript: string }) {
             Full transcript
           </span>
           <span className="block text-xs text-muted-foreground">
-            The complete lecture, word for word
+            The complete lecture, word for word. Transcript may be inaccurate.
           </span>
         </span>
         <motion.span
