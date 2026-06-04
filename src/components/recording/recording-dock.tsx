@@ -6,6 +6,7 @@ import { Download, Loader2, Mic, MonitorSpeaker, Pause, Play, Sparkles, Square, 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRecording } from "./recording-context";
+import { Waveform } from "./waveform";
 
 function clock(s: number) {
   const m = Math.floor(s / 60);
@@ -21,7 +22,7 @@ function clock(s: number) {
 export function RecordingDock() {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
-  const { phase, seconds, levels, busy, failed, sessionLabel, source, pause, resume, stop, generate, discard, download } =
+  const { phase, seconds, busy, failed, sessionLabel, source, pause, resume, stop, generate, discard, download } =
     useRecording();
   const SourceIcon = source === "device" ? MonitorSpeaker : Mic;
 
@@ -72,21 +73,19 @@ export function RecordingDock() {
             </div>
           </div>
 
-          {/* Compact waveform */}
+          {/* Compact waveform — imperative, same as the full recorder. */}
           {(phase === "recording" || phase === "paused") && (
-            <div className="mt-3 flex h-8 items-center gap-[2px]">
-              {levels.slice(0, 28).map((v, i) => (
-                <motion.span
-                  key={i}
-                  className={cn(
-                    "h-full w-[3px] flex-1 origin-center rounded-full transform-gpu",
-                    phase === "paused" ? "bg-destructive/50" : "bg-primary/70"
-                  )}
-                  animate={{ scaleY: Math.max(0.1, v) }}
-                  transition={{ duration: reduceMotion ? 0 : 0.1, ease: [0.22, 1, 0.36, 1] }}
-                />
-              ))}
-            </div>
+            <Waveform
+              count={28}
+              minScale={0.1}
+              scaleMul={1}
+              baseScale={0.1}
+              containerClassName="mt-3 flex h-8 items-center gap-[2px]"
+              barClassName={cn(
+                "h-full w-[3px] flex-1 origin-center rounded-full transform-gpu",
+                phase === "paused" ? "bg-destructive/50" : "bg-primary/70"
+              )}
+            />
           )}
 
           {/* Controls */}

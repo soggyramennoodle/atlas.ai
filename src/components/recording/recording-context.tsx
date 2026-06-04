@@ -66,7 +66,14 @@ interface Clip {
 interface RecordingValue {
   phase: RecordingPhase;
   seconds: number;
-  levels: number[];
+  /**
+   * Subscribe to the audio meter (≈14 Hz) imperatively, so the waveform can
+   * update without re-rendering React on every frame. The callback is primed
+   * immediately with the current levels; the returned function unsubscribes.
+   */
+  subscribeMeter: (cb: (levels: number[]) => void) => () => void;
+  /** Current meter levels (length {@link BARS}) — for a fresh imperative read. */
+  getLevels: () => number[];
   clip: Clip | null;
   stage: CaptureStage;
   busy: boolean;
@@ -179,7 +186,6 @@ export function RecordingProvider({
 
   const [phase, setPhase] = useState<RecordingPhase>("idle");
   const [seconds, setSeconds] = useState(0);
-  const [levels, setLevels] = useState<number[]>(IDLE_LEVELS);
   const [clip, setClip] = useState<Clip | null>(null);
   const [stage, setStage] = useState<CaptureStage>("idle");
   const [processingIssue, setProcessingIssue] = useState<ProcessingIssue | null>(null);
@@ -222,6 +228,24 @@ export function RecordingProvider({
   // Lets the display-capture "ended" listener call the latest stop() without
   // start() having to depend on it (avoids a circular useCallback reference).
   const stopRef = useRef<(() => void) | null>(null);
+
+  // Audio meter is published imperatively, never through React state — see
+  // components/recording/waveform.tsx. `levelsRef` holds the latest frame and
+  // `meterListenersRef` the subscribed waveform updaters.
+  const levelsRef = useRef<number[]>(IDLE_LEVELS());
+  const meterListenersRef = useRef<Set<(levels: number[]) => void>>(new Set());
+  const emitLevels = useCallback((next: number[]) => {
+    levelsRef.current = next;
+    meterListenersRef.current.forEach((cb) => cb(next));
+  }, []);
+  const subscribeMeter = useCallback((cb: (levels: number[]) => void) => {
+    meterListenersRef.current.add(cb);
+    cb(levelsRef.current);
+    return () => {
+      meterListenersRef.current.delete(cb);
+    };
+  }, []);
+  const getLevels = useCallback(() => levelsRef.current, []);
 
   const busy = stage !== "idle";
 
@@ -330,12 +354,12 @@ export function RecordingProvider({
         }
         audioPeakRef.current = Math.max(audioPeakRef.current, peak);
         if (peak >= SILENCE_PEAK_THRESHOLD) activeAudioMsRef.current += METER_FRAME_MS;
-        setLevels(next);
+        emitLevels(next);
       }
       rafRef.current = requestAnimationFrame(loop);
     };
     loop();
-  }, []);
+  }, [emitLevels]);
 
   const startTranscription = useCallback(() => {
     const recognition = getSpeechRecognition();
@@ -602,7 +626,7 @@ export function RecordingProvider({
     stopMeter();
     if (transcriptKickoffRef.current) clearTimeout(transcriptKickoffRef.current);
     transcriptKickoffRef.current = null;
-    setLevels(IDLE_LEVELS());
+    emitLevels(IDLE_LEVELS());
     wantTranscriptRef.current = false;
     try {
       recognitionRef.current?.stop();
@@ -610,7 +634,7 @@ export function RecordingProvider({
       /* ignore */
     }
     if (tickRef.current) clearInterval(tickRef.current);
-  }, [stopMeter]);
+  }, [stopMeter, emitLevels]);
 
   const resume = useCallback(() => {
     const rec = mediaRecorderRef.current;
@@ -643,7 +667,7 @@ export function RecordingProvider({
     if (transcriptKickoffRef.current) clearTimeout(transcriptKickoffRef.current);
     transcriptKickoffRef.current = null;
     stopMeter();
-    setLevels(IDLE_LEVELS());
+    emitLevels(IDLE_LEVELS());
     wantTranscriptRef.current = false;
     try {
       recognitionRef.current?.stop();
@@ -651,7 +675,7 @@ export function RecordingProvider({
       /* ignore */
     }
     rec.stop();
-  }, [stopMeter]);
+  }, [stopMeter, emitLevels]);
 
   // Keep stopRef pointing at the latest stop() so the display-capture "ended"
   // listener (set up in start()) can end a session without a circular dep.
@@ -664,7 +688,7 @@ export function RecordingProvider({
     setClip(null);
     setSeconds(0);
     secondsRef.current = 0;
-    setLevels(IDLE_LEVELS());
+    emitLevels(IDLE_LEVELS());
     setLiveTranscript("");
     pendingTranscriptRef.current = "";
     setProcessingIssue(null);
@@ -674,7 +698,7 @@ export function RecordingProvider({
     setFailed(false);
     setPhase("idle");
     teardown();
-  }, [clip, resetAudioActivity, teardown]);
+  }, [clip, resetAudioActivity, teardown, emitLevels]);
 
   const generate = useCallback(async () => {
     if (!clip) return;
@@ -745,7 +769,7 @@ export function RecordingProvider({
       setClip(null);
       setSeconds(0);
       secondsRef.current = 0;
-      setLevels(IDLE_LEVELS());
+      emitLevels(IDLE_LEVELS());
       setLiveTranscript("");
       setSessionLabel("Untitled Lecture");
       setProcessingIssue(null);
@@ -782,7 +806,7 @@ export function RecordingProvider({
     } finally {
       if (timeoutId) window.clearTimeout(timeoutId);
     }
-  }, [clip, liveTranscript, router, seconds, userId]);
+  }, [clip, liveTranscript, router, seconds, userId, emitLevels]);
 
   const clearProcessingIssue = useCallback(() => {
     setProcessingIssue(null);
@@ -805,7 +829,8 @@ export function RecordingProvider({
   const value: RecordingValue = {
     phase,
     seconds,
-    levels,
+    subscribeMeter,
+    getLevels,
     clip,
     stage,
     busy,

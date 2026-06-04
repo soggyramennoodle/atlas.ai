@@ -21,10 +21,12 @@ import { Button } from "@/components/ui/button";
 import { cn, type DeviceAudioSupport } from "@/lib/utils";
 import { type CaptureStage } from "@/lib/upload-lecture";
 import {
+  BARS,
   useRecording,
   type ProcessingIssue,
   type RecordingSource,
 } from "@/components/recording/recording-context";
+import { Waveform } from "@/components/recording/waveform";
 import { AiGlow } from "@/components/ui/ai-glow";
 import { ThinkingStatus } from "@/components/upload/thinking-status";
 
@@ -44,7 +46,6 @@ export function Recorder() {
   const {
     phase,
     seconds,
-    levels,
     clip,
     stage,
     busy,
@@ -108,30 +109,19 @@ export function Recorder() {
                     : "Record in browser"}
             </span>
 
-            {/* Waveform. The level meter updates ~14×/s; driving 32 Framer
-                animations on every tick floods the main thread and makes the
-                CSS aura stutter. Plain spans with a CSS transform + transition
-                give the same easing on the compositor, for almost no JS cost. */}
-            <div className="mt-7 flex h-24 w-full items-center justify-center gap-[3px]">
-              {levels.map((v, i) => (
-                <span
-                  key={i}
-                  className={cn(
-                    "h-full w-[3px] origin-center rounded-full bg-gradient-to-t transform-gpu",
-                    phase === "paused"
-                      ? "from-destructive/40 to-destructive"
-                      : "from-primary/40 to-primary"
-                  )}
-                  style={{
-                    transform: `scaleY(${Math.max(0.08, v * 0.9)})`,
-                    transition: reduceMotion
-                      ? undefined
-                      : "transform 0.1s cubic-bezier(0.22,1,0.36,1)",
-                    opacity: live ? 1 : 0.35,
-                  }}
-                />
-              ))}
-            </div>
+            {/* Waveform — driven imperatively (see Waveform); the meter never
+                re-renders React, so the aura stays smooth while recording. */}
+            <Waveform
+              count={BARS}
+              containerClassName="mt-7 flex h-24 w-full items-center justify-center gap-[3px]"
+              barClassName={cn(
+                "h-full w-[3px] origin-center rounded-full bg-gradient-to-t transform-gpu",
+                phase === "paused"
+                  ? "from-destructive/40 to-destructive"
+                  : "from-primary/40 to-primary"
+              )}
+              style={{ opacity: live ? 1 : 0.35 }}
+            />
 
             <div className="mt-5 font-mono text-4xl font-medium tabular-nums tracking-tight">
               {formatClock(seconds)}
