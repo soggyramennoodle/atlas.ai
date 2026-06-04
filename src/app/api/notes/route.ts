@@ -1,17 +1,20 @@
+import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateNotesFromAudio } from "@/lib/gemini";
 import { buildMemoryContext } from "@/lib/memory";
+import { getR2Bucket, r2, requiredR2Env } from "@/lib/r2";
 import type { UserMemory, UserProfile, StructuredNotes } from "@/lib/types";
 
 export const runtime = "nodejs";
 // Generating notes from a full lecture can take a while.
 export const maxDuration = 300;
 
-const BUCKET = "lectures";
 const PROCESSING_STALE_MS = 6 * 60_000;
 
 interface ProcessBody {
+  r2Key?: string;
+  /** Back-compat for any clients still sending the old Supabase Storage path. */
   path?: string;
   mimeType?: string;
   durationSeconds?: number | null;
@@ -54,7 +57,19 @@ function isStaleProcessing(createdAt?: string | null) {
   return Date.now() - new Date(createdAt).getTime() > PROCESSING_STALE_MS;
 }
 
+async function deleteR2Object(key: string) {
+  try {
+    await r2.send(new DeleteObjectCommand({ Bucket: getR2Bucket(), Key: key }));
+  } catch (err) {
+    console.error("Failed to delete R2 recording:", err);
+  }
+}
+
 export async function POST(request: Request) {
+  requiredR2Env("CLOUDFLARE_R2_ACCOUNT_ID");
+  requiredR2Env("CLOUDFLARE_R2_ACCESS_KEY_ID");
+  requiredR2Env("CLOUDFLARE_R2_SECRET_ACCESS_KEY");
+
   const supabase = await createClient();
 
   const {
@@ -72,16 +87,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { path, mimeType, durationSeconds, liveTranscript } = body;
-  if (!path || !mimeType) {
+  const { mimeType, durationSeconds, liveTranscript } = body;
+  const r2Key = body.r2Key ?? body.path;
+  if (!r2Key || !mimeType) {
     return NextResponse.json(
-      { error: "Missing audio path or mimeType." },
+      { error: "Missing audio key or mimeType." },
       { status: 400 }
     );
   }
 
   // Defence in depth: the uploaded object must live under the user's folder.
-  if (!path.startsWith(`${user.id}/`)) {
+  if (!r2Key.startsWith(`${user.id}/`)) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
@@ -92,7 +108,7 @@ export async function POST(request: Request) {
     .from("notes")
     .select("id, content, created_at")
     .eq("user_id", user.id)
-    .eq("audio_path", path)
+    .eq("audio_path", r2Key)
     .maybeSingle();
 
   if (existingNote?.id) {
@@ -110,7 +126,7 @@ export async function POST(request: Request) {
           })
           .eq("id", existingNote.id)
           .eq("user_id", user.id);
-        await supabase.storage.from(BUCKET).remove([path]);
+        await deleteR2Object(r2Key);
         return NextResponse.json({ id: existingNote.id, status: "failed" });
       }
 
@@ -120,26 +136,30 @@ export async function POST(request: Request) {
       );
     }
 
-    await supabase.storage.from(BUCKET).remove([path]);
+    await deleteR2Object(r2Key);
     return NextResponse.json({
       id: existingNote.id,
       status: status === "failed" ? "failed" : "ready",
     });
   }
 
-  // Download the audio the user uploaded to Storage (RLS scopes this to them).
-  const { data: file, error: downloadError } = await supabase.storage
-    .from(BUCKET)
-    .download(path);
-
-  if (downloadError || !file) {
+  let bytes: Buffer;
+  try {
+    const { Body } = await r2.send(
+      new GetObjectCommand({
+        Bucket: getR2Bucket(),
+        Key: r2Key,
+      })
+    );
+    if (!Body) throw new Error("R2 object had no body.");
+    bytes = Buffer.from(await Body.transformToByteArray());
+  } catch (err) {
+    console.error("Failed to download R2 recording:", err);
     return NextResponse.json(
       { error: "Could not read the uploaded recording." },
       { status: 404 }
     );
   }
-
-  const bytes = Buffer.from(await file.arrayBuffer());
 
   const { data: placeholder, error: placeholderError } = await supabase
     .from("notes")
@@ -148,7 +168,7 @@ export async function POST(request: Request) {
       title: "Processing lecture",
       subject: null,
       content: processingContent(),
-      audio_path: path,
+      audio_path: r2Key,
       duration_seconds: durationSeconds ?? null,
     })
     .select("id")
@@ -161,7 +181,7 @@ export async function POST(request: Request) {
       .from("notes")
       .select("id, content, created_at")
       .eq("user_id", user.id)
-      .eq("audio_path", path)
+      .eq("audio_path", r2Key)
       .maybeSingle();
 
     if (racedNote?.id) {
@@ -178,7 +198,7 @@ export async function POST(request: Request) {
           })
           .eq("id", racedNote.id)
           .eq("user_id", user.id);
-        await supabase.storage.from(BUCKET).remove([path]);
+        await deleteR2Object(r2Key);
         return NextResponse.json({ id: racedNote.id, status: "failed" });
       }
 
@@ -234,7 +254,7 @@ export async function POST(request: Request) {
       })
       .eq("id", placeholder.id)
       .eq("user_id", user.id);
-    await supabase.storage.from(BUCKET).remove([path]);
+    await deleteR2Object(r2Key);
     return NextResponse.json(
       {
         error:
@@ -257,7 +277,7 @@ export async function POST(request: Request) {
       title: notes.title,
       subject: notes.subject || null,
       content: notes,
-      audio_path: path,
+      audio_path: r2Key,
       duration_seconds: durationSeconds ?? null,
     })
     .eq("id", placeholder.id)
@@ -275,12 +295,7 @@ export async function POST(request: Request) {
 
   // Delete the raw recording immediately — Atlas Enclave guarantees audio is
   // never retained beyond the processing window.
-  const { error: storageError } = await supabase.storage
-    .from(BUCKET)
-    .remove([path]);
-  if (storageError) {
-    console.error("Failed to delete recording after processing:", storageError);
-  }
+  await deleteR2Object(r2Key);
 
   return NextResponse.json({ id: updated.id, status: "ready" });
 }

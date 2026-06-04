@@ -1,9 +1,9 @@
 "use server";
 
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { revalidatePath } from "next/cache";
+import { getR2Bucket, r2 } from "@/lib/r2";
 import { createClient } from "@/lib/supabase/server";
-
-const BUCKET = "lectures";
 
 export interface DeleteResult {
   ok: boolean;
@@ -34,7 +34,9 @@ export async function deleteNote(id: string): Promise<DeleteResult> {
     .single();
 
   if (note?.audio_path) {
-    await supabase.storage.from(BUCKET).remove([note.audio_path]);
+    await r2
+      .send(new DeleteObjectCommand({ Bucket: getR2Bucket(), Key: note.audio_path }))
+      .catch(() => {});
   }
 
   const { error } = await supabase.from("notes").delete().eq("id", id);

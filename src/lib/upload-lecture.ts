@@ -2,8 +2,7 @@ import type { createClient } from "@/lib/supabase/client";
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
-export const LECTURES_BUCKET = "lectures";
-export const MAX_BYTES = 100 * 1024 * 1024; // 100 MB — keep in sync with the bucket limit.
+export const MAX_BYTES = 2 * 1024 * 1024 * 1024; // R2 presign endpoint enforces the same 2 GB app-level limit.
 
 export type CaptureStage = "idle" | "uploading" | "analyzing";
 export type GenerationStatus = "ready" | "processing" | "failed";
@@ -52,23 +51,12 @@ interface UploadArgs {
   onStage: (stage: Exclude<CaptureStage, "idle">) => void;
 }
 
-function uploadCanContinue(error: { message?: string; statusCode?: string } | null) {
-  const message = error?.message?.toLowerCase() ?? "";
-  return (
-    error?.statusCode === "409" ||
-    message.includes("already exists") ||
-    message.includes("duplicate") ||
-    message.includes("resource already exists")
-  );
-}
-
 /**
- * Uploads a lecture recording to private Storage, then asks the server to
- * turn it into notes. Shared by the in-browser recorder and the file uploader.
+ * Uploads a lecture recording directly to R2, then asks the server to turn it
+ * into notes. Shared by the in-browser recorder and the file uploader.
  * Returns the new note id. Throws a user-readable Error on failure.
  */
 export async function uploadLectureAndGenerate({
-  supabase,
   userId,
   data,
   requestId,
@@ -81,18 +69,39 @@ export async function uploadLectureAndGenerate({
 }: UploadArgs): Promise<{ id: string; status: GenerationStatus }> {
   onStage("uploading");
   const stableId = requestId ?? crypto.randomUUID();
-  const path = `${userId}/${stableId}.${ext}`;
+  const filename =
+    data instanceof File && data.name.trim() ? data.name : `${stableId}.${ext}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from(LECTURES_BUCKET)
-    .upload(path, data, { contentType: mimeType, upsert: false });
+  const presignRes = await fetch("/api/upload/presign", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    signal,
+    body: JSON.stringify({
+      filename,
+      contentType: mimeType,
+      fileSize: data.size,
+      requestId: stableId,
+    }),
+  });
+  const presign = await presignRes.json();
+  if (!presignRes.ok) {
+    throw new Error(presign.error || "Could not prepare the upload.");
+  }
 
-  if (uploadError && !uploadCanContinue(uploadError)) {
-    throw new Error(
-      uploadError.message.includes("exceeded")
-        ? "The recording is larger than your storage bucket allows. Raise the bucket's file size limit in Supabase."
-        : `Upload failed: ${uploadError.message}`
-    );
+  const r2Key = presign.key as string;
+  if (!r2Key.startsWith(`${userId}/`)) {
+    throw new Error("Upload was rejected because it was scoped incorrectly.");
+  }
+
+  const uploadRes = await fetch(presign.presignedUrl as string, {
+    method: "PUT",
+    body: data,
+    headers: { "Content-Type": mimeType },
+    signal,
+  });
+
+  if (!uploadRes.ok) {
+    throw new Error("Upload failed. Please try again.");
   }
 
   onStage("analyzing");
@@ -101,7 +110,7 @@ export async function uploadLectureAndGenerate({
     headers: { "Content-Type": "application/json" },
     signal,
     body: JSON.stringify({
-      path,
+      r2Key,
       mimeType,
       durationSeconds: durationSeconds ? Math.round(durationSeconds) : null,
       liveTranscript: liveTranscript || null,

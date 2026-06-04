@@ -28,6 +28,11 @@ const SILENCE_MIN_ACTIVE_MS = 500;
 const SILENCE_MIN_DURATION_SECONDS = 2;
 const PROCESSING_TIMEOUT_MS = 120_000;
 
+function formatBytes(bytes: number) {
+  const mb = bytes / (1024 * 1024);
+  return mb >= 1024 ? `${Math.round(mb / 1024)} GB` : `${Math.round(mb)} MB`;
+}
+
 export type RecordingPhase = "idle" | "recording" | "paused" | "recorded";
 
 export type ProcessingIssueKind = "silent" | "timeout" | "failed";
@@ -370,7 +375,7 @@ export function RecordingProvider({
       stopMeter();
       const blob = new Blob(chunksRef.current, { type: baseMimeType(mime) });
       if (blob.size > MAX_BYTES) {
-        toast.error("That recording is over 100 MB. Try a shorter session.");
+        toast.error(`That recording is over ${formatBytes(MAX_BYTES)}. Try a shorter session.`);
         setPhase("idle");
         teardown();
         return;
