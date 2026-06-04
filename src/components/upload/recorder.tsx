@@ -8,6 +8,7 @@ import {
   Loader2,
   Lock,
   Mic,
+  MonitorSpeaker,
   Pause,
   Play,
   RefreshCcw,
@@ -21,6 +22,7 @@ import { type CaptureStage } from "@/lib/upload-lecture";
 import {
   useRecording,
   type ProcessingIssue,
+  type RecordingSource,
 } from "@/components/recording/recording-context";
 import { AiGlow } from "@/components/ui/ai-glow";
 import { ThinkingStatus } from "@/components/upload/thinking-status";
@@ -127,12 +129,7 @@ export function Recorder() {
 
             {/* Controls */}
             <div className="mt-7 flex items-center justify-center gap-3">
-              {phase === "idle" && (
-                <Button onClick={start} size="lg" className="h-14 gap-2.5 px-7 text-base">
-                  <Mic className="size-5" />
-                  Start recording
-                </Button>
-              )}
+              {phase === "idle" && <SourcePicker onPick={start} />}
 
               {phase === "recording" && (
                 <>
@@ -224,13 +221,6 @@ export function Recorder() {
               )}
             </div>
 
-            {phase === "idle" && (
-              <p className="mt-5 max-w-sm text-pretty text-sm text-muted-foreground">
-                Press record at the start of class and let it run. Atlas listens
-                the whole way through — then writes your notes.
-              </p>
-            )}
-
             {/* Atlas Enclave — private & encrypted session badge (§7). */}
             <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/40 px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
               <Lock className="size-3 text-primary" />
@@ -280,12 +270,74 @@ export function Recorder() {
 }
 
 /**
+ * The pre-recording choice (§7). Two plainly-worded cards so a student
+ * instantly understands the difference between recording the room and
+ * capturing a lecture playing on the device.
+ */
+function SourcePicker({ onPick }: { onPick: (source: RecordingSource) => void }) {
+  return (
+    <div className="w-full space-y-3 text-left">
+      <p className="text-center text-sm text-muted-foreground">
+        How are you attending this lecture?
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <SourceCard
+          icon={Mic}
+          title="In person"
+          desc="Record the room through your microphone."
+          onClick={() => onPick("microphone")}
+        />
+        <SourceCard
+          icon={MonitorSpeaker}
+          title="Virtual"
+          desc="Capture a lecture playing in another tab or app — plus your mic for questions."
+          onClick={() => onPick("device")}
+        />
+      </div>
+      <p className="px-1 text-center text-xs text-muted-foreground/80">
+        Virtual lectures ask you to pick a tab or window and tick{" "}
+        <span className="font-medium text-foreground/80">“Share audio.”</span>
+      </p>
+    </div>
+  );
+}
+
+function SourceCard({
+  icon: Icon,
+  title,
+  desc,
+  onClick,
+}: {
+  icon: typeof Mic;
+  title: string;
+  desc: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex h-full flex-col items-start gap-2.5 rounded-2xl border border-border/70 bg-background/40 p-4 text-left transition-[transform,border-color,background-color] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+    >
+      <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary transition-colors duration-200 group-hover:bg-primary/15">
+        <Icon className="size-5" />
+      </span>
+      <span className="text-base font-medium leading-none">{title}</span>
+      <span className="text-pretty text-xs leading-relaxed text-muted-foreground">
+        {desc}
+      </span>
+    </button>
+  );
+}
+
+/**
  * Live transcript that floats inside the aura (§2). The transcript is chunked
  * into short lines on stable boundaries; only the last few are shown. New text
  * appears at the bottom while older lines drift upward and fade out.
  */
 function FluidTranscript() {
-  const { liveTranscript, transcriptSupported, phase } = useRecording();
+  const { liveTranscript, transcriptSupported, liveTranscriptActive, source, phase } =
+    useRecording();
   const reduceMotion = useReducedMotion();
 
   const lines = useMemo(() => {
@@ -299,7 +351,10 @@ function FluidTranscript() {
   }, [liveTranscript]);
 
   let placeholder: string | null = null;
-  if (!transcriptSupported) {
+  if (source === "device" || !liveTranscriptActive) {
+    placeholder =
+      "Capturing the lecture audio. The live transcript isn't shown for virtual lectures — Atlas writes the full transcript from the recording afterward.";
+  } else if (!transcriptSupported) {
     placeholder =
       "Live transcript isn't available in this browser — your full transcript is still generated from the audio.";
   } else if (lines.length === 0) {

@@ -35,6 +35,14 @@ function formatBytes(bytes: number) {
 
 export type RecordingPhase = "idle" | "recording" | "paused" | "recorded";
 
+/**
+ * Where the audio comes from (§7):
+ * - "microphone": the physical room mic (in-person lecture).
+ * - "device": tab/app/system audio captured via screen-share, mixed together
+ *   with the mic so spoken questions are also caught (virtual lecture).
+ */
+export type RecordingSource = "microphone" | "device";
+
 export type ProcessingIssueKind = "silent" | "timeout" | "failed";
 
 export interface ProcessingIssue {
@@ -65,9 +73,17 @@ interface RecordingValue {
   liveTranscript: string;
   /** Whether the browser supports the Web Speech API live transcription. */
   transcriptSupported: boolean;
+  /** Audio source of the active (or most recent) session. */
+  source: RecordingSource;
+  /**
+   * Whether a live transcript is being captured for this session. Device-audio
+   * sessions don't get one — Web Speech only hears the physical mic — so the UI
+   * shows an honest message instead of "Listening…".
+   */
+  liveTranscriptActive: boolean;
   sessionLabel: string;
   setSessionLabel: (label: string) => void;
-  start: () => Promise<void>;
+  start: (source?: RecordingSource) => Promise<void>;
   pause: () => void;
   resume: () => void;
   stop: () => void;
@@ -159,9 +175,17 @@ export function RecordingProvider({
   const [sessionLabel, setSessionLabel] = useState("Untitled Lecture");
   const [transcriptSupported, setTranscriptSupported] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [source, setSource] = useState<RecordingSource>("microphone");
+  const [liveTranscriptActive, setLiveTranscriptActive] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  /**
+   * Raw source streams (mic + display capture) behind a mixed recording. The
+   * MediaRecorder records a derived destination stream, so these are tracked
+   * separately to make sure every underlying track is stopped on teardown.
+   */
+  const sourceStreamsRef = useRef<MediaStream[]>([]);
   const chunksRef = useRef<Blob[]>([]);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -180,6 +204,9 @@ export function RecordingProvider({
   const audioPeakRef = useRef(0);
   const activeAudioMsRef = useRef(0);
   const generationRunRef = useRef(0);
+  // Lets the display-capture "ended" listener call the latest stop() without
+  // start() having to depend on it (avoids a circular useCallback reference).
+  const stopRef = useRef<(() => void) | null>(null);
 
   const busy = stage !== "idle";
 
@@ -205,6 +232,8 @@ export function RecordingProvider({
     transcriptKickoffRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    sourceStreamsRef.current.forEach((s) => s.getTracks().forEach((t) => t.stop()));
+    sourceStreamsRef.current = [];
     audioCtxRef.current?.close().catch(() => {});
     audioCtxRef.current = null;
     analyserRef.current = null;
@@ -324,26 +353,128 @@ export function RecordingProvider({
     }
   }, [flushTranscript]);
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (nextSource: RecordingSource = "microphone") => {
     if (busy || phase !== "idle") return;
     const mime = pickMimeType();
     if (typeof MediaRecorder === "undefined" || !mime) {
       toast.error("Your browser can't record audio. Try the file upload instead.");
       return;
     }
-    let stream: MediaStream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true },
-      });
-    } catch {
-      toast.error(
-        "Microphone access was blocked. Allow it in your browser, or upload a file instead."
-      );
+
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
+    if (!AudioCtx) {
+      toast.error("Your browser can't record audio. Try the file upload instead.");
       return;
     }
 
-    streamRef.current = stream;
+    // The raw streams we open (one for mic, optionally one for screen-share),
+    // and the stream the MediaRecorder ultimately records.
+    const opened: MediaStream[] = [];
+    let recordStream: MediaStream;
+    let ctx: AudioContext;
+    let analyser: AnalyserNode;
+
+    /** Stop everything opened so far — used on any mid-setup failure. */
+    const abortSetup = () => {
+      opened.forEach((s) => s.getTracks().forEach((t) => t.stop()));
+    };
+
+    try {
+      ctx = new AudioCtx();
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 128;
+      analyser.smoothingTimeConstant = 0.75;
+
+      if (nextSource === "device") {
+        // 1) Capture the tab/app/system audio. getDisplayMedia requires a video
+        //    request in most browsers even when we only want the audio, so we
+        //    ask for both and discard the video track immediately.
+        let display: MediaStream;
+        try {
+          display = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false,
+            },
+          });
+        } catch {
+          // User dismissed the share picker, or the browser refused.
+          await ctx.close().catch(() => {});
+          toast.error(
+            "Screen share was cancelled. Pick a tab or window and tick “Share audio” to capture a virtual lecture."
+          );
+          return;
+        }
+        opened.push(display);
+        display.getVideoTracks().forEach((t) => t.stop());
+
+        if (display.getAudioTracks().length === 0) {
+          abortSetup();
+          await ctx.close().catch(() => {});
+          toast.error(
+            "No audio came through. Re-share and make sure “Share tab audio” (or system audio) is ticked in the dialog."
+          );
+          return;
+        }
+
+        // 2) Also capture the mic so the student's own questions are recorded.
+        //    If the mic is blocked we still proceed with device audio alone.
+        let mic: MediaStream | null = null;
+        try {
+          mic = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: true, noiseSuppression: true },
+          });
+          opened.push(mic);
+        } catch {
+          toast.message("Recording the lecture audio only — microphone was blocked.");
+        }
+
+        // 3) Mix every source into a single destination stream and feed the
+        //    analyser from the same graph so the waveform reflects everything.
+        const destination = ctx.createMediaStreamDestination();
+        ctx.createMediaStreamSource(display).connect(destination);
+        ctx.createMediaStreamSource(display).connect(analyser);
+        if (mic) {
+          ctx.createMediaStreamSource(mic).connect(destination);
+          ctx.createMediaStreamSource(mic).connect(analyser);
+        }
+        recordStream = destination.stream;
+
+        // If the user hits the browser's native "Stop sharing" bar, end the take.
+        display.getAudioTracks()[0]?.addEventListener("ended", () => {
+          if (mediaRecorderRef.current?.state !== "inactive") stopRef.current?.();
+        });
+      } else {
+        // Microphone (in-person) — single stream, recorded directly.
+        let mic: MediaStream;
+        try {
+          mic = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: true, noiseSuppression: true },
+          });
+        } catch {
+          await ctx.close().catch(() => {});
+          toast.error(
+            "Microphone access was blocked. Allow it in your browser, or upload a file instead."
+          );
+          return;
+        }
+        opened.push(mic);
+        ctx.createMediaStreamSource(mic).connect(analyser);
+        recordStream = mic;
+      }
+    } catch {
+      abortSetup();
+      toast.error("Couldn't start recording. Try again or upload a file instead.");
+      return;
+    }
+
+    streamRef.current = recordStream;
+    sourceStreamsRef.current = opened;
     mimeRef.current = mime;
     chunksRef.current = [];
     finalTranscriptRef.current = "";
@@ -353,21 +484,12 @@ export function RecordingProvider({
     resetAudioActivity();
     generationRunRef.current += 1;
     setLiveTranscript("");
+    setSource(nextSource);
 
-    const AudioCtx =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext })
-        .webkitAudioContext;
-    const ctx = new AudioCtx();
-    const source = ctx.createMediaStreamSource(stream);
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 128;
-    analyser.smoothingTimeConstant = 0.75;
-    source.connect(analyser);
     audioCtxRef.current = ctx;
     analyserRef.current = analyser;
 
-    const rec = new MediaRecorder(stream, { mimeType: mime });
+    const rec = new MediaRecorder(recordStream, { mimeType: mime });
     rec.ondataavailable = (e) => {
       if (e.data.size > 0) chunksRef.current.push(e.data);
     };
@@ -391,6 +513,8 @@ export function RecordingProvider({
       setPhase("recorded");
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
+      sourceStreamsRef.current.forEach((s) => s.getTracks().forEach((t) => t.stop()));
+      sourceStreamsRef.current = [];
       audioCtxRef.current?.close().catch(() => {});
       audioCtxRef.current = null;
       analyserRef.current = null;
@@ -411,10 +535,16 @@ export function RecordingProvider({
         return next;
       });
     }, 1000);
-    transcriptKickoffRef.current = setTimeout(() => {
-      transcriptKickoffRef.current = null;
-      if (mediaRecorderRef.current?.state === "recording") startTranscription();
-    }, 180);
+    // Live transcript only runs for mic sessions — Web Speech can't hear the
+    // captured device audio, so for "device" we leave it off and say so.
+    const wantLiveTranscript = nextSource === "microphone";
+    setLiveTranscriptActive(wantLiveTranscript);
+    if (wantLiveTranscript) {
+      transcriptKickoffRef.current = setTimeout(() => {
+        transcriptKickoffRef.current = null;
+        if (mediaRecorderRef.current?.state === "recording") startTranscription();
+      }, 180);
+    }
   }, [
     busy,
     clipWouldBeSilent,
@@ -484,6 +614,12 @@ export function RecordingProvider({
     }
     rec.stop();
   }, [stopMeter]);
+
+  // Keep stopRef pointing at the latest stop() so the display-capture "ended"
+  // listener (set up in start()) can end a session without a circular dep.
+  useEffect(() => {
+    stopRef.current = stop;
+  }, [stop]);
 
   const discard = useCallback(() => {
     if (clip) URL.revokeObjectURL(clip.url);
@@ -639,6 +775,8 @@ export function RecordingProvider({
     failed,
     liveTranscript,
     transcriptSupported,
+    source,
+    liveTranscriptActive,
     sessionLabel,
     setSessionLabel,
     start,

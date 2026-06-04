@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Download, Loader2, Mic, Pause, Play, Sparkles, Square, Trash2 } from "lucide-react";
+import { Download, Loader2, Mic, MonitorSpeaker, Pause, Play, Sparkles, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRecording } from "./recording-context";
@@ -21,8 +21,9 @@ function clock(s: number) {
 export function RecordingDock() {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
-  const { phase, seconds, levels, busy, failed, sessionLabel, pause, resume, stop, generate, discard, download } =
+  const { phase, seconds, levels, busy, failed, sessionLabel, source, pause, resume, stop, generate, discard, download } =
     useRecording();
+  const SourceIcon = source === "device" ? MonitorSpeaker : Mic;
 
   const onUpload = pathname === "/upload";
   const active = phase !== "idle";
@@ -54,7 +55,7 @@ export function RecordingDock() {
                   : "bg-primary/15 text-primary"
               )}
             >
-              <Mic className="size-4" />
+              <SourceIcon className="size-4" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{sessionLabel}</p>
