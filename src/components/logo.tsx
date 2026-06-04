@@ -1,52 +1,23 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Atlas mark — a geometric "A" built as a mountain/apex with the titan's
- * orbit arc swept through it (Atlas holding up the world + knowledge mapping).
- * Stroked in currentColor so it inherits the indigo-violet brand.
+ * Atlas mark — the geometric, interlocking "A" from the Atlas identity: an
+ * impossible-triangle apex whose ribbons fold into the crossbar. Filled with
+ * currentColor (even-odd), so it inherits the indigo-violet brand and adapts
+ * to dark mode wherever it's placed.
  */
 export function AtlasMark({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 34 34"
-      fill="none"
+      viewBox="0 0 100 90.96"
       className={cn("size-7", className)}
       aria-hidden="true"
     >
-      <defs>
-        <linearGradient id="atlas-mark" x1="6" y1="30" x2="28" y2="4" gradientUnits="userSpaceOnUse">
-          <stop stopColor="currentColor" stopOpacity="0.75" />
-          <stop offset="1" stopColor="currentColor" />
-        </linearGradient>
-      </defs>
-      {/* orbit ring, tilted */}
-      <ellipse
-        cx="17"
-        cy="15"
-        rx="14.5"
-        ry="6"
-        transform="rotate(-32 17 15)"
-        stroke="currentColor"
-        strokeOpacity="0.4"
-        strokeWidth="1.4"
-      />
-      {/* the apex / mountain "A" */}
       <path
-        d="M5 29 L17 4 L29 29"
-        stroke="url(#atlas-mark)"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M44.72,0 53.86,0 73.37,36.18 73.27,36.69 71.95,37.5 67.78,39.74 67.28,39.63 52.85,13.11 53.05,30.28 63.41,49.19 63.92,49.9 64.33,49.8 76.93,42.89 98.68,82.42 100,84.96 99.9,85.57 96.75,90.96 96.04,90.85 49.59,65.75 4.88,90.55 3.35,90.96 0,85.26 0.2,84.65 44,1.32Z M45.73,13.01 11.18,79.07 23.78,72.15 45.33,31.81 45.93,30.59 45.93,13.11Z M49.39,38.41 34.76,66.26 57.83,53.35 49.8,38.52Z M73.78,52.13 67.28,55.79 75.2,70.83 76.73,72.56 88.72,78.96 74.29,52.13Z M60.87,59.35 56.91,61.59 56.91,61.89 64.84,66.16 61.38,59.45Z"
       />
-      {/* crossbar */}
-      <path
-        d="M10.5 18.5 L23.5 18.5"
-        stroke="currentColor"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-      {/* planet on the orbit */}
-      <circle cx="28.4" cy="9.6" r="2.1" fill="currentColor" />
     </svg>
   );
 }
