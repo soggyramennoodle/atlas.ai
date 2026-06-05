@@ -3,9 +3,10 @@
 import type { RecordingSource } from "@/components/recording/recording-context";
 
 const DB_NAME = "atlas-recording-drafts";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const META_STORE = "drafts";
 const CHUNK_STORE = "chunks";
+const SEGMENT_STORE = "segments";
 
 export interface RecordingDraftMetadata {
   id: string;
@@ -26,6 +27,17 @@ export interface RecordingDraftMetadata {
 export interface RecordingDraft {
   metadata: RecordingDraftMetadata;
   chunks: Blob[];
+}
+
+export interface RecordingDraftSegment {
+  id: string; // `${draftId}:seg:${index}`
+  draftId: string;
+  index: number;
+  blob: Blob;
+  mime: string;
+  durationSeconds: number;
+  uploaded: boolean;
+  createdAt: number;
 }
 
 interface RecordingDraftChunk {
@@ -73,6 +85,10 @@ async function openDb() {
       if (!db.objectStoreNames.contains(CHUNK_STORE)) {
         const chunks = db.createObjectStore(CHUNK_STORE, { keyPath: "id" });
         chunks.createIndex("draftId", "draftId", { unique: false });
+      }
+      if (!db.objectStoreNames.contains(SEGMENT_STORE)) {
+        const segs = db.createObjectStore(SEGMENT_STORE, { keyPath: "id" });
+        segs.createIndex("draftId", "draftId", { unique: false });
       }
     };
 
@@ -233,23 +249,83 @@ export async function getRecordingDraft(userId: string): Promise<RecordingDraft 
   }
 }
 
+export async function putRecordingSegment(
+  userId: string,
+  segment: Omit<RecordingDraftSegment, "id" | "draftId" | "createdAt">
+) {
+  const db = await openDb();
+  const draftId = recordingDraftId(userId);
+  try {
+    const tx = db.transaction(SEGMENT_STORE, "readwrite");
+    tx.objectStore(SEGMENT_STORE).put({
+      ...segment,
+      id: `${draftId}:seg:${segment.index}`,
+      draftId,
+      createdAt: Date.now(),
+    } satisfies RecordingDraftSegment);
+    await transactionDone(tx);
+  } finally {
+    db.close();
+  }
+}
+
+export async function markRecordingSegmentUploaded(userId: string, index: number) {
+  const db = await openDb();
+  const draftId = recordingDraftId(userId);
+  try {
+    const tx = db.transaction(SEGMENT_STORE, "readwrite");
+    const store = tx.objectStore(SEGMENT_STORE);
+    const seg = (await requestToPromise(
+      store.get(`${draftId}:seg:${index}`)
+    )) as RecordingDraftSegment | undefined;
+    if (seg) store.put({ ...seg, uploaded: true });
+    await transactionDone(tx);
+  } finally {
+    db.close();
+  }
+}
+
+export async function getRecordingSegments(
+  userId: string
+): Promise<RecordingDraftSegment[]> {
+  const db = await openDb();
+  const draftId = recordingDraftId(userId);
+  try {
+    const tx = db.transaction(SEGMENT_STORE, "readonly");
+    const segs = (await requestToPromise(
+      tx.objectStore(SEGMENT_STORE).index("draftId").getAll(IDBKeyRange.only(draftId))
+    )) as RecordingDraftSegment[];
+    await transactionDone(tx);
+    return segs.sort((a, b) => a.index - b.index);
+  } finally {
+    db.close();
+  }
+}
+
 export async function clearRecordingDraft(userId: string) {
   const db = await openDb();
   const draftId = recordingDraftId(userId);
 
   try {
-    const readTx = db.transaction(CHUNK_STORE, "readonly");
+    const readTx = db.transaction([CHUNK_STORE, SEGMENT_STORE], "readonly");
     const keys = await requestToPromise(
       readTx.objectStore(CHUNK_STORE).index("draftId").getAllKeys(
         IDBKeyRange.only(draftId)
       )
     );
+    const segKeys = await requestToPromise(
+      readTx.objectStore(SEGMENT_STORE).index("draftId").getAllKeys(
+        IDBKeyRange.only(draftId)
+      )
+    );
     await transactionDone(readTx);
 
-    const writeTx = db.transaction([META_STORE, CHUNK_STORE], "readwrite");
+    const writeTx = db.transaction([META_STORE, CHUNK_STORE, SEGMENT_STORE], "readwrite");
     writeTx.objectStore(META_STORE).delete(draftId);
     const chunkStore = writeTx.objectStore(CHUNK_STORE);
     keys.forEach((key) => chunkStore.delete(key));
+    const segStore = writeTx.objectStore(SEGMENT_STORE);
+    segKeys.forEach((key) => segStore.delete(key));
     await transactionDone(writeTx);
   } finally {
     db.close();
