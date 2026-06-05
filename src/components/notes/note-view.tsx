@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HTMLElement, NodeType, parse, type Node } from "node-html-parser";
-import { AnimatePresence, motion } from "framer-motion";
-import { AlertCircle, Check, Loader2, Pencil, Plus, X } from "lucide-react";
+import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
+import { AlertCircle, Check, Loader2, Pencil, Plus, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import type {
   BodySource,
@@ -14,6 +14,7 @@ import type {
 } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { htmlToPlainText, notesBodyToHtml, sanitizeNoteHtml } from "@/lib/notes-html";
 import { SummaryCard } from "./summary-card";
 import { TranscriptPanel } from "./transcript-panel";
@@ -72,12 +73,16 @@ export function NoteView({
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [editorSeed, setEditorSeed] = useState("");
   const [staleProcessing, setStaleProcessing] = useState(false);
+  const [doneInProgress, setDoneInProgress] = useState(false);
+  const [readingActive, setReadingActive] = useState(false);
+  const [readingFinished, setReadingFinished] = useState(false);
 
   const draftRef = useRef(draft);
   const originalRef = useRef<StructuredNotes>(initial);
   const savedRef = useRef(saved);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const articleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     draftRef.current = draft;
@@ -233,11 +238,21 @@ export function NoteView({
     const edited = clone(draftRef.current);
     edited.title = note.title;
     const changed = !same(edited, originalRef.current);
-    if (!same(edited, savedRef.current)) await persist();
-    const sourced = changed ? await refreshBodySources() : edited;
-    setEditMode(false);
 
-    // §1 carry-over of the old memory feature: learn from the edits, quietly.
+    setDoneInProgress(true);
+    if (!same(edited, savedRef.current)) await persist();
+
+    if (changed) setReadingActive(true);
+    const sourced = changed ? await refreshBodySources() : edited;
+    if (changed) {
+      setReadingActive(false);
+      setReadingFinished(true);
+      window.setTimeout(() => setReadingFinished(false), 2600);
+    }
+
+    setEditMode(false);
+    setDoneInProgress(false);
+
     if (changed) {
       void fetch("/api/memory/update", {
         method: "POST",
@@ -280,10 +295,44 @@ export function NoteView({
         <div className="flex items-center gap-3">
           <AutosaveIndicator status={editMode ? status : "idle"} />
           {editMode ? (
-            <Button size="sm" onClick={done} className="gap-2">
-              <Check className="size-3.5" />
-              Done
-            </Button>
+            <motion.button
+              layout
+              onClick={doneInProgress ? undefined : done}
+              disabled={doneInProgress}
+              className={cn(
+                "relative inline-flex items-center justify-center overflow-hidden bg-primary text-primary-foreground text-xs font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none",
+                doneInProgress
+                  ? "size-[30px] rounded-full"
+                  : "h-[30px] rounded-[4px] px-3 gap-1.5"
+              )}
+              transition={{ layout: { type: "spring", stiffness: 420, damping: 30 } }}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {doneInProgress ? (
+                  <motion.span
+                    key="loading"
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.6 }}
+                    transition={{ duration: 0.12 }}
+                  >
+                    <Loader2 className="size-3.5 animate-spin" />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="idle"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
+                    className="flex items-center gap-1.5"
+                  >
+                    <Check className="size-3.5" />
+                    Done
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
           ) : (
             <Button
               variant="outline"
@@ -298,7 +347,12 @@ export function NoteView({
         </div>
       </div>
 
-      <article className="relative space-y-10">
+      <AtlasCursor
+        active={readingActive}
+        finished={readingFinished}
+        containerRef={articleRef}
+      />
+      <article ref={articleRef} className="relative space-y-10">
         {/* Summary — read-only text with an AI "Regenerate" capsule. The
             summary is no longer hand-edited; it's re-derived from the full
             notes/transcript and streams back in. */}
@@ -513,6 +567,105 @@ function EditedNoteBody({
   return <div className="note-prose">{content}</div>;
 }
 
+/** Floating Atlas cursor that wanders while sources are being re-read after
+ *  an edit, then resolves into a small "finished reading" popup. */
+function AtlasCursor({
+  active,
+  finished,
+  containerRef,
+}: {
+  active: boolean;
+  finished: boolean;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const reduce = useReducedMotion();
+  const xMv = useMotionValue(0);
+  const yMv = useMotionValue(0);
+  const springX = useSpring(xMv, { stiffness: 88, damping: 18 });
+  const springY = useSpring(yMv, { stiffness: 88, damping: 18 });
+  const [shown, setShown] = useState(false);
+  const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!active) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (!finished) setShown(false);
+      return;
+    }
+    const el = containerRef.current;
+    if (!el) return;
+
+    const randomPos = () => {
+      const r = el.getBoundingClientRect();
+      return {
+        x: r.left + 48 + Math.random() * Math.max(0, r.width - 96),
+        y: r.top + 36 + Math.random() * Math.min(Math.max(0, r.height - 72), 300),
+      };
+    };
+
+    const init = randomPos();
+    xMv.jump(init.x);
+    yMv.jump(init.y);
+    setLastPos(init);
+    setShown(true);
+
+    const wander = () => {
+      const p = randomPos();
+      xMv.set(p.x);
+      yMv.set(p.y);
+      setLastPos(p);
+      timerRef.current = setTimeout(wander, 660 + Math.random() * 740);
+    };
+    timerRef.current = setTimeout(wander, 580 + Math.random() * 480);
+
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  useEffect(() => {
+    if (finished) setShown(true);
+  }, [finished]);
+
+  if (reduce || !shown) return null;
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-40">
+      <AnimatePresence mode="wait">
+        {active && !finished ? (
+          <motion.div
+            key="cursor"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            style={{ x: springX, y: springY, position: "fixed", top: 0, left: 0 }}
+          >
+            <div className="flex items-center gap-1.5 rounded-full border border-primary/25 bg-card/95 py-1 pl-2 pr-2.5 shadow-sm backdrop-blur-sm">
+              <Sparkles className="size-3 text-primary" />
+              <span className="text-[10px] font-medium text-foreground/70">Atlas is reading…</span>
+            </div>
+          </motion.div>
+        ) : finished ? (
+          <motion.div
+            key="done"
+            initial={{ opacity: 0, scale: 0.88, y: -6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.18 } }}
+            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            style={{ position: "fixed", left: lastPos.x, top: lastPos.y }}
+          >
+            <div className="flex items-center gap-1.5 rounded-[6px] border border-primary/20 bg-card px-3 py-2 shadow-[0_4px_16px_rgba(0,0,0,0.1)]">
+              <Check className="size-3 text-primary" />
+              <span className="text-xs font-medium">Atlas finished reading</span>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 /** A small "Saved" pill that fades in after a save and out ~2s later (§1). */
 function AutosaveIndicator({ status }: { status: SaveStatus }) {
   return (
@@ -635,7 +788,7 @@ function ConceptBlock({
   onRemove: () => void;
 }) {
   return (
-    <div className="group/concept icon-animate relative rounded-[4px] border border-border bg-card p-5">
+    <div className="group/concept hover-glow icon-animate relative rounded-[4px] border border-border bg-card p-5">
       <button
         type="button"
         onClick={onRemove}

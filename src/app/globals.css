@@ -335,59 +335,39 @@
     transform: translateY(0.5px);
   }
 
-  /* Subtle non-brand hover glow. The brand green stays crisp; the glow uses
-     sky, violet, honey and coral so it feels like Atlas AI without muddying
-     the darker primary. */
+  /* Smooth edge glow for interactive card surfaces. A single soft primary-tinted
+     bloom extends just outside the border and fades in on hover — clean, not
+     patchy. No multi-color blobs; those belong on AI-signed surfaces only. */
   .hover-glow,
-  .hover-glow-inside,
   .icon-animate {
     position: relative;
   }
-  .hover-glow,
-  .hover-glow-inside {
+  .hover-glow {
     isolation: isolate;
   }
-  .hover-glow::after,
-  .hover-glow-inside::after {
+  .hover-glow::after {
     content: "";
     position: absolute;
+    inset: -8px;
+    z-index: -1;
     border-radius: inherit;
     pointer-events: none;
+    filter: blur(14px);
+    background: radial-gradient(
+      ellipse 80% 65% at 50% 58%,
+      color-mix(in oklch, var(--primary) 16%, transparent),
+      transparent 68%
+    );
     opacity: 0;
-    transform: scale(0.985);
+    transform: scale(0.96);
     transition:
-      opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .hover-glow::after {
-    inset: -4px;
-    z-index: -1;
-    filter: blur(16px);
-    background:
-      radial-gradient(34% 40% at 18% 18%, color-mix(in oklch, var(--pop-sky) 42%, transparent), transparent 72%),
-      radial-gradient(36% 44% at 86% 24%, color-mix(in oklch, #8b5cf6 32%, transparent), transparent 74%),
-      radial-gradient(44% 42% at 50% 102%, color-mix(in oklch, var(--pop-amber) 38%, transparent), transparent 76%),
-      radial-gradient(32% 40% at 80% 86%, color-mix(in oklch, var(--pop-coral) 30%, transparent), transparent 72%);
-  }
-  .hover-glow-inside::after {
-    inset: 0;
-    z-index: 0;
-    filter: blur(18px);
-    background:
-      radial-gradient(36% 42% at 10% 8%, color-mix(in oklch, var(--pop-sky) 24%, transparent), transparent 74%),
-      radial-gradient(44% 48% at 92% 18%, color-mix(in oklch, #8b5cf6 18%, transparent), transparent 76%),
-      radial-gradient(48% 44% at 62% 112%, color-mix(in oklch, var(--pop-amber) 22%, transparent), transparent 78%);
+      opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .hover-glow:hover::after,
-  .hover-glow:focus-visible::after,
-  .hover-glow-inside:hover::after,
-  .hover-glow-inside:focus-visible::after {
+  .hover-glow:focus-visible::after {
     opacity: 1;
     transform: scale(1);
-  }
-  .hover-glow-inside > * {
-    position: relative;
-    z-index: 1;
   }
 
   .icon-animate svg,
@@ -605,38 +585,23 @@
     animation: atlas-shimmer 0.9s ease;
   }
 
-  /* AI "edge glow" for box surfaces (§4). Boxes never get interior color blobs
-     (those read patchy on a solid card). The AI signature lives on the EDGES:
-     a fluid multicolor gradient border, plus a soft multicolor bloom that hugs
-     the outside of the box. At rest it drifts slowly; add `.ai-ring--active`
-     while the surface is thinking to brighten and quicken the flow.
-     IMPORTANT: never put `overflow-hidden` on an `.ai-ring` box, or the outer
-     edge bloom (`::after`, drawn just outside the border) gets clipped.
-     Both pseudo-elements animate background-position only, on a handful of
-     elements; reduced-motion freezes them via the global guard. */
+  /* AI "edge glow" for box surfaces. The AI signature lives on the EDGES:
+     a fluid multicolor gradient border + a soft bloom hugging the outside.
+     Uses hue-rotate animation for a perfectly seamless colour cycle — no
+     hard jump between stops. At rest drifts slowly; .ai-ring--active brightens
+     and quickens. NEVER put overflow-hidden on an .ai-ring box. */
   .ai-ring {
     position: relative;
     isolation: isolate;
     --ai-ring-flow: 11s;
   }
-  /* Fluid multicolor border (padding-box mask so it never clips content). */
   .ai-ring::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     padding: 1.5px;
-    background: linear-gradient(
-      120deg,
-      #12a36b,
-      #1ac4c0,
-      #3b82f6,
-      #8b5cf6,
-      #fb6f4c,
-      #ffb22e,
-      #12a36b
-    );
-    background-size: 240% 240%;
+    background: linear-gradient(120deg, #12a36b, #1ac4c0, #3b82f6, #8b5cf6, #fb6f4c, #ffb22e);
     -webkit-mask:
       linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);
@@ -644,33 +609,19 @@
     mask-composite: exclude;
     opacity: 0.62;
     pointer-events: none;
-    animation: ai-ring-flow var(--ai-ring-flow) linear infinite;
+    animation: ai-ring-hue var(--ai-ring-flow) linear infinite;
   }
-  /* Soft multicolor bloom hugging the OUTSIDE edges ("glow on the edges"):
-     the same flowing gradient, blurred and pushed just past the border. */
   .ai-ring::after {
     content: "";
     position: absolute;
     inset: -1px;
     z-index: -1;
     border-radius: inherit;
-    background: linear-gradient(
-      120deg,
-      #12a36b,
-      #1ac4c0,
-      #3b82f6,
-      #8b5cf6,
-      #fb6f4c,
-      #ffb22e,
-      #12a36b
-    );
-    background-size: 240% 240%;
-    filter: blur(13px);
+    background: linear-gradient(120deg, #12a36b, #1ac4c0, #3b82f6, #8b5cf6, #fb6f4c, #ffb22e);
     opacity: 0.3;
     pointer-events: none;
-    animation: ai-ring-flow var(--ai-ring-flow) linear infinite;
+    animation: ai-ring-bloom var(--ai-ring-flow) linear infinite;
   }
-  /* Thinking / generating: brighten and quicken the same flow. */
   .ai-ring--active {
     --ai-ring-flow: 5.5s;
   }
@@ -681,7 +632,7 @@
   .ai-ring--active::after {
     inset: -2px;
     opacity: 0.55;
-    filter: blur(18px);
+    animation-name: ai-ring-bloom-active;
   }
 
   /* Traveling light around a card border on hover. */
@@ -976,11 +927,20 @@
   transition: box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Fluid drift for the AI edge glow (border + outer bloom). Animates only
-   background-position; runs on a couple of AI surfaces at a time. */
-@keyframes ai-ring-flow {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
+/* Seamless hue-rotate cycle for the AI edge glow. hue-rotate(0→360°) is
+   perfectly periodic so the loop never jumps. Three variants so the blur
+   value stays stable within each keyframe. */
+@keyframes ai-ring-hue {
+  from { filter: hue-rotate(0deg); }
+  to   { filter: hue-rotate(360deg); }
+}
+@keyframes ai-ring-bloom {
+  from { filter: blur(13px) hue-rotate(0deg); }
+  to   { filter: blur(13px) hue-rotate(360deg); }
+}
+@keyframes ai-ring-bloom-active {
+  from { filter: blur(18px) hue-rotate(0deg); }
+  to   { filter: blur(18px) hue-rotate(360deg); }
 }
 
 @property --atlas-angle {
