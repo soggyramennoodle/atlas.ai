@@ -10,8 +10,8 @@ import {
 import { pointText, metaLine, type ExportData } from "./shared";
 import { htmlToExportLines, type InlineRun } from "./html-blocks";
 
-// Clean print palette — pearl page, near-black text, indigo brand accents.
-const ACCENT = "#6C63FF";
+// Clean print palette — pearl page, near-black text, emerald brand accents.
+const ACCENT = "#2E9E63";
 const INK = "#1a1a1f";
 const MUTED = "#55555f";
 

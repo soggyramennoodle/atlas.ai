@@ -8,8 +8,8 @@
   Dark mode is the primary, dramatic treatment: a deep near-black space canvas
   with frosted, translucent glass panels that have real depth and specular
   edges. Light mode is its luminous twin — bright frosted glass floating on a
-  soft pearl gradient. The brand is indigo-violet (#6C63FF), cohesive with the
-  living AI glow, with a lavender accent.
+  soft pearl gradient. The brand is a natural emerald green, cohesive with the
+  living AI glow, with a soft mint accent.
 
   Legacy utility class names (ring-luxe, text-gradient-gold, bg-aurora, glass…)
   are intentionally kept but redefined to the new glass language, so every
@@ -29,9 +29,9 @@
   --popover: oklch(0.995 0.003 285);
   --popover-foreground: oklch(0.235 0.03 285);
 
-  /* Indigo-violet brand — #6C63FF family. */
-  --primary: oklch(0.555 0.205 282);
-  --primary-foreground: oklch(0.99 0.004 285);
+  /* Natural emerald brand. */
+  --primary: oklch(0.58 0.135 160);
+  --primary-foreground: oklch(0.99 0.01 160);
 
   --secondary: oklch(0.94 0.012 285);
   --secondary-foreground: oklch(0.28 0.03 285);
@@ -39,23 +39,23 @@
   --muted: oklch(0.94 0.01 285);
   --muted-foreground: oklch(0.5 0.025 285);
 
-  /* Soft lavender accent. */
-  --accent: oklch(0.915 0.045 290);
-  --accent-foreground: oklch(0.3 0.06 285);
+  /* Soft mint accent. */
+  --accent: oklch(0.915 0.04 160);
+  --accent-foreground: oklch(0.3 0.055 160);
 
   --destructive: oklch(0.58 0.21 25);
   --destructive-foreground: oklch(0.985 0.006 285);
 
   --border: oklch(0.86 0.014 285);
   --input: oklch(0.84 0.016 285);
-  --ring: oklch(0.555 0.205 282);
+  --ring: oklch(0.58 0.135 160);
 
   /* The living AI palette, also used by the aurora + brand gradient. */
-  --chart-1: oklch(0.6 0.2 282);   /* indigo  #6C63FF */
-  --chart-2: oklch(0.77 0.12 230); /* blue    #4FC3F7 */
-  --chart-3: oklch(0.74 0.09 300); /* lavender#B39DDB */
-  --chart-4: oklch(0.75 0.16 70);  /* amber   #FFB347 */
-  --chart-5: oklch(0.72 0.13 200); /* cyan          */
+  --chart-1: oklch(0.62 0.15 160);  /* emerald */
+  --chart-2: oklch(0.75 0.11 195);  /* spring teal */
+  --chart-3: oklch(0.8 0.13 130);   /* fresh lime */
+  --chart-4: oklch(0.78 0.14 80);   /* honey */
+  --chart-5: oklch(0.7 0.1 200);    /* deep teal */
 
   --noise-opacity: 0.02;
   --aurora-primary-strength: 26%;
@@ -79,25 +79,25 @@
   --card-foreground: oklch(0.97 0.006 285);
   --popover: oklch(0.235 0.028 280);
   --popover-foreground: oklch(0.97 0.006 285);
-  --primary: oklch(0.7 0.18 285);
-  --primary-foreground: oklch(0.16 0.03 280);
+  --primary: oklch(0.72 0.15 162);
+  --primary-foreground: oklch(0.17 0.04 162);
   --secondary: oklch(0.275 0.024 280);
   --secondary-foreground: oklch(0.95 0.006 285);
   --muted: oklch(0.255 0.022 280);
   --muted-foreground: oklch(0.74 0.018 285);
-  --accent: oklch(0.34 0.05 288);
-  --accent-foreground: oklch(0.95 0.02 290);
+  --accent: oklch(0.34 0.05 165);
+  --accent-foreground: oklch(0.95 0.02 160);
   --destructive: oklch(0.64 0.21 25);
   --destructive-foreground: oklch(0.98 0.005 285);
   --border: oklch(0.36 0.022 282);
   --input: oklch(0.38 0.022 282);
-  --ring: oklch(0.7 0.18 285);
+  --ring: oklch(0.72 0.15 162);
 
-  --chart-1: oklch(0.72 0.18 285);
-  --chart-2: oklch(0.8 0.12 230);
-  --chart-3: oklch(0.78 0.09 300);
-  --chart-4: oklch(0.8 0.15 70);
-  --chart-5: oklch(0.78 0.13 200);
+  --chart-1: oklch(0.74 0.16 162);
+  --chart-2: oklch(0.8 0.11 195);
+  --chart-3: oklch(0.84 0.13 130);
+  --chart-4: oklch(0.82 0.14 80);
+  --chart-5: oklch(0.76 0.11 200);
 
   --noise-opacity: 0.04;
   --aurora-primary-strength: 30%;
@@ -324,7 +324,7 @@
     text-wrap: pretty;
   }
 
-  /* Brand gradient text — indigo → violet → cyan, flowing like the AI glow.
+  /* Brand gradient text — emerald → teal → lime, flowing like the AI glow.
      (Legacy `.text-gradient-gold` kept as an alias of the new brand gradient.) */
   .text-gradient-gold,
   .text-gradient-brand {
@@ -445,11 +445,11 @@
     padding: 1.25px;
     background: linear-gradient(
       120deg,
-      #6c63ff,
-      #4fc3f7,
-      #ffb347,
-      #b39ddb,
-      #6c63ff
+      #2bb673,
+      #2fd4c4,
+      #ffc24f,
+      #9ad05b,
+      #2bb673
     );
     background-size: 220% 220%;
     -webkit-mask:
@@ -702,7 +702,7 @@
    recording aura. Animations touch ONLY transform + opacity and each blob is
    promoted to its own layer (will-change), so the blur is rasterized once and
    merely composited — no per-frame repaint, no scroll jank.
-   Palette: #6C63FF indigo · #4FC3F7 blue · #FFB347 amber · #B39DDB lavender.
+   Palette: #2BB673 emerald · #2FD4C4 teal · #FFC24F honey · #9AD05B lime.
    ───────────────────────────────────────────────────────────────────────── */
 .ai-glow {
   position: absolute;

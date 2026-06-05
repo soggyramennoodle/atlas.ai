@@ -15,35 +15,30 @@ export function FinalCta({ ctaHref }: { ctaHref: string }) {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
         <div className="relative">
-          <p className="font-mono text-xs uppercase tracking-[0.25em] text-primary">
-            Your next lecture
-          </p>
-          <h2 className="mx-auto mt-5 max-w-3xl text-balance text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+          <h2 className="mx-auto max-w-3xl text-balance text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
             Stop scribbling.
             <br />
-            <span className="font-display text-6xl font-semibold tracking-tight sm:text-7xl lg:text-[5rem]">
-              <span className="text-gradient-brand animate-gradient">
-                Start understanding.
-              </span>
+            <span className="text-gradient-brand animate-gradient font-display">
+              Start understanding.
             </span>
           </h2>
           <p className="mx-auto mt-6 max-w-md text-pretty text-lg text-muted-foreground">
-            Record your next lecture and let Atlas take the notes — so you can
+            Record your next lecture and let Atlas take the notes, so you can
             finally be present in class.
           </p>
           <Button
             asChild
             size="lg"
-            className="group shimmer mt-10 h-12 px-8 text-base"
+            className="group shimmer magnetic mt-10 h-12 px-8 text-base"
           >
             <Link href={ctaHref}>
               <Mic className="size-4" />
-              Get started free
+              Record a lecture
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </Button>
           <p className="mt-5 font-mono text-xs text-muted-foreground">
-            No card required · Your recordings stay private
+            No card required. Your recordings stay private.
           </p>
         </div>
       </Reveal>
