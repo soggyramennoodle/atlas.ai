@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { ListChecks, Layers, BookMarked, Clock } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
 import { cn } from "@/lib/utils";
@@ -78,42 +82,72 @@ function WaveToNotes() {
   );
 }
 
-/** A small fanned stack of note cards - the personal library. */
+const CARDS = [
+  { title: "Lecture 4: Mitosis",      tag: "Biology",  lines: 3 },
+  { title: "Limits and Continuity",   tag: "Calculus", lines: 4 },
+  { title: "The French Revolution",   tag: "History",  lines: 3 },
+];
+
+// Three slot positions: left-back, center-front, right-back.
+const SLOTS = [
+  { x: -58, rot: -8,  z: 10, scale: 0.93 },
+  { x:   0, rot:  2,  z: 30, scale: 1    },
+  { x:  58, rot:  9,  z: 10, scale: 0.93 },
+];
+
+const SPRING = { type: "spring" as const, stiffness: 260, damping: 26 };
+
+/** Cycling card fan — each card takes a turn in the front every 2.4 s. */
 function LibraryCards() {
-  const cards = [
-    { title: "Lecture 4: Mitosis", tag: "Biology", x: -54, rot: -7, z: 10, lines: 3 },
-    { title: "Limits and Continuity", tag: "Calculus", x: 0, rot: 2, z: 20, lines: 4 },
-    { title: "The French Revolution", tag: "History", x: 54, rot: 8, z: 10, lines: 3 },
-  ];
+  const reduce = useReducedMotion();
+  const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    if (reduce) return;
+    const id = setInterval(() => setOffset((o) => (o + 1) % CARDS.length), 2400);
+    return () => clearInterval(id);
+  }, [reduce]);
+
   return (
     <div className="mt-6 grid h-40 place-items-center">
       <div className="relative h-36 w-full">
-        {cards.map((c) => (
-          <div
-            key={c.title}
-            className="absolute left-1/2 top-1/2 w-36 rounded-[4px] border border-border bg-background p-3 shadow-[0_8px_24px_-14px_rgba(0,0,0,0.3)]"
-            style={{
-              transform: `translate(-50%, -50%) translateX(${c.x}px) rotate(${c.rot}deg)`,
-              zIndex: c.z,
-            }}
-          >
-            <p className="truncate text-[0.72rem] font-semibold tracking-tight text-foreground">
-              {c.title}
-            </p>
-            <div className="mt-2 space-y-1.5">
-              {Array.from({ length: c.lines }).map((_, j) => (
-                <div
-                  key={j}
-                  className="h-1.5 rounded-full bg-foreground/10"
-                  style={{ width: `${90 - j * 14}%` }}
-                />
-              ))}
+        {CARDS.map((card, i) => {
+          const slotIdx = (i + offset) % CARDS.length;
+          const slot = SLOTS[slotIdx];
+          return (
+            // Outer div: static centering only (no animated transforms here).
+            // marginLeft = -(card width / 2) = -72px so left:50% truly centres.
+            // -translate-y-1/2 centres vertically without touching motion props.
+            <div
+              key={card.title}
+              className="absolute left-1/2 top-1/2 -translate-y-1/2 w-36"
+              style={{ zIndex: slot.z, marginLeft: -72 }}
+            >
+              {/* Inner motion.div owns all animated transforms. */}
+              <motion.div
+                animate={{ x: slot.x, rotate: slot.rot, scale: slot.scale }}
+                transition={SPRING}
+                className="w-36 rounded-[4px] border border-border bg-background p-3 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.22)]"
+              >
+                <p className="truncate text-[0.72rem] font-semibold tracking-tight text-foreground">
+                  {card.title}
+                </p>
+                <div className="mt-2 space-y-1.5">
+                  {Array.from({ length: card.lines }).map((_, j) => (
+                    <div
+                      key={j}
+                      className="h-1.5 rounded-full bg-foreground/10"
+                      style={{ width: `${90 - j * 14}%` }}
+                    />
+                  ))}
+                </div>
+                <span className="mt-2.5 inline-block rounded-[4px] border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {card.tag}
+                </span>
+              </motion.div>
             </div>
-            <span className="mt-2.5 inline-block rounded-[4px] border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-              {c.tag}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
