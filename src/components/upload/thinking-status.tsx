@@ -19,7 +19,7 @@ const THINKING_LINES = [
   "Drafting clean, structured notes…",
   "Highlighting what matters most…",
   "Tidying up the final layout…",
-  "Almost there — adding the finishing touches…",
+  "Almost there, adding the finishing touches…",
 ];
 
 /** Rotating status text that swaps every ~4.5s with a soft crossfade. */

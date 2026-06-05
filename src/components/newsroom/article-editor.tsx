@@ -141,7 +141,7 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
         </div>
       </div>
 
-      <h1 className="mt-6 font-display text-2xl font-semibold tracking-tight">
+      <h1 className="mt-6 font-display text-3xl font-extrabold tracking-[-0.02em]">
         {article ? "Edit article" : "New article"}
       </h1>
 
