@@ -155,6 +155,68 @@ function pickMimeType(): string {
   return candidates.find((t) => MediaRecorder.isTypeSupported(t)) ?? "";
 }
 
+/** The name the energy-meter AudioWorklet processor registers under. */
+const ENERGY_METER_PROCESSOR = "atlas-energy-meter";
+
+/**
+ * Source for an AudioWorklet that measures recording loudness on the audio
+ * render thread. Unlike the requestAnimationFrame-driven visual meter (which
+ * the browser FREEZES whenever this tab isn't focused — the normal state during
+ * a lecture, where you're watching the shared tab or your screen is off), this
+ * keeps measuring while the tab is backgrounded. That's what stops a perfectly
+ * good recording from being mistaken for silence and blocked before Gemini.
+ *
+ * It tracks a cumulative peak (raw sample amplitude, 0–1) and the total time the
+ * signal sat above the silence floor, posting both roughly every 200ms. The
+ * floor matches {@link SILENCE_PEAK_THRESHOLD} so the silence gate keeps the
+ * same thresholds whether it's fed by this worklet or the analyser fallback.
+ */
+const ENERGY_METER_SOURCE = `
+class AtlasEnergyMeter extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.maxPeak = 0;
+    this.activeMs = 0;
+    this.sincePostMs = 0;
+    this.floor = ${SILENCE_PEAK_THRESHOLD};
+  }
+  process(inputs) {
+    const input = inputs[0];
+    if (input && input.length > 0) {
+      const channel = input[0];
+      if (channel && channel.length > 0) {
+        let blockPeak = 0;
+        for (let i = 0; i < channel.length; i++) {
+          const amp = channel[i] < 0 ? -channel[i] : channel[i];
+          if (amp > blockPeak) blockPeak = amp;
+        }
+        if (blockPeak > this.maxPeak) this.maxPeak = blockPeak;
+        const blockMs = (channel.length / sampleRate) * 1000;
+        if (blockPeak >= this.floor) this.activeMs += blockMs;
+        this.sincePostMs += blockMs;
+        if (this.sincePostMs >= 200) {
+          this.sincePostMs = 0;
+          this.port.postMessage({ peak: this.maxPeak, activeMs: this.activeMs });
+        }
+      }
+    }
+    return true;
+  }
+}
+registerProcessor("${ENERGY_METER_PROCESSOR}", AtlasEnergyMeter);
+`;
+
+let energyMeterModuleUrl: string | null = null;
+/** Lazily build (and cache) a Blob URL for the energy-meter worklet module. */
+function getEnergyMeterModuleUrl(): string {
+  if (!energyMeterModuleUrl) {
+    energyMeterModuleUrl = URL.createObjectURL(
+      new Blob([ENERGY_METER_SOURCE], { type: "text/javascript" })
+    );
+  }
+  return energyMeterModuleUrl;
+}
+
 // Minimal Web Speech API typing (not in the standard DOM lib).
 interface SpeechRecognitionLike {
   lang: string;
@@ -247,6 +309,12 @@ export function RecordingProvider({
   const transcriptKickoffRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioPeakRef = useRef(0);
   const activeAudioMsRef = useRef(0);
+  // Background-safe loudness measurement (see ENERGY_METER_SOURCE). When the
+  // worklet is running it owns audioPeakRef/activeAudioMsRef; the rAF meter then
+  // only drives the visual waveform.
+  const workletNodeRef = useRef<AudioWorkletNode | null>(null);
+  const silenceSinkRef = useRef<GainNode | null>(null);
+  const workletEnergyRef = useRef(false);
   const generationRunRef = useRef(0);
   const draftWriteQueueRef = useRef<Promise<void>>(Promise.resolve());
   const requestIdRef = useRef<string>(crypto.randomUUID());
@@ -417,6 +485,24 @@ export function RecordingProvider({
     streamRef.current = null;
     sourceStreamsRef.current.forEach((s) => s.getTracks().forEach((t) => t.stop()));
     sourceStreamsRef.current = [];
+    if (workletNodeRef.current) {
+      workletNodeRef.current.port.onmessage = null;
+      try {
+        workletNodeRef.current.disconnect();
+      } catch {
+        /* ignore */
+      }
+    }
+    workletNodeRef.current = null;
+    if (silenceSinkRef.current) {
+      try {
+        silenceSinkRef.current.disconnect();
+      } catch {
+        /* ignore */
+      }
+    }
+    silenceSinkRef.current = null;
+    workletEnergyRef.current = false;
     audioCtxRef.current?.close().catch(() => {});
     audioCtxRef.current = null;
     analyserRef.current = null;
@@ -491,8 +577,13 @@ export function RecordingProvider({
           peak = Math.max(peak, level);
           next.push(Math.max(0.04, level));
         }
-        audioPeakRef.current = Math.max(audioPeakRef.current, peak);
-        if (peak >= SILENCE_PEAK_THRESHOLD) activeAudioMsRef.current += METER_FRAME_MS;
+        // Fallback only: when the AudioWorklet meter is running it owns these
+        // (and keeps working while backgrounded, which rAF does not).
+        if (!workletEnergyRef.current) {
+          audioPeakRef.current = Math.max(audioPeakRef.current, peak);
+          if (peak >= SILENCE_PEAK_THRESHOLD)
+            activeAudioMsRef.current += METER_FRAME_MS;
+        }
         emitLevels(next);
       }
       rafRef.current = requestAnimationFrame(loop);
@@ -588,6 +679,56 @@ export function RecordingProvider({
       opened.forEach((s) => s.getTracks().forEach((t) => t.stop()));
     };
 
+    /**
+     * Spin up the background-safe energy meter and return its node so the live
+     * source(s) can be connected to it. Called AFTER the capture streams are
+     * acquired so the (awaited) module load never eats the user-gesture window
+     * that getDisplayMedia/getUserMedia need. Falls back to the rAF analyser
+     * (workletEnergyRef stays false) if AudioWorklet is unavailable.
+     */
+    const ensureEnergyWorklet = async (
+      audioCtx: AudioContext
+    ): Promise<AudioWorkletNode | null> => {
+      workletEnergyRef.current = false;
+      // Some browsers leave the context "suspended"; without resuming, neither
+      // the worklet nor the analyser would see any audio.
+      if (audioCtx.state === "suspended") {
+        await audioCtx.resume().catch(() => {});
+      }
+      if (!audioCtx.audioWorklet) return null;
+      try {
+        await audioCtx.audioWorklet.addModule(getEnergyMeterModuleUrl());
+        const node = new AudioWorkletNode(audioCtx, ENERGY_METER_PROCESSOR);
+        node.port.onmessage = (ev: MessageEvent) => {
+          const data = ev.data as { peak?: number; activeMs?: number };
+          if (typeof data?.peak === "number") {
+            audioPeakRef.current = Math.max(audioPeakRef.current, data.peak);
+          }
+          if (typeof data?.activeMs === "number") {
+            activeAudioMsRef.current = Math.max(
+              activeAudioMsRef.current,
+              data.activeMs
+            );
+          }
+        };
+        // Route through a muted gain into the destination so the graph keeps
+        // rendering (and the worklet keeps running) while backgrounded, without
+        // ever playing anything back.
+        const sink = audioCtx.createGain();
+        sink.gain.value = 0;
+        node.connect(sink).connect(audioCtx.destination);
+        workletNodeRef.current = node;
+        silenceSinkRef.current = sink;
+        workletEnergyRef.current = true;
+        return node;
+      } catch {
+        workletNodeRef.current = null;
+        silenceSinkRef.current = null;
+        workletEnergyRef.current = false;
+        return null;
+      }
+    };
+
     try {
       ctx = new AudioCtx();
       analyser = ctx.createAnalyser();
@@ -643,11 +784,16 @@ export function RecordingProvider({
         // 3) Mix every source into a single destination stream and feed the
         //    analyser from the same graph so the waveform reflects everything.
         const destination = ctx.createMediaStreamDestination();
-        ctx.createMediaStreamSource(display).connect(destination);
-        ctx.createMediaStreamSource(display).connect(analyser);
+        const energyNode = await ensureEnergyWorklet(ctx);
+        const displaySource = ctx.createMediaStreamSource(display);
+        displaySource.connect(destination);
+        displaySource.connect(analyser);
+        if (energyNode) displaySource.connect(energyNode);
         if (mic) {
-          ctx.createMediaStreamSource(mic).connect(destination);
-          ctx.createMediaStreamSource(mic).connect(analyser);
+          const micSource = ctx.createMediaStreamSource(mic);
+          micSource.connect(destination);
+          micSource.connect(analyser);
+          if (energyNode) micSource.connect(energyNode);
         }
         recordStream = destination.stream;
 
@@ -670,7 +816,10 @@ export function RecordingProvider({
           return;
         }
         opened.push(mic);
-        ctx.createMediaStreamSource(mic).connect(analyser);
+        const energyNode = await ensureEnergyWorklet(ctx);
+        const micSource = ctx.createMediaStreamSource(mic);
+        micSource.connect(analyser);
+        if (energyNode) micSource.connect(energyNode);
         recordStream = mic;
       }
     } catch {
@@ -770,6 +919,24 @@ export function RecordingProvider({
       streamRef.current = null;
       sourceStreamsRef.current.forEach((s) => s.getTracks().forEach((t) => t.stop()));
       sourceStreamsRef.current = [];
+      if (workletNodeRef.current) {
+        workletNodeRef.current.port.onmessage = null;
+        try {
+          workletNodeRef.current.disconnect();
+        } catch {
+          /* ignore */
+        }
+      }
+      workletNodeRef.current = null;
+      if (silenceSinkRef.current) {
+        try {
+          silenceSinkRef.current.disconnect();
+        } catch {
+          /* ignore */
+        }
+      }
+      silenceSinkRef.current = null;
+      workletEnergyRef.current = false;
       audioCtxRef.current?.close().catch(() => {});
       audioCtxRef.current = null;
       analyserRef.current = null;
