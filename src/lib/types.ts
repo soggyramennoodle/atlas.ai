@@ -134,3 +134,63 @@ export interface UserProfile {
   grad_year: string | null;
   created_at: string;
 }
+
+/** Status of a durable lecture-processing job (server-side state machine). */
+export type LectureJobStatus =
+  | "recording"
+  | "recording_complete"
+  | "processing"
+  | "ready"
+  | "failed";
+
+/** Status of one ~5-minute audio segment within a job. */
+export type LectureSegmentStatus =
+  | "uploaded"
+  | "transcribing"
+  | "transcribed"
+  | "failed";
+
+/**
+ * Audio-grounded notes for a single ~5-minute segment. Produced by
+ * `transcribeSegment` from that segment's real audio, then reconciled into a
+ * full `StructuredNotes` by `composeNotes`. Deliberately omits title/subject/
+ * summary — those are decided once, at compose time, over the whole lecture.
+ */
+export interface SegmentNotes {
+  transcript: string;
+  sections: NoteSection[];
+  keyConcepts: KeyConcept[];
+}
+
+/** A row in `public.lecture_jobs`. */
+export interface LectureJobRecord {
+  id: string;
+  user_id: string;
+  note_id: string;
+  status: LectureJobStatus;
+  segment_count: number | null;
+  total_seconds: number | null;
+  source: "microphone" | "device";
+  session_label: string;
+  live_transcript: string | null;
+  attempts: number;
+  heartbeat_at: string | null;
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** A row in `public.lecture_segments`. */
+export interface LectureSegmentRecord {
+  id: string;
+  job_id: string;
+  index: number;
+  r2_key: string;
+  status: LectureSegmentStatus;
+  duration_seconds: number | null;
+  transcript_text: string | null;
+  partial_notes: SegmentNotes | null;
+  attempts: number;
+  created_at: string;
+  updated_at: string;
+}

@@ -10,7 +10,6 @@ import { StatCards, type Stat } from "@/components/dashboard/stat-cards";
 import { QuickRecord } from "@/components/dashboard/quick-record";
 import { Tips } from "@/components/dashboard/tips";
 import { EmptyRecordings } from "@/components/dashboard/empty-state";
-import { RealtimeRefresh } from "@/components/dashboard/realtime-refresh";
 import type { NoteRecord } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -74,7 +73,6 @@ export default async function DashboardPage() {
     "id" | "title" | "subject" | "duration_seconds" | "created_at" | "content"
   >[];
 
-  const hasProcessing = notes.some((n) => displayStatus(n) === "processing");
   const readyNotes = notes.filter((n) => displayStatus(n) === "ready");
   const totalSeconds = readyNotes.reduce(
     (sum, n) => sum + (n.duration_seconds ?? 0),
@@ -110,7 +108,6 @@ export default async function DashboardPage() {
 
   return (
     <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
-      <RealtimeRefresh userId={user.id} hasProcessing={hasProcessing} />
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
