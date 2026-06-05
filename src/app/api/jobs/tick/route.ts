@@ -81,6 +81,16 @@ export async function POST(request: Request) {
   const { data: claimed } = await claimQuery.select("id").maybeSingle();
   if (!claimed) return NextResponse.json({ claimed: false, raced: true });
 
+  // Recover orphaned segments: a previous tick that died mid-transcription
+  // leaves a segment stuck in "transcribing". We now exclusively own this job
+  // (the lease above), so reset those back to "uploaded" to be retried. Without
+  // this, a crash during one segment would hang the whole job forever.
+  await db
+    .from("lecture_segments")
+    .update({ status: "uploaded", updated_at: new Date().toISOString() })
+    .eq("job_id", job.id)
+    .eq("status", "transcribing");
+
   // Personalization context (parity with the old route).
   const [{ data: memoryRow }, { data: profileRow }] = await Promise.all([
     db.from("user_memory").select("memory_blob").eq("user_id", job.user_id).maybeSingle(),
