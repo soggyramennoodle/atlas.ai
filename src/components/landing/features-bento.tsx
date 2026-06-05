@@ -9,6 +9,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
+import { AiGlow } from "@/components/ui/ai-glow";
 import { cn } from "@/lib/utils";
 
 function Cell({
@@ -36,7 +37,7 @@ function Cell({
 /** Looping waveform that "writes" note lines — fills the tall hero card. */
 function WaveToNotes() {
   return (
-    <div className="mt-6 flex flex-1 flex-col gap-4 rounded-2xl border bg-background/30 p-5">
+    <div className="relative mt-6 flex flex-1 flex-col gap-4 rounded-2xl border bg-background/30 p-5">
       <div className="flex items-center gap-4">
         <div className="flex h-12 items-end gap-[3px]">
           {Array.from({ length: 18 }).map((_, i) => (
@@ -51,7 +52,7 @@ function WaveToNotes() {
           ))}
         </div>
         <span className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-primary">
-          transcribing…
+          transcribing
         </span>
       </div>
       <div className="flex flex-1 flex-col justify-center gap-2.5">
@@ -101,30 +102,9 @@ function PulseClock() {
 /** Realistic, tangible note cards — what a student would actually have. */
 function LibraryCards() {
   const cards = [
-    {
-      title: "Lecture 4 — Mitosis",
-      tag: "Biology",
-      x: -52,
-      rot: -7,
-      z: 10,
-      lines: 3,
-    },
-    {
-      title: "Limits & Continuity",
-      tag: "Calculus",
-      x: 0,
-      rot: 2,
-      z: 20,
-      lines: 4,
-    },
-    {
-      title: "The French Revolution",
-      tag: "History",
-      x: 52,
-      rot: 8,
-      z: 10,
-      lines: 3,
-    },
+    { title: "Lecture 4: Mitosis", tag: "Biology", x: -52, rot: -7, z: 10, lines: 3 },
+    { title: "Limits & Continuity", tag: "Calculus", x: 0, rot: 2, z: 20, lines: 4 },
+    { title: "The French Revolution", tag: "History", x: 52, rot: 8, z: 10, lines: 3 },
   ];
   return (
     <div className="mt-6 grid h-40 flex-1 place-items-center">
@@ -162,35 +142,41 @@ function LibraryCards() {
 
 export function FeaturesBento() {
   return (
-    <section id="features" className="render-section scroll-mt-24 border-y bg-card/20 py-28">
+    <section
+      id="features"
+      className="render-section scroll-mt-24 border-y bg-card/20 py-28"
+    >
       <div className="mx-auto max-w-6xl px-4">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
-            Features
-          </p>
-          <h2 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-            Everything you need from a lecture,{" "}
-            <span className="font-display font-semibold tracking-tight text-primary">
-              written down
-            </span>
+        <Reveal className="max-w-2xl">
+          <h2 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
+            Everything you need from a lecture, written down.
           </h2>
+          <p className="mt-4 max-w-md text-pretty text-muted-foreground">
+            Not a three-line recap. The full picture, organized the way you
+            would study it.
+          </p>
         </Reveal>
 
         <div className="mt-16 grid auto-rows-[minmax(0,1fr)] grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Hero cell */}
-          <Cell className="sm:col-span-2 lg:row-span-2">
-            <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-              <ListChecks className="size-5" />
-            </span>
-            <h3 className="mt-4 text-xl font-semibold tracking-tight">
-              Notes that miss nothing
-            </h3>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-              Detailed, structured notes that capture examples, formulas and
-              asides — not a three-line summary. Atlas writes them the way a
-              diligent student would, in full.
-            </p>
-            <WaveToNotes />
+          {/* Hero cell — carries the living glow so the grid feels alive. */}
+          <Cell className="relative sm:col-span-2 lg:row-span-2">
+            <div className="pointer-events-none absolute inset-0 opacity-50">
+              <AiGlow density="lean" blur={64} />
+            </div>
+            <div className="relative flex h-full flex-col">
+              <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+                <ListChecks className="size-5" />
+              </span>
+              <h3 className="mt-4 text-xl font-semibold tracking-tight">
+                Notes that miss nothing
+              </h3>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                Detailed, structured notes that capture examples, formulas and
+                asides, not a short summary. Atlas writes them the way a
+                diligent student would, in full.
+              </p>
+              <WaveToNotes />
+            </div>
           </Cell>
 
           <Cell delay={0.06}>
@@ -213,7 +199,7 @@ export function FeaturesBento() {
               Your personal library
             </h3>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-              Every lecture saved and searchable — a notebook for the whole term.
+              Every lecture saved and searchable, a notebook for the whole term.
             </p>
             <LibraryCards />
           </Cell>

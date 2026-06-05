@@ -5,7 +5,7 @@ const POINTS = [
   {
     icon: Trash2,
     title: "Audio, then gone",
-    body: "Your recording is transcribed into notes and then deleted from our processor. We keep your notes — not your audio.",
+    body: "Your recording is transcribed into notes and then deleted from our processor. We keep your notes, not your audio.",
   },
   {
     icon: ShieldCheck,
@@ -22,31 +22,29 @@ const POINTS = [
 /** Landing privacy trust block (§11) tied to Atlas Enclave branding. */
 export function PrivacyTrust() {
   return (
-    <section className="render-section relative mx-auto mt-24 w-full max-w-5xl px-4">
+    <section className="render-section relative mx-auto mt-24 w-full max-w-6xl px-4">
       <div className="relative overflow-hidden rounded-[2.5rem] border bg-card/50 p-8 ring-luxe sm:p-12">
         <div className="pointer-events-none absolute inset-0 bg-aurora opacity-50" />
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
-            <Lock className="size-3.5" />
-            Atlas Enclave
-          </span>
-          <h2 className="mt-5 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-            Your lectures are private.{" "}
-            <span className="font-display font-semibold tracking-tight text-primary">
-              Always.
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
+              <Lock className="size-3.5" />
+              Atlas Enclave
             </span>
-          </h2>
-          <p className="mt-3 max-w-xl text-pretty text-muted-foreground">
-            Everything you record lives inside the Atlas Enclave — a private,
-            encrypted space that belongs to you and no one else.
-          </p>
+            <h2 className="mt-5 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+              Your lectures are private. Always.
+            </h2>
+            <p className="mt-3 text-pretty text-muted-foreground">
+              Everything you record lives inside the Atlas Enclave, a private,
+              encrypted space that belongs to you and no one else.
+            </p>
+          </div>
 
-          <div className="mt-9 grid gap-5 sm:grid-cols-3">
+          {/* Divided point row — a single hairline-separated band, not a grid
+              of cards (keeps this section's layout distinct from the bento). */}
+          <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border bg-border sm:grid-cols-3">
             {POINTS.map((p) => (
-              <div
-                key={p.title}
-                className="rounded-2xl border bg-background/40 p-5"
-              >
+              <div key={p.title} className="bg-card/60 p-6">
                 <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
                   <p.icon className="size-5" />
                 </span>

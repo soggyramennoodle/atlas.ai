@@ -105,7 +105,7 @@ export function KeyConceptsGrid({
 }
 
 const HOVER_GLOW =
-  "radial-gradient(60% 60% at 30% 20%, #6C63FF55, transparent 70%), radial-gradient(55% 55% at 80% 30%, #4FC3F744, transparent 70%), radial-gradient(55% 60% at 50% 95%, #FFB34744, transparent 70%), radial-gradient(50% 50% at 75% 80%, #B39DDB44, transparent 70%)";
+  "radial-gradient(60% 60% at 30% 20%, #2BB67355, transparent 70%), radial-gradient(55% 55% at 80% 30%, #2FD4C444, transparent 70%), radial-gradient(55% 60% at 50% 95%, #FFC24F44, transparent 70%), radial-gradient(50% 50% at 75% 80%, #9AD05B44, transparent 70%)";
 
 function ConceptCard({
   concept,

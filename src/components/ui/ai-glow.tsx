@@ -18,10 +18,10 @@ import { cn } from "@/lib/utils";
 
 // The exclusive AI palette.
 const PALETTE = {
-  indigo: "#6C63FF",
-  blue: "#4FC3F7",
-  amber: "#FFB347",
-  lavender: "#B39DDB",
+  emerald: "#2BB673",
+  teal: "#2FD4C4",
+  honey: "#FFC24F",
+  lime: "#9AD05B",
 } as const;
 
 interface BlobSpec {
@@ -35,11 +35,11 @@ interface BlobSpec {
 }
 
 const BLOBS: BlobSpec[] = [
-  { color: PALETTE.indigo, size: "72%", top: "-12%", left: "-8%", anim: "a", dur: 19 },
-  { color: PALETTE.blue, size: "60%", top: "8%", left: "46%", anim: "b", dur: 23 },
-  { color: PALETTE.amber, size: "56%", top: "44%", left: "2%", anim: "c", dur: 29 },
-  { color: PALETTE.lavender, size: "64%", top: "26%", left: "34%", anim: "d", dur: 17 },
-  { color: PALETTE.indigo, size: "46%", top: "52%", left: "56%", anim: "e", dur: 31 },
+  { color: PALETTE.emerald, size: "72%", top: "-12%", left: "-8%", anim: "a", dur: 19 },
+  { color: PALETTE.teal, size: "60%", top: "8%", left: "46%", anim: "b", dur: 23 },
+  { color: PALETTE.honey, size: "56%", top: "44%", left: "2%", anim: "c", dur: 29 },
+  { color: PALETTE.lime, size: "64%", top: "26%", left: "34%", anim: "d", dur: 17 },
+  { color: PALETTE.emerald, size: "46%", top: "52%", left: "56%", anim: "e", dur: 31 },
 ];
 
 // Memoized: the recording aura mounts this while the level meter re-renders
