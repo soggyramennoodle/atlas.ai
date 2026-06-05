@@ -27,10 +27,10 @@ select cron.schedule(
   '* * * * *',                                   -- every minute
   $$
   select net.http_post(
-    url     := 'https://YOUR-APP.vercel.app/api/jobs/tick',
+    url     := 'https://atlasai.ca/api/jobs/tick',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'x-jobs-secret', 'YOUR_SHARED_SECRET'        -- must equal JOBS_TICK_SECRET
+      'x-jobs-secret', 'YOUR_SHARED_SECRET' -- must equal JOBS_TICK_SECRET
     ),
     body    := '{}'::jsonb
   );
