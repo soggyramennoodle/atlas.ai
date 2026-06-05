@@ -35,8 +35,10 @@ export function Faq() {
       <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
         <Reveal className="lg:col-span-5">
           <div className="lg:sticky lg:top-28">
-            <h2 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-              Questions, answered.
+            <h2 className="font-display text-balance text-5xl font-extrabold leading-[0.9] tracking-[-0.03em] sm:text-6xl">
+              Questions,
+              <br />
+              answered.
             </h2>
             <p className="mt-4 max-w-sm text-pretty text-muted-foreground">
               Still wondering about something? Reach us any time at{" "}

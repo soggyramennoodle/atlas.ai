@@ -15,10 +15,10 @@ export function FinalCta({ ctaHref }: { ctaHref: string }) {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
         <div className="relative">
-          <h2 className="mx-auto max-w-3xl text-balance text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+          <h2 className="mx-auto max-w-4xl font-display text-balance text-6xl font-extrabold leading-[0.88] tracking-[-0.03em] sm:text-7xl lg:text-8xl">
             Stop scribbling.
             <br />
-            <span className="text-gradient-brand animate-gradient font-display">
+            <span className="text-gradient-brand animate-gradient">
               Start understanding.
             </span>
           </h2>

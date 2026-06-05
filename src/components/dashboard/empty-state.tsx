@@ -48,8 +48,8 @@ export function EmptyRecordings() {
           <circle cx="178" cy="52" r="4" fill="currentColor" />
         </svg>
 
-        <h2 className="mt-6 text-xl font-semibold tracking-tight">
-          Your library is empty — for now
+        <h2 className="mt-6 font-display text-2xl font-bold tracking-tight">
+          Your library is empty, for now
         </h2>
         <p className="mx-auto mt-2 max-w-sm text-muted-foreground text-pretty">
           Record your first lecture and Atlas will turn it into thorough,

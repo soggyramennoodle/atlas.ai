@@ -35,7 +35,7 @@ export default async function SettingsPage() {
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
           Account
         </p>
-        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="mt-3 font-display text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">
           Settings
         </h1>
 

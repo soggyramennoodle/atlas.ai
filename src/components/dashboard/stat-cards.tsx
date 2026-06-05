@@ -19,6 +19,14 @@ const ICONS: Record<Stat["icon"], LucideIcon> = {
   flame: Flame,
 };
 
+// Each stat gets its own pop accent for an energetic, scannable strip.
+const ACCENTS: Record<Stat["icon"], string> = {
+  mic: "var(--primary)",
+  clock: "var(--pop-sky)",
+  sparkles: "var(--pop-amber)",
+  flame: "var(--pop-coral)",
+};
+
 function useCountUp(target: number, decimals = 0) {
   const [value, setValue] = useState(0);
   const started = useRef(false);
@@ -42,6 +50,7 @@ function useCountUp(target: number, decimals = 0) {
 
 function StatCard({ stat, index }: { stat: Stat; index: number }) {
   const Icon = ICONS[stat.icon];
+  const accent = ACCENTS[stat.icon];
   const display = useCountUp(stat.value, stat.decimals ?? 0);
   return (
     <motion.div
@@ -50,16 +59,24 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
       transition={{ delay: index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="glow-card group relative overflow-hidden rounded-2xl border bg-card/55 p-5 backdrop-blur-xl"
     >
-      <div className="pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-primary/10 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
-      <div className="flex items-center justify-between">
-        <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-          <Icon className="size-5" />
-        </span>
-      </div>
-      <p className="mt-4 font-mono text-3xl font-semibold tabular-nums tracking-tight">
+      <div
+        className="pointer-events-none absolute -right-8 -top-8 size-24 rounded-full opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100"
+        style={{ backgroundColor: `color-mix(in oklch, ${accent} 22%, transparent)` }}
+      />
+      <span
+        className="grid size-10 place-items-center rounded-xl"
+        style={{
+          backgroundColor: `color-mix(in oklch, ${accent} 14%, transparent)`,
+          color: accent,
+          boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${accent} 28%, transparent)`,
+        }}
+      >
+        <Icon className="size-5" />
+      </span>
+      <p className="mt-4 font-display text-4xl font-extrabold tabular-nums tracking-tight">
         {display}
         {stat.suffix && (
-          <span className="ml-1 text-base text-muted-foreground">
+          <span className="ml-1 text-base font-medium text-muted-foreground">
             {stat.suffix}
           </span>
         )}
