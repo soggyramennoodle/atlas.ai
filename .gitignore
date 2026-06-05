@@ -24,6 +24,12 @@
 .DS_Store
 *.pem
 
+# local agent/design reference artifacts
+.agents/
+.claude/skills/
+rivocareers-design/
+skills-lock.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*
