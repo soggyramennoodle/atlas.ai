@@ -452,6 +452,9 @@ export function RecordingProvider({
         chunksRef.current = [blob];
         mimeRef.current = draft.metadata.mime;
         requestIdRef.current = draft.metadata.requestId;
+        // The recovered take's job is keyed by the draft's requestId; mirror it
+        // so a resumed segment uploads under the original lecture_jobs row.
+        jobIdRef.current = draft.metadata.requestId;
         secondsRef.current = draft.metadata.seconds;
         finalTranscriptRef.current = transcript;
         liveTranscriptRef.current = transcript;
@@ -504,6 +507,11 @@ export function RecordingProvider({
           } catch {
             /* leave uploaded:false for a later retry */
           }
+        }
+        // Continue numbering after the recovered segments so a resumed take
+        // doesn't collide indices with what's already in the job.
+        if (segs.length > 0) {
+          segmentIndexRef.current = segs[segs.length - 1].index + 1;
         }
       } catch (err) {
         console.warn("Recording draft restore failed:", err);
@@ -1051,8 +1059,11 @@ export function RecordingProvider({
       secondsRef.current = 0;
       requestIdRef.current = crypto.randomUUID();
       // New session: fresh job + segment counter; allow a single enqueue.
+      // The jobId IS the draft's requestId (the only id persisted in the draft),
+      // so segments re-uploaded during recovery after a reload join the SAME
+      // lecture_jobs row — the basis of close-tab-and-reopen durability.
       segmentIndexRef.current = 0;
-      jobIdRef.current = crypto.randomUUID();
+      jobIdRef.current = requestIdRef.current;
       enqueuedRef.current = false;
       emitTranscript("");
       resetAudioActivity();
