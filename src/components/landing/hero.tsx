@@ -5,53 +5,64 @@ import { Reveal } from "@/components/landing/reveal";
 
 export function Hero({ ctaHref }: { ctaHref: string }) {
   return (
-    <section className="relative px-4 pb-20 pt-20 sm:px-6 sm:pt-24">
-      <div className="mx-auto max-w-[1200px]">
-        <Reveal>
-          <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-muted-foreground">
-            A note taker, made for you
-          </p>
-        </Reveal>
+    // overflow-x-clip (desktop only) lets the product shot bleed off the right
+    // edge as an intentional peek without ever creating a horizontal scrollbar.
+    <section className="relative px-4 pb-20 pt-20 sm:px-6 sm:pt-24 lg:pb-28 lg:overflow-x-clip">
+      <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-14 lg:grid-cols-12 lg:gap-8">
+        {/* Copy — held to the left of an asymmetric split. */}
+        <div className="lg:col-span-5">
+          <Reveal>
+            <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-muted-foreground">
+              A note taker, made for you
+            </p>
+          </Reveal>
 
-        <Reveal delay={0.06}>
-          <h1 className="mt-5 max-w-[18ch] text-[clamp(2.75rem,8vw,6rem)] font-bold leading-[0.95] tracking-[-0.03em]">
-            Sit back
-            <br />
-            <span className="text-primary">and listen.</span>
-          </h1>
-        </Reveal>
+          <Reveal delay={0.06}>
+            <h1 className="mt-5 text-balance text-[clamp(2.75rem,8vw,6rem)] font-bold leading-[0.95] tracking-[-0.03em] lg:text-[clamp(3rem,5vw,4.75rem)]">
+              Sit back
+              <br />
+              <span className="text-primary">and listen.</span>
+            </h1>
+          </Reveal>
 
-        <Reveal delay={0.12}>
-          <p className="mt-6 max-w-[46ch] text-pretty text-lg leading-relaxed text-muted-foreground">
-            Record any lecture in your browser and Atlas hands back thorough,
-            structured notes. We remember every word.
-          </p>
-        </Reveal>
+          <Reveal delay={0.12}>
+            <p className="mt-6 max-w-[46ch] text-pretty text-lg leading-relaxed text-muted-foreground">
+              Record any lecture in your browser and Atlas hands back thorough,
+              structured notes. We remember every word.
+            </p>
+          </Reveal>
 
-        <Reveal delay={0.18}>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button asChild size="lg" className="group">
-              <Link href={ctaHref}>
-                <Mic className="size-4" />
-                Record a lecture
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="group">
-              <Link href="/#how">
-                See how it works
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </Button>
-          </div>
-        </Reveal>
+          <Reveal delay={0.18}>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button asChild size="lg" className="group">
+                <Link href={ctaHref}>
+                  <Mic className="size-4" />
+                  Record a lecture
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="group">
+                <Link href="/#how">
+                  See how it works
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </Button>
+            </div>
+          </Reveal>
+        </div>
 
-        {/* Real note preview, partly clipped like rivo's product shot. The AI
-            summary block carries the living glow + AI ring, so the one piece of
-            colour on the page is the signal that Atlas wrote it. */}
-        <Reveal delay={0.26} className="mt-16 sm:mt-20">
-          <NotePreview />
-        </Reveal>
+        {/* Product shot fills the right of the first viewport. On desktop it is
+            oversized, nudged down/right and clipped past the edge; the AI summary
+            keeps the single living glow that signals "Atlas wrote this". */}
+        <div className="relative lg:col-span-7">
+          <Reveal delay={0.26}>
+            {/* Inner wrapper owns the desktop oversize/offset so it never fights
+                Reveal's animated transform on the parent. */}
+            <div className="relative mx-auto w-full max-w-[920px] lg:mx-0 lg:w-[116%] lg:max-w-none lg:translate-x-[4%] lg:translate-y-6">
+              <NotePreview />
+            </div>
+          </Reveal>
+        </div>
       </div>
     </section>
   );
@@ -59,10 +70,38 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
 
 function NotePreview() {
   return (
-    <div className="relative mx-auto max-w-[920px]">
+    <div className="relative w-full">
+      {/* Live capture chip — the input that becomes the note below. Overlaps the
+          card's top edge so it reads as product context, not decoration. */}
+      <div className="absolute -top-3 left-4 z-10 inline-flex items-center gap-2.5 rounded-[5px] border border-border bg-card/95 px-3 py-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_12px_30px_-14px_rgba(0,0,0,0.32)] backdrop-blur-sm sm:left-6">
+        <span className="relative flex size-2 items-center justify-center">
+          <span className="absolute inline-flex size-2 animate-ping rounded-full bg-[#e5484d] opacity-60" />
+          <span className="relative inline-flex size-2 rounded-full bg-[#e5484d]" />
+        </span>
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-foreground/70">
+          Recording
+        </span>
+        <span className="flex h-3 items-end gap-[2px]" aria-hidden="true">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span
+              key={i}
+              className="w-[2px] rounded-full bg-foreground/35 [animation:atlas-wave_1.1s_ease-in-out_infinite]"
+              style={{
+                height: "100%",
+                transformOrigin: "bottom",
+                animationDelay: `${i * 0.13}s`,
+              }}
+            />
+          ))}
+        </span>
+        <span className="font-mono text-[10.5px] tabular-nums tracking-tight text-muted-foreground">
+          47:32
+        </span>
+      </div>
+
       <div className="overflow-hidden rounded-[6px] border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
         {/* Note header */}
-        <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-7">
+        <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-4 pt-6 sm:px-7">
           <div className="min-w-0">
             <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
               Biology 1A03 · Lecture 12
