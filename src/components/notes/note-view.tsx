@@ -60,9 +60,12 @@ const PROCESSING_STALE_MS = 6 * 60_000;
 export function NoteView({
   note,
 }: {
-  note: { id: string; content: StructuredNotes; createdAt?: string };
+  note: { id: string; title: string; content: StructuredNotes; createdAt?: string };
 }) {
-  const initial = useMemo(() => normalizeNotes(note.content), [note.content]);
+  const initial = useMemo(
+    () => normalizeNotes({ ...note.content, title: note.title }),
+    [note.content, note.title]
+  );
   const [saved, setSaved] = useState<StructuredNotes>(initial);
   const [draft, setDraft] = useState<StructuredNotes>(() => clone(initial));
   const [editMode, setEditMode] = useState(false);
@@ -106,6 +109,7 @@ export function NoteView({
   // ── persistence ──────────────────────────────────────────────────────────
   const persist = useCallback(async () => {
     const payload = clone(draftRef.current);
+    payload.title = note.title;
     if (same(payload, savedRef.current)) return;
     setStatus("saving");
     try {
@@ -126,7 +130,7 @@ export function NoteView({
       setStatus("idle");
       toast.error("Couldn't save your changes. Retrying as you type.");
     }
-  }, [note.id]);
+  }, [note.id, note.title]);
 
   // Debounced autosave whenever the draft drifts from what's saved.
   useEffect(() => {
@@ -154,6 +158,7 @@ export function NoteView({
   const applyRegeneratedSummary = useCallback(
     (text: string) => {
       const base = clone(editMode ? draftRef.current : savedRef.current);
+      base.title = note.title;
       base.summary = text;
       setSaved(base);
       setDraft(base);
@@ -177,13 +182,14 @@ export function NoteView({
           toast.error("Couldn't save the new summary.");
         });
     },
-    [editMode, note.id]
+    [editMode, note.id, note.title]
   );
 
   function startEditing() {
     const base = clone(saved);
+    base.title = note.title;
     setDraft(base);
-    originalRef.current = clone(saved);
+    originalRef.current = clone(base);
     setEditorSeed(saved.bodyHtml ?? notesBodyToHtml(saved));
     setEditMode(true);
   }
@@ -225,6 +231,7 @@ export function NoteView({
       saveTimer.current = null;
     }
     const edited = clone(draftRef.current);
+    edited.title = note.title;
     const changed = !same(edited, originalRef.current);
     if (!same(edited, savedRef.current)) await persist();
     const sourced = changed ? await refreshBodySources() : edited;
@@ -244,7 +251,9 @@ export function NoteView({
     }
   }
 
-  const shown = editMode ? draft : saved;
+  const shown = editMode
+    ? { ...draft, title: note.title }
+    : { ...saved, title: note.title };
   const displayStatus =
     staleProcessing && saved.status === "processing" ? "failed" : saved.status;
 
@@ -323,7 +332,7 @@ export function NoteView({
         {/* Key concepts */}
         {(editMode || shown.keyConcepts.length > 0) && (
           <section>
-            <h3 className="font-display text-xl font-semibold tracking-tight">Key concepts</h3>
+            <h3 className="font-display text-2xl font-bold tracking-[-0.02em]">Key concepts</h3>
             <div className="mt-4">
               {editMode ? (
                 <div className="space-y-4">
@@ -358,9 +367,9 @@ export function NoteView({
               ) : (
                 <KeyConceptsGrid
                   concepts={saved.keyConcepts}
-                  context={[saved.subject, saved.title]
+                  context={[shown.subject, shown.title]
                     .filter(Boolean)
-                    .join(" — ")}
+                    .join(", ")}
                 />
               )}
             </div>
@@ -394,7 +403,7 @@ function ProcessingNoteState({
           <Loader2 className="size-6 animate-spin" />
         )}
       </span>
-      <h2 className="relative mt-5 font-display text-2xl font-semibold tracking-tight">
+      <h2 className="relative mt-5 font-display text-3xl font-bold tracking-[-0.02em]">
         {failed ? "Processing failed" : "Still processing"}
       </h2>
       <p className="relative mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -580,7 +589,7 @@ function SectionView({
         <span className="font-mono text-sm text-muted-foreground">
           {(index + 1).toString().padStart(2, "0")}
         </span>
-        <h3 className="font-display text-xl font-semibold tracking-tight">
+        <h3 className="font-display text-2xl font-bold tracking-[-0.02em]">
           {section.heading}
         </h3>
       </div>
