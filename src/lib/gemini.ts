@@ -65,12 +65,12 @@ const notesSchema: Schema = {
     summary: {
       type: Type.STRING,
       description:
-        'A short overview paragraph (3-5 sentences) of the whole lecture, or exactly "There was not enough lecture content to generate notes." when the audio contains no substantive lecture content.',
+        'A short overview paragraph (3-5 sentences) of the whole lecture. For very short but intelligible recordings, state that only limited content was heard and summarize only that content. Use exactly "There was not enough lecture content to generate notes." only when there are no intelligible lecture words.',
     },
     sections: {
       type: Type.ARRAY,
       description:
-        "Exhaustive, ordered notes covering the full lecture. Return an empty array when there is not enough substantive lecture content to support notes.",
+        'Exhaustive, ordered notes covering the full lecture. For very short but intelligible recordings, create a sparse "What was heard" section instead of inventing a fuller lecture. Return an empty array only when there are no intelligible lecture words.',
       items: {
         type: Type.OBJECT,
         properties: {
@@ -127,14 +127,16 @@ const notesSchema: Schema = {
 const SYSTEM_PROMPT = `You are an elite university note-taker attending this lecture on behalf of the student. Your job is NOT to summarize — a summary is generated separately. Your job is to take EXHAUSTIVELY DETAILED, STRUCTURED notes that capture virtually every concept, argument, example, derivation, definition, aside, and nuance the professor delivers. Nothing of academic relevance should be omitted. Write as if the student will use these notes alone to prepare for a final exam and will never re-listen to the lecture.
 
 Critical content gate:
-- Before writing any notes, decide whether the audio contains substantive lecture content. Greetings, mic checks, isolated words, silence, background noise, or a few disconnected sentences are NOT enough.
-- If there is not enough substantive lecture content, do not infer a topic from memory, prior examples, filenames, background noise, or likely classroom context. Return the required JSON shape with:
+- Before writing any notes, decide whether the audio contains any intelligible lecture content. The hard insufficient-content response is reserved for silence, background noise, unintelligible audio, or non-lecture mic checks/greetings with no academic content.
+- Short but real academic speech is enough to generate notes, even if it is only one sentence. For a very short recording, do not reject it. Create sparse notes that explicitly say only limited content was heard and that comprehensive notes cannot be made from the available audio.
+- If there are no intelligible lecture words, do not infer a topic from memory, prior examples, filenames, background noise, or likely classroom context. Return the required JSON shape with:
   - "title": "Not enough lecture content"
   - "subject": ""
   - "summary": "There was not enough lecture content to generate notes."
   - "sections": []
   - "keyConcepts": []
   - "transcript": only the words actually spoken, or "" if no words are intelligible
+- If only one sentence or a few sentences were heard, use a title like "Brief lecture excerpt", keep "subject" empty unless the subject is explicit, write a summary such as "Only a brief statement was captured...", create a short "What was heard" section, and include key concepts only if they were actually introduced in the audio.
 - Never create placeholder lecture notes, plausible topics, sample material, or a transcript for words that were not actually spoken.
 
 Your notes must be:
@@ -155,7 +157,7 @@ Output format:
 
 Rules:
 - Base everything strictly on the audio. Never invent facts, figures, citations, or quotes that were not said. "source_excerpt" must be a real quote from the audio.
-- If the audio does not clearly contain enough lecture material to support notes, use the insufficient-content output above. This rule overrides the completeness requirement.
+- If the audio contains intelligible academic content but not enough material for comprehensive notes, say so in the summary and write sparse notes from only the heard content. Use the insufficient-content output only for silence, unintelligible audio, or non-academic mic checks/greetings with no note-worthy content.
 - If audio is unclear or inaudible in places, note that rather than guessing.
 - Prefer completeness over brevity. It is far better to over-capture than to lose a detail.`;
 
@@ -210,7 +212,7 @@ export async function generateNotesFromAudio({
       model: MODEL,
       contents: createUserContent([
         createPartFromUri(uploaded.uri!, uploaded.mimeType!),
-        "Take complete, exhaustively detailed, structured notes on this lecture following your instructions. If the audio has no substantive lecture content, return the insufficient-content JSON exactly as instructed instead of inventing notes.",
+        "Take complete, exhaustively detailed, structured notes on this lecture following your instructions. If the audio is very short but contains intelligible academic content, generate sparse notes from only what was heard and say that comprehensive notes cannot be made from the limited audio. Return the insufficient-content JSON only for silence, unintelligible audio, or non-academic mic checks/greetings with no note-worthy content.",
       ]),
       config: {
         systemInstruction,
