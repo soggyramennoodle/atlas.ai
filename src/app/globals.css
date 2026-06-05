@@ -1042,9 +1042,29 @@
 .animate-marquee {
   animation: atlas-marquee 38s linear infinite;
 }
+/* Same track, opposite direction — used by the universities strip so the two
+   marquees drift against each other. */
+.animate-marquee-reverse {
+  animation: atlas-marquee 46s linear infinite reverse;
+}
 .marquee-mask {
   -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
   mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+}
+
+/* University logos: a uniform muted silhouette at rest (black on light, white
+   on dark) so the wall reads as one neutral texture, then full brand colour on
+   hover. The marquee itself never pauses on hover — only the colour reveals. */
+.uni-logo {
+  filter: brightness(0) opacity(0.55);
+  transition: filter 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dark .uni-logo {
+  filter: brightness(0) invert(1) opacity(0.62);
+}
+.uni-logo:hover,
+.dark .uni-logo:hover {
+  filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

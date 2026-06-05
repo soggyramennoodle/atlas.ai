@@ -144,6 +144,7 @@ Your notes must be:
 - Written in clear, precise academic language.
 - Rich with detail: include every formula (write them in plain text/Unicode), every named theorem, every example, every edge case mentioned, every number, name, and date.
 - Faithful to the professor's logic and sequencing — do not reorder or collapse content.
+- Anchored in the professor's own language: lean on their exact terminology, phrasing, definitions, mnemonics, and analogies as much as makes sense. When the professor's specific wording carries meaning, keep it (quote or near-quote it) rather than paraphrasing it into generic language — paraphrasing is where precise, exam-relevant detail gets quietly lost. Use the transcript to recover the professor's actual words; only smooth over obvious transcription errors and filler.
 - Inclusive of transitional remarks that signal importance ("this is key", "remember this for the exam", "contrast this with X"). Preserve these cues in the relevant bullet.
 - Supplemented with a "Key Concepts" block ("keyConcepts") at the end defining ALL domain-specific terminology introduced.
 
