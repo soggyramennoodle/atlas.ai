@@ -15,7 +15,7 @@ export function TranscriptPanel({ transcript }: { transcript: string }) {
   return (
     <motion.section
       layout
-      className="hover-glow-inside overflow-hidden rounded-[4px] border border-border bg-card"
+      className="overflow-hidden rounded-[4px] border border-border bg-card"
     >
       <button
         onClick={() => setOpen((o) => !o)}

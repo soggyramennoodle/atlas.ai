@@ -32,7 +32,7 @@ function Cell({
   return (
     <div
       className={cn(
-        "group hover-glow-inside icon-animate relative flex flex-col overflow-hidden rounded-[4px] border border-border bg-card p-6 transition-shadow hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]",
+        "group icon-animate relative flex flex-col overflow-hidden rounded-[4px] border border-border bg-card p-6 transition-shadow hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]",
         className
       )}
     >

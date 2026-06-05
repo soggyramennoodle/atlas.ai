@@ -188,7 +188,7 @@ export function Uploader({ userId }: { userId: string }) {
           initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
-          className="hover-glow-inside rounded-[4px] border border-border bg-card p-5"
+          className="rounded-[4px] border border-border bg-card p-5"
         >
           <div className="flex items-start gap-4">
             <span className="grid size-12 shrink-0 place-items-center rounded-[4px] border border-border bg-background text-foreground">
