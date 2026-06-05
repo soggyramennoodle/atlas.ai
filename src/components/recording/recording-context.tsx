@@ -25,7 +25,11 @@ import {
   createRecordingDraft,
   getRecordingDraft,
   updateRecordingDraftMetadata,
+  putRecordingSegment,
+  markRecordingSegmentUploaded,
+  getRecordingSegments,
 } from "@/lib/recording-draft";
+import { uploadSegment, registerSegment } from "@/lib/segment-upload";
 
 export const BARS = 32;
 const IDLE_LEVELS = () => Array(BARS).fill(0.04) as number[];
@@ -35,6 +39,11 @@ const SILENCE_PEAK_THRESHOLD = 0.075;
 const SILENCE_MIN_ACTIVE_MS = 500;
 const SILENCE_MIN_DURATION_SECONDS = 2;
 const RECORDING_DRAFT_SLICE_MS = 4_000;
+// Independent recording segment length. The MediaRecorder is rotated at this
+// interval so each segment is a complete, separately-uploadable WebM. ~5 min
+// keeps each segment small (<20MB, inline-friendly for the worker). Override in
+// dev to force fast rotation.
+const SEGMENT_MS = Number(process.env.NEXT_PUBLIC_ATLAS_SEGMENT_MS) || 300_000;
 // Match the server route's `maxDuration` (300s). Gemini 2.5 Pro on a full
 // lecture routinely takes several minutes, so the old 2-minute client abort
 // killed valid long recordings before the server could ever finish.
@@ -322,6 +331,21 @@ export function RecordingProvider({
   // start() having to depend on it (avoids a circular useCallback reference).
   const stopRef = useRef<(() => void) | null>(null);
 
+  // Segmented recording (durable server-side processing). A lecture is recorded
+  // as a sequence of independent ~5-min WebM segments, each uploaded to R2 as it
+  // finishes. The capture pipeline (AudioContext/analyser/worklet/recognition/
+  // tick) is NOT touched between segments — only the MediaRecorder is rotated.
+  const jobIdRef = useRef<string>(crypto.randomUUID());
+  const segmentIndexRef = useRef(0);
+  const enqueuedRef = useRef(false);
+  const rotatingRef = useRef(false); // true => current onstop is a rotation, not a user stop
+  const rotateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentSourceRef = useRef<RecordingSource>("microphone");
+  // Lets onstop start the next segment without startSegmentRecorder referencing
+  // itself during its own definition (avoids a use-before-init closure).
+  const startSegmentRecorderRef = useRef<(() => MediaRecorder) | null>(null);
+  const armRotationRef = useRef<(() => void) | null>(null);
+
   // Audio meter is published imperatively, never through React state — see
   // components/recording/waveform.tsx. `levelsRef` holds the latest frame and
   // `meterListenersRef` the subscribed waveform updaters.
@@ -455,6 +479,32 @@ export function RecordingProvider({
         });
         setPhase("recorded");
         toast.message("Recovered a recording saved on this device.");
+
+        // Reconcile durable segments: re-upload any whose upload didn't finish
+        // before the tab/device closed. Best-effort — already-uploaded segments
+        // live in R2 and need no action. This is what makes recovery durable
+        // across devices for everything already pushed server-side.
+        const segs = await getRecordingSegments(userId);
+        for (const seg of segs) {
+          if (seg.uploaded) continue;
+          try {
+            const r2Key = await uploadSegment({
+              blob: seg.blob,
+              mime: seg.mime,
+              jobId: draft.metadata.requestId,
+              segmentIndex: seg.index,
+            });
+            await registerSegment({
+              jobId: draft.metadata.requestId,
+              segmentIndex: seg.index,
+              r2Key,
+              durationSeconds: seg.durationSeconds,
+            });
+            await markRecordingSegmentUploaded(userId, seg.index);
+          } catch {
+            /* leave uploaded:false for a later retry */
+          }
+        }
       } catch (err) {
         console.warn("Recording draft restore failed:", err);
       }
@@ -477,6 +527,9 @@ export function RecordingProvider({
     stopMeter();
     if (tickRef.current) clearInterval(tickRef.current);
     tickRef.current = null;
+    if (rotateTimerRef.current) clearTimeout(rotateTimerRef.current);
+    rotateTimerRef.current = null;
+    rotatingRef.current = false;
     if (transcriptFlushRef.current) clearTimeout(transcriptFlushRef.current);
     transcriptFlushRef.current = null;
     if (transcriptKickoffRef.current) clearTimeout(transcriptKickoffRef.current);
@@ -626,6 +679,161 @@ export function RecordingProvider({
       /* ignore */
     }
   }, [flushTranscript]);
+
+  // Persist a finished segment locally, then upload it to R2 and register it.
+  // Local-first so a failed/offline upload survives for later recovery.
+  const finalizeSegment = useCallback(async (blob: Blob) => {
+    if (blob.size <= 0) return;
+    const index = segmentIndexRef.current;
+    segmentIndexRef.current = index + 1;
+    const mime = baseMimeType(mimeRef.current || "audio/webm");
+    const durationSeconds = secondsRef.current;
+    // 1) Persist locally first (survives a failed upload / offline).
+    await putRecordingSegment(userId, { index, blob, mime, durationSeconds, uploaded: false }).catch(() => {});
+    // 2) Upload to R2 + register. On failure, leave uploaded:false for recovery.
+    try {
+      const r2Key = await uploadSegment({ blob, mime, jobId: jobIdRef.current, segmentIndex: index });
+      await registerSegment({ jobId: jobIdRef.current, segmentIndex: index, r2Key, durationSeconds });
+      await markRecordingSegmentUploaded(userId, index);
+    } catch (err) {
+      console.warn("Segment upload deferred (will retry on recovery):", err);
+    }
+  }, [userId]);
+
+  // Mark the job complete server-side and move the UI into processing, then
+  // navigate to the placeholder note (which flips to "ready" via Realtime).
+  const completeJobAndProcess = useCallback(async () => {
+    setStage("analyzing"); // shows the ProcessingOverlay
+    let noteId: string | null = null;
+    try {
+      const enq = await fetch("/api/jobs/enqueue", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobId: jobIdRef.current, sessionLabel, source: currentSourceRef.current,
+          durationSeconds: Math.round(secondsRef.current) || null,
+          liveTranscript: liveTranscriptRef.current || null,
+        }),
+      }).then((r) => r.json()).catch(() => null);
+      noteId = enq?.noteId ?? null;
+      await fetch("/api/jobs/complete", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobId: jobIdRef.current, segmentCount: segmentIndexRef.current,
+          durationSeconds: Math.round(secondsRef.current) || null,
+          liveTranscript: liveTranscriptRef.current || null,
+        }),
+      }).catch(() => {});
+    } catch {}
+    // Clear local draft now that all segments are server-side.
+    void enqueueDraftWrite(() => clearRecordingDraft(userId));
+    // Reset session + navigate. The note shows "processing" and flips via Realtime.
+    setStage("idle");
+    setPhase("idle");
+    setSeconds(0); secondsRef.current = 0;
+    emitLevels(IDLE_LEVELS()); emitTranscript("");
+    setSessionLabel("Untitled Lecture");
+    enqueuedRef.current = false; segmentIndexRef.current = 0;
+    toast.success("Atlas is generating your notes.");
+    if (noteId) router.push(`/notes/${noteId}`); else router.push("/dashboard");
+  }, [sessionLabel, userId, enqueueDraftWrite, emitLevels, emitTranscript, router]);
+
+  // (Re)arm the rotation timer while recording. On fire it stops the current
+  // MediaRecorder (with rotatingRef set), whose onstop finalizes the segment,
+  // starts the next recorder, and re-arms — all without touching the pipeline.
+  const armRotation = useCallback(() => {
+    if (rotateTimerRef.current) clearTimeout(rotateTimerRef.current);
+    rotateTimerRef.current = setTimeout(() => {
+      const rec = mediaRecorderRef.current;
+      if (rec && rec.state === "recording") {
+        rotatingRef.current = true;
+        try { rec.requestData(); } catch {}
+        rec.stop(); // onstop finalizes + starts the next segment + re-arms
+      }
+    }, SEGMENT_MS);
+  }, []);
+  useEffect(() => {
+    armRotationRef.current = armRotation;
+  }, [armRotation]);
+
+  // Build a MediaRecorder with the shared per-segment handlers. Reused on every
+  // rotation so a fresh recorder is wired identically WITHOUT tearing down the
+  // single capture pipeline. Handlers read mimeRef/currentSourceRef (not closure
+  // params) so they stay correct across segments.
+  const startSegmentRecorder = useCallback((): MediaRecorder => {
+    const rec = new MediaRecorder(streamRef.current!, { mimeType: mimeRef.current });
+    rec.ondataavailable = (e) => {
+      if (e.data.size <= 0) return;
+      chunksRef.current.push(e.data);
+      const savedAt = Date.now();
+      setLastSavedAt(savedAt);
+      void enqueueDraftWrite(() =>
+        appendRecordingDraftChunk(userId, e.data, {
+          ...draftPatch(),
+          source: currentSourceRef.current,
+          mime: baseMimeType(mimeRef.current),
+        }).then(() => {
+          setLastSavedAt(Date.now());
+        })
+      );
+    };
+    rec.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: baseMimeType(mimeRef.current) });
+      if (rotatingRef.current) {
+        // Rotation boundary: finalize this segment and immediately begin the
+        // next one. Pipeline stays live; no phase change, no clip.
+        void finalizeSegment(blob);
+        chunksRef.current = [];
+        rotatingRef.current = false;
+        const nextRec = startSegmentRecorderRef.current!();
+        mediaRecorderRef.current = nextRec;
+        nextRec.start(RECORDING_DRAFT_SLICE_MS);
+        armRotationRef.current?.();
+        return;
+      }
+      // User stop / finish: this is the final segment. Finalize it, then move
+      // the UI into processing. Tear down the capture pipeline exactly as the
+      // old onstop did.
+      stopMeter();
+      void finalizeSegment(blob).then(() => completeJobAndProcess());
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      sourceStreamsRef.current.forEach((s) => s.getTracks().forEach((t) => t.stop()));
+      sourceStreamsRef.current = [];
+      if (workletNodeRef.current) {
+        workletNodeRef.current.port.onmessage = null;
+        try {
+          workletNodeRef.current.disconnect();
+        } catch {
+          /* ignore */
+        }
+      }
+      workletNodeRef.current = null;
+      if (silenceSinkRef.current) {
+        try {
+          silenceSinkRef.current.disconnect();
+        } catch {
+          /* ignore */
+        }
+      }
+      silenceSinkRef.current = null;
+      workletEnergyRef.current = false;
+      audioCtxRef.current?.close().catch(() => {});
+      audioCtxRef.current = null;
+      analyserRef.current = null;
+      mediaRecorderRef.current = null;
+    };
+    return rec;
+  }, [
+    userId,
+    draftPatch,
+    enqueueDraftWrite,
+    finalizeSegment,
+    completeJobAndProcess,
+    stopMeter,
+  ]);
+  useEffect(() => {
+    startSegmentRecorderRef.current = startSegmentRecorder;
+  }, [startSegmentRecorder]);
 
   const start = useCallback(async (
     nextSource: RecordingSource = "microphone",
@@ -842,6 +1050,10 @@ export function RecordingProvider({
       lastTranscriptAtRef.current = 0;
       secondsRef.current = 0;
       requestIdRef.current = crypto.randomUUID();
+      // New session: fresh job + segment counter; allow a single enqueue.
+      segmentIndexRef.current = 0;
+      jobIdRef.current = crypto.randomUUID();
+      enqueuedRef.current = false;
       emitTranscript("");
       resetAudioActivity();
       void enqueueDraftWrite(() =>
@@ -870,6 +1082,7 @@ export function RecordingProvider({
     }
     setProcessingIssue(null);
     generationRunRef.current += 1;
+    currentSourceRef.current = nextSource;
     setSource(nextSource);
     setRecoveredDraft(false);
     setFailed(false);
@@ -877,77 +1090,25 @@ export function RecordingProvider({
     audioCtxRef.current = ctx;
     analyserRef.current = analyser;
 
-    const rec = new MediaRecorder(recordStream, { mimeType: mime });
-    rec.ondataavailable = (e) => {
-      if (e.data.size <= 0) return;
-      chunksRef.current.push(e.data);
-      const savedAt = Date.now();
-      setLastSavedAt(savedAt);
-      void enqueueDraftWrite(() =>
-        appendRecordingDraftChunk(userId, e.data, {
-          ...draftPatch(),
-          source: nextSource,
-          mime: baseMimeType(mime),
-        }).then(() => {
-          setLastSavedAt(Date.now());
-        })
-      );
-    };
-    rec.onstop = () => {
-      stopMeter();
-      const blob = new Blob(chunksRef.current, { type: baseMimeType(mime) });
-      if (blob.size > MAX_BYTES) {
-        toast.error(`That recording is over ${formatBytes(MAX_BYTES)}. Try a shorter session.`);
-        setPhase("idle");
-        setLastSavedAt(null);
-        void enqueueDraftWrite(() => clearRecordingDraft(userId));
-        teardown();
-        return;
-      }
-      const url = URL.createObjectURL(blob);
-      setClip({
-        requestId: requestIdRef.current,
-        url,
-        blob,
-        mime: baseMimeType(mime),
-        silent: clipWouldBeSilent(secondsRef.current),
-      });
-      setRecoveredDraft(false);
-      saveDraftMetadata();
-      setPhase("recorded");
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-      sourceStreamsRef.current.forEach((s) => s.getTracks().forEach((t) => t.stop()));
-      sourceStreamsRef.current = [];
-      if (workletNodeRef.current) {
-        workletNodeRef.current.port.onmessage = null;
-        try {
-          workletNodeRef.current.disconnect();
-        } catch {
-          /* ignore */
-        }
-      }
-      workletNodeRef.current = null;
-      if (silenceSinkRef.current) {
-        try {
-          silenceSinkRef.current.disconnect();
-        } catch {
-          /* ignore */
-        }
-      }
-      silenceSinkRef.current = null;
-      workletEnergyRef.current = false;
-      audioCtxRef.current?.close().catch(() => {});
-      audioCtxRef.current = null;
-      analyserRef.current = null;
-      mediaRecorderRef.current = null;
-    };
-
+    // streamRef.current and mimeRef.current are already set above; the segment
+    // recorder reads them. Build + start the first segment recorder.
+    mimeRef.current = mime;
+    const rec = startSegmentRecorder();
     mediaRecorderRef.current = rec;
     rec.start(RECORDING_DRAFT_SLICE_MS);
 
     if (!appendToDraft) setSeconds(0);
     setPhase("recording");
+    // Enqueue the durable job exactly once per fresh session. Resumed/append
+    // takes keep the same jobId so their segments join the existing job.
+    if (!appendToDraft && !enqueuedRef.current) {
+      enqueuedRef.current = true;
+      void fetch("/api/jobs/enqueue", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId: jobIdRef.current, sessionLabel, source: nextSource }),
+      }).catch(() => {});
+    }
+    armRotation();
     runMeter();
     tickRef.current = setInterval(() => {
       setSeconds((s) => {
@@ -970,7 +1131,6 @@ export function RecordingProvider({
   }, [
     busy,
     clip,
-    clipWouldBeSilent,
     draftPatch,
     enqueueDraftWrite,
     phase,
@@ -979,9 +1139,9 @@ export function RecordingProvider({
     runMeter,
     saveDraftMetadata,
     startTranscription,
-    stopMeter,
+    startSegmentRecorder,
+    armRotation,
     sessionLabel,
-    teardown,
     userId,
   ]);
 
@@ -996,6 +1156,9 @@ export function RecordingProvider({
     rec.pause();
     setPhase("paused");
     stopMeter();
+    // Don't rotate while paused — a paused recorder can't be cleanly rotated.
+    if (rotateTimerRef.current) clearTimeout(rotateTimerRef.current);
+    rotateTimerRef.current = null;
     if (transcriptKickoffRef.current) clearTimeout(transcriptKickoffRef.current);
     transcriptKickoffRef.current = null;
     emitLevels(IDLE_LEVELS());
@@ -1015,6 +1178,7 @@ export function RecordingProvider({
     rec.resume();
     setPhase("recording");
     runMeter();
+    armRotation(); // resume rotation from a full segment interval
     if (recognitionRef.current) {
       wantTranscriptRef.current = true;
       try {
@@ -1031,7 +1195,7 @@ export function RecordingProvider({
         return next;
       });
     }, 1000);
-  }, [runMeter, saveDraftMetadata]);
+  }, [runMeter, saveDraftMetadata, armRotation]);
 
   const stop = useCallback(() => {
     const rec = mediaRecorderRef.current;
@@ -1040,6 +1204,11 @@ export function RecordingProvider({
     tickRef.current = null;
     if (transcriptKickoffRef.current) clearTimeout(transcriptKickoffRef.current);
     transcriptKickoffRef.current = null;
+    // Cancel any pending rotation and make sure onstop takes the user-stop
+    // (final segment) branch rather than the rotation branch.
+    if (rotateTimerRef.current) clearTimeout(rotateTimerRef.current);
+    rotateTimerRef.current = null;
+    rotatingRef.current = false;
     stopMeter();
     emitLevels(IDLE_LEVELS());
     wantTranscriptRef.current = false;
@@ -1100,6 +1269,13 @@ export function RecordingProvider({
     resetAudioActivity();
     generationRunRef.current += 1;
     requestIdRef.current = crypto.randomUUID();
+    // Reset the durable-job state so a fresh recording starts a brand new job.
+    jobIdRef.current = crypto.randomUUID();
+    segmentIndexRef.current = 0;
+    enqueuedRef.current = false;
+    rotatingRef.current = false;
+    if (rotateTimerRef.current) clearTimeout(rotateTimerRef.current);
+    rotateTimerRef.current = null;
     setSessionLabel("Untitled Lecture");
     setFailed(false);
     setRecoveredDraft(false);
