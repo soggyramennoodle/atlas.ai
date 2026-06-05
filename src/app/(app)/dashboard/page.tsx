@@ -153,7 +153,7 @@ export default async function DashboardPage() {
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
           <section>
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-lg font-semibold tracking-tight">
+              <h2 className="font-display text-2xl font-bold tracking-tight">
                 Recent recordings
               </h2>
               {notes.length > 0 && (
@@ -202,7 +202,7 @@ export default async function DashboardPage() {
                           {failed ? "Failed" : processing ? "Processing" : "Ready"}
                         </span>
                       </div>
-                      <h3 className="mt-4 line-clamp-2 font-semibold leading-snug tracking-tight">
+                      <h3 className="mt-4 line-clamp-2 font-display text-lg font-bold leading-snug tracking-tight">
                         {note.title}
                       </h3>
                       <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">

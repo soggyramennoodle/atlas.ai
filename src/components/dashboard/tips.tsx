@@ -2,7 +2,7 @@ import { Lightbulb } from "lucide-react";
 
 const TIPS = [
   "Place your device near the lecturer for the cleanest audio.",
-  "Long lecture? Atlas handles multi-hour recordings — just let it run.",
+  "Long lecture? Atlas handles multi-hour recordings, just let it run.",
   "Review the key concepts first; they're your fastest revision pass.",
   "No mic handy? Upload an existing recording from the record screen.",
 ];

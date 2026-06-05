@@ -17,11 +17,11 @@ export function QuickRecord() {
           <p className="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
             Quick action
           </p>
-          <h2 className="mt-1 font-display text-xl font-semibold tracking-tight">
+          <h2 className="mt-1 font-display text-2xl font-bold tracking-tight">
             Start recording a lecture
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Capture audio in your browser — notes are ready when it ends.
+            Capture audio in your browser. Notes are ready when it ends.
           </p>
         </div>
         <ArrowRight className="ml-auto hidden size-5 shrink-0 text-primary transition-transform group-hover:translate-x-1 sm:block" />
