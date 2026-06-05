@@ -57,17 +57,17 @@ export function RecordingDock() {
               : { type: "spring", stiffness: 340, damping: 30 }
           }
           className={cn(
-            "fixed bottom-5 left-5 z-50 w-72 overflow-hidden rounded-[1.25rem] border bg-card/95 p-4 shadow-2xl backdrop-blur-xl ring-luxe",
+            "fixed bottom-5 left-5 z-50 w-72 overflow-hidden rounded-[6px] border border-border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_18px_50px_-20px_rgba(0,0,0,0.35)]",
             phase === "paused" && "border-destructive/50"
           )}
         >
           <div className="flex items-center gap-2.5">
             <span
               className={cn(
-                "grid size-8 shrink-0 place-items-center rounded-full",
+                "grid size-8 shrink-0 place-items-center rounded-[4px] border",
                 phase === "paused"
-                  ? "bg-destructive/15 text-destructive"
-                  : "bg-primary/15 text-primary"
+                  ? "border-destructive/30 bg-destructive/10 text-destructive"
+                  : "border-primary/30 bg-primary/10 text-primary"
               )}
             >
               <SourceIcon className="size-4" />

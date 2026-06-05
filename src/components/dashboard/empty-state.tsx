@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export function EmptyRecordings() {
   return (
-    <div className="relative grid place-items-center overflow-hidden rounded-[1.75rem] border border-dashed bg-card/50 px-6 py-16 text-center">
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.4] [mask-image:radial-gradient(50%_50%_at_50%_40%,black,transparent)]" />
+    <div className="relative grid place-items-center overflow-hidden rounded-[4px] border border-dashed border-border bg-card px-6 py-16 text-center">
       <div className="relative">
         {/* illustration: orbit + waveform sheet */}
         <svg
@@ -48,14 +47,14 @@ export function EmptyRecordings() {
           <circle cx="178" cy="52" r="4" fill="currentColor" />
         </svg>
 
-        <h2 className="mt-6 font-display text-2xl font-bold tracking-tight">
+        <h2 className="mt-6 text-2xl font-bold tracking-tight">
           Your library is empty, for now
         </h2>
         <p className="mx-auto mt-2 max-w-sm text-muted-foreground text-pretty">
           Record your first lecture and Atlas will turn it into thorough,
           structured notes that land right here.
         </p>
-        <Button asChild className="mt-6 shimmer">
+        <Button asChild className="mt-6">
           <Link href="/upload">
             <Mic className="size-4" />
             Record your first lecture

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Mic, Clock, Sparkles, Flame, type LucideIcon } from "lucide-react";
 
 export interface Stat {
@@ -19,19 +19,12 @@ const ICONS: Record<Stat["icon"], LucideIcon> = {
   flame: Flame,
 };
 
-// Each stat gets its own pop accent for an energetic, scannable strip.
-const ACCENTS: Record<Stat["icon"], string> = {
-  mic: "var(--primary)",
-  clock: "var(--pop-sky)",
-  sparkles: "var(--pop-amber)",
-  flame: "var(--pop-coral)",
-};
-
 function useCountUp(target: number, decimals = 0) {
-  const [value, setValue] = useState(0);
+  const reduce = useReducedMotion();
+  const [value, setValue] = useState(reduce ? target : 0);
   const started = useRef(false);
   useEffect(() => {
-    if (started.current) return;
+    if (reduce || started.current) return;
     started.current = true;
     const duration = 900;
     const start = performance.now();
@@ -44,36 +37,25 @@ function useCountUp(target: number, decimals = 0) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [target]);
+  }, [target, reduce]);
   return value.toFixed(decimals);
 }
 
 function StatCard({ stat, index }: { stat: Stat; index: number }) {
+  const reduce = useReducedMotion();
   const Icon = ICONS[stat.icon];
-  const accent = ACCENTS[stat.icon];
   const display = useCountUp(stat.value, stat.decimals ?? 0);
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={reduce ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="glow-card group relative overflow-hidden rounded-2xl border bg-card/55 p-5 backdrop-blur-xl"
+      transition={{ delay: index * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-[4px] border border-border bg-card p-5"
     >
-      <div
-        className="pointer-events-none absolute -right-8 -top-8 size-24 rounded-full opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100"
-        style={{ backgroundColor: `color-mix(in oklch, ${accent} 22%, transparent)` }}
-      />
-      <span
-        className="grid size-10 place-items-center rounded-xl"
-        style={{
-          backgroundColor: `color-mix(in oklch, ${accent} 14%, transparent)`,
-          color: accent,
-          boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${accent} 28%, transparent)`,
-        }}
-      >
+      <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-background text-foreground">
         <Icon className="size-5" />
       </span>
-      <p className="mt-4 font-display text-4xl font-extrabold tabular-nums tracking-tight">
+      <p className="mt-4 text-4xl font-bold tabular-nums tracking-tight">
         {display}
         {stat.suffix && (
           <span className="ml-1 text-base font-medium text-muted-foreground">

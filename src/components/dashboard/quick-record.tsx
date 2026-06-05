@@ -5,26 +5,24 @@ export function QuickRecord() {
   return (
     <Link
       href="/upload"
-      className="group relative block overflow-hidden rounded-[1.75rem] border border-primary/30 bg-gradient-to-br from-primary/[0.12] via-card to-card p-7 ring-luxe transition hover:border-primary/50"
+      className="group block rounded-[4px] border border-border bg-card p-6 transition-shadow hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]"
     >
-      <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-primary/15 blur-3xl transition-transform duration-700 group-hover:scale-125" />
-      <div className="relative flex items-center gap-5">
-        {/* pulsing record button */}
-        <span className="relative grid size-16 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground animate-pulse-ring">
-          <Mic className="size-7" />
+      <div className="flex items-center gap-5">
+        <span className="grid size-14 shrink-0 place-items-center rounded-[4px] bg-primary text-primary-foreground">
+          <Mic className="size-6" />
         </span>
         <div className="min-w-0">
-          <p className="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             Quick action
           </p>
-          <h2 className="mt-1 font-display text-2xl font-bold tracking-tight">
+          <h2 className="mt-1 text-xl font-semibold tracking-tight">
             Start recording a lecture
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Capture audio in your browser. Notes are ready when it ends.
           </p>
         </div>
-        <ArrowRight className="ml-auto hidden size-5 shrink-0 text-primary transition-transform group-hover:translate-x-1 sm:block" />
+        <ArrowRight className="ml-auto hidden size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 sm:block" />
       </div>
     </Link>
   );

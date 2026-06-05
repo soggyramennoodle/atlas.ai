@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Mic, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Recorder } from "@/components/upload/recorder";
@@ -13,6 +13,7 @@ type Mode = "record" | "upload";
 export function CapturePanel({ userId }: { userId: string }) {
   const [mode, setMode] = useState<Mode>("record");
   const { phase } = useRecording();
+  const reduceMotion = useReducedMotion();
 
   // §7: once a recording is in flight, the selector slides away so the
   // recorder can take over the screen. It returns when the session resets.
@@ -24,14 +25,14 @@ export function CapturePanel({ userId }: { userId: string }) {
         {!recordingLive && (
           <motion.div
             key="selector"
-            initial={{ opacity: 0, y: -8 }}
+            initial={reduceMotion ? false : { opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8, height: 0 }}
-            transition={{ duration: 0.3 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.3 }}
             className="overflow-hidden"
           >
             {/* Segmented control — recording leads, upload is the quieter option. */}
-            <div className="mx-auto grid w-full max-w-sm grid-cols-2 gap-1 rounded-full border bg-card/60 p-1">
+            <div className="mx-auto grid w-full max-w-sm grid-cols-2 gap-1 rounded-[4px] border border-border bg-card p-1">
               {(
                 [
                   { id: "record", label: "Record now", icon: Mic },
@@ -44,17 +45,21 @@ export function CapturePanel({ userId }: { userId: string }) {
                     key={t.id}
                     onClick={() => setMode(t.id)}
                     className={cn(
-                      "relative flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition",
+                      "relative flex items-center justify-center gap-2 rounded-[3px] px-4 py-2 text-sm font-medium transition-colors",
                       active
-                        ? "text-primary-foreground"
+                        ? "text-background"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {active && (
                       <motion.span
                         layoutId="capture-pill"
-                        className="absolute inset-0 rounded-full bg-primary"
-                        transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                        className="absolute inset-0 rounded-[3px] bg-foreground"
+                        transition={
+                          reduceMotion
+                            ? { duration: 0 }
+                            : { type: "spring", stiffness: 400, damping: 32 }
+                        }
                       />
                     )}
                     <t.icon className="relative size-4" />
@@ -69,11 +74,21 @@ export function CapturePanel({ userId }: { userId: string }) {
 
       <div className={mode === "record" ? "mt-7" : "mx-auto mt-7 max-w-2xl"}>
         {mode === "record" ? (
-          <motion.div key="record" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div
+            key="record"
+            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
             <Recorder />
           </motion.div>
         ) : (
-          <motion.div key="upload" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div
+            key="upload"
+            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
             <Uploader userId={userId} />
             <p className="mt-4 text-center text-xs text-muted-foreground">
               Already have a recording? Drop it in. Most students just{" "}

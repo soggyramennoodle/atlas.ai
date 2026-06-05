@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const LINES = [
   "Ready when your next lecture is.",
   "Let's turn today's classes into notes.",
-  "Press record — Atlas does the rest.",
+  "Press record. Atlas does the rest.",
   "Your library is one lecture away from growing.",
   "Listen well today. We'll handle the writing.",
 ];
@@ -51,11 +51,11 @@ export function Greeting({ name }: { name: string }) {
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
         {local?.date || " "}
       </p>
-      <h1 className="mt-2 inline-block font-display text-4xl font-extrabold leading-[0.95] tracking-[-0.02em] sm:text-5xl">
+      <h1 className="mt-2 inline-block text-4xl font-bold leading-[0.98] tracking-[-0.02em] sm:text-5xl">
         {local?.greeting ?? "Welcome back"},{" "}
         <span className="relative">
-          {name}
-          <span className="absolute -bottom-1 left-0 h-[3px] w-full rounded-full bg-gradient-to-r from-primary via-primary/40 to-transparent bg-[length:200%_100%] animate-gradient" />
+          <span className="text-primary">{name}</span>
+          <span className="absolute -bottom-1 left-0 h-[2px] w-full bg-primary/50" />
         </span>
       </h1>
       <p className="mt-3 text-muted-foreground">{local?.line ?? " "}</p>

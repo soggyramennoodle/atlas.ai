@@ -4,7 +4,7 @@ import { isNewsroomAdmin } from "@/lib/newsroom";
 import { AppSidebar } from "@/components/app/app-sidebar";
 import { RecordingProvider } from "@/components/recording/recording-context";
 import { RecordingDock } from "@/components/recording/recording-dock";
-import { SpatialBackground } from "@/components/spatial-background";
+import { MarketingBackground } from "@/components/marketing-background";
 
 export default async function AppLayout({
   children,
@@ -31,11 +31,8 @@ export default async function AppLayout({
   return (
     <RecordingProvider userId={user.id}>
       <div className="relative min-h-screen">
-        {/* The app shell keeps the spatial canvas (aurora + grid + drifting
-            blooms) until its own redesign phase. The marketing surface no longer
-            uses it. */}
-        <SpatialBackground />
-        <div aria-hidden className="noise-overlay" />
+        {/* Clean rivo-light canvas, shared with the marketing surface. */}
+        <MarketingBackground />
         <AppSidebar email={user.email ?? ""} isAdmin={isNewsroomAdmin(user.email)} />
         <div className="lg:pl-64">
           <div className="pt-16 lg:pt-0">{children}</div>

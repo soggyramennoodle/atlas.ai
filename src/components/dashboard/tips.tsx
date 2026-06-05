@@ -9,9 +9,9 @@ const TIPS = [
 
 export function Tips() {
   return (
-    <div className="rounded-[1.75rem] border bg-card/70 p-6">
+    <div className="rounded-[4px] border border-border bg-card p-6">
       <div className="flex items-center gap-2">
-        <span className="grid size-8 place-items-center rounded-lg bg-primary/10 text-primary">
+        <span className="grid size-8 place-items-center rounded-[4px] border border-border bg-background text-foreground">
           <Lightbulb className="size-4" />
         </span>
         <h3 className="font-semibold tracking-tight">Tips for better notes</h3>

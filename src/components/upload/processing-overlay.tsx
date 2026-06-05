@@ -53,26 +53,17 @@ export function ProcessingOverlay({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: reduceMotion ? 0 : 0.18, ease: "easeOut" }}
-          className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-background/88 px-4"
+          className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-background/92 px-4 backdrop-blur-sm"
         >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-aurora opacity-45"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-grid opacity-20 [mask-image:radial-gradient(70%_55%_at_50%_45%,black,transparent)]"
-          />
           {failed ? (
             <div
               aria-hidden
               className="pointer-events-none absolute left-1/2 top-1/2 size-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-destructive/20 opacity-35 blur-3xl"
             />
           ) : (
-            // The living, multi-color AI glow — emerald · teal · honey · lime
-            // blooms drifting on the compositor — so the wait while Atlas writes
-            // your notes feels alive instead of a flat scrim. Faded toward the
-            // edges so the centred text stays crisp and readable.
+            // The living multicolor AI glow blooms drifting on the compositor, so
+            // the wait while Atlas writes your notes feels alive instead of a flat
+            // scrim. Faded toward the edges so the centred text stays readable.
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 overflow-hidden [mask-image:radial-gradient(120%_90%_at_50%_50%,black,transparent_78%)]"
@@ -99,14 +90,14 @@ export function ProcessingOverlay({
                   : { duration: 2.6, ease: "easeInOut", repeat: Infinity }
               }
               className={cn(
-                "grid size-16 place-items-center rounded-full border bg-background/80 shadow-[0_18px_80px_-42px_color-mix(in_oklch,var(--primary)_90%,transparent)]",
+                "grid size-16 place-items-center rounded-[6px] border bg-background/90 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_18px_50px_-22px_rgba(0,0,0,0.3)]",
                 failed ? "border-destructive/30 text-destructive" : "border-primary/30 text-primary"
               )}
             >
               {failed ? <AlertCircle className="size-7" /> : <Sparkles className="size-7" />}
             </motion.div>
 
-            <p className="mt-6 font-display text-3xl font-bold tracking-[-0.02em]">
+            <p className="mt-6 text-3xl font-bold tracking-[-0.02em]">
               {title}
             </p>
             {!failed && stage === "analyzing" ? (

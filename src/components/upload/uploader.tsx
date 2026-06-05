@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   FileAudio,
   Loader2,
@@ -51,6 +51,7 @@ function formatDuration(s: number) {
 
 export function Uploader({ userId }: { userId: string }) {
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -159,15 +160,16 @@ export function Uploader({ userId }: { userId: string }) {
           tabIndex={0}
           onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
           className={cn(
-            "group flex cursor-pointer flex-col items-center justify-center rounded-[1.75rem] border-2 border-dashed bg-card px-6 py-16 text-center transition",
+            "group flex cursor-pointer flex-col items-center justify-center rounded-[4px] border-2 border-dashed border-border bg-card px-6 py-16 text-center transition-colors",
             dragging
-              ? "border-primary bg-primary/[0.04] scale-[1.01]"
-              : "hover:border-primary/50 hover:bg-muted/40"
+              ? "border-primary bg-primary/[0.04]"
+              : "hover:border-foreground/40 hover:bg-secondary"
           )}
         >
           <motion.span
-            animate={{ y: dragging ? -4 : 0 }}
-            className="grid size-16 place-items-center rounded-2xl bg-primary/10 text-primary"
+            animate={reduceMotion ? undefined : { y: dragging ? -4 : 0 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="grid size-16 place-items-center rounded-[4px] border border-border bg-background text-foreground"
           >
             <UploadCloud className="size-8" />
           </motion.span>
@@ -183,12 +185,13 @@ export function Uploader({ userId }: { userId: string }) {
 
       {file && (
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-[1.75rem] border bg-card p-5"
+          transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
+          className="rounded-[4px] border border-border bg-card p-5"
         >
           <div className="flex items-start gap-4">
-            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+            <span className="grid size-12 shrink-0 place-items-center rounded-[4px] border border-border bg-background text-foreground">
               <FileAudio className="size-6" />
             </span>
             <div className="min-w-0 flex-1">
@@ -201,7 +204,7 @@ export function Uploader({ userId }: { userId: string }) {
             {!busy && (
               <button
                 onClick={reset}
-                className="grid size-8 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                className="grid size-8 place-items-center rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 aria-label="Remove file"
               >
                 <X className="size-4" />

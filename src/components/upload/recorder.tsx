@@ -80,22 +80,15 @@ export function Recorder() {
         {/* Control box */}
         <div
           className={cn(
-            "glass-panel relative z-10 overflow-hidden rounded-[2rem] p-6 ring-luxe transition-transform duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] sm:p-8 motion-reduce:transition-none lg:will-change-transform",
+            "relative z-10 overflow-hidden rounded-[6px] border border-border bg-card p-6 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] sm:p-8 motion-reduce:transition-none lg:will-change-transform",
             !live && "lg:translate-x-[calc(50%+0.625rem)]",
             phase === "paused" && "border-destructive/50"
           )}
         >
-          <div
-            className={cn(
-              "pointer-events-none absolute -top-24 left-1/2 size-64 -translate-x-1/2 rounded-full blur-3xl",
-              phase === "paused" ? "bg-destructive/10" : "bg-primary/10"
-            )}
-          />
-
           <div className="relative flex flex-col items-center text-center">
             <span
               className={cn(
-                "inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.18em]",
+                "inline-flex items-center gap-2 rounded-[4px] border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em]",
                 phase === "paused"
                   ? "border-destructive/40 bg-destructive/10 text-destructive"
                   : "border-primary/30 bg-primary/10 text-primary"
@@ -151,7 +144,7 @@ export function Recorder() {
                     onClick={pause}
                     size="lg"
                     variant="outline"
-                    className="h-12 w-12 rounded-full p-0"
+                    className="h-12 w-12 rounded-[4px] p-0"
                     aria-label="Pause"
                   >
                     <Pause className="size-5" />
@@ -169,7 +162,7 @@ export function Recorder() {
                     onClick={resume}
                     size="lg"
                     variant="outline"
-                    className="h-12 w-12 rounded-full p-0"
+                    className="h-12 w-12 rounded-[4px] p-0"
                     aria-label="Resume"
                   >
                     <Play className="size-5" />
@@ -184,7 +177,7 @@ export function Recorder() {
               {phase === "recorded" && (
                 <div className="w-full space-y-5">
                   {recoveredDraft && (
-                    <div className="space-y-3 rounded-2xl border border-primary/30 bg-primary/[0.06] p-4 text-left">
+                    <div className="space-y-3 rounded-[4px] border border-primary/30 bg-primary/[0.06] p-4 text-left">
                       <div>
                         <p className="text-sm font-medium">Recovered recording</p>
                         <p className="mt-1 text-xs text-muted-foreground">
@@ -236,10 +229,10 @@ export function Recorder() {
                   {/* Escape hatch when processing fails: save the audio locally
                       so it can be re-uploaded later. */}
                   {failed && (
-                    <div className="space-y-3 rounded-2xl border border-destructive/40 bg-destructive/5 p-4 text-left">
+                    <div className="space-y-3 rounded-[4px] border border-destructive/40 bg-destructive/5 p-4 text-left">
                       <p className="text-sm text-muted-foreground">
                         Atlas couldn&apos;t process this recording. Download it now
-                        and upload it again later — you won&apos;t lose the audio.
+                        and upload it again later, so you won&apos;t lose the audio.
                       </p>
                       <Button
                         onClick={download}
@@ -257,12 +250,12 @@ export function Recorder() {
             </div>
 
             {/* Atlas Enclave — private & encrypted session badge (§7). */}
-            <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/40 px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
+            <span className="mt-6 inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-background px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
               <Lock className="size-3 text-primary" />
               Secured by Atlas Enclave
             </span>
             {(live || recoveredDraft) && (
-              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/40 px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
+              <span className="mt-2 inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-background px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
                 <Save className="size-3 text-primary" />
                 {formatSavedAt(lastSavedAt)}
               </span>
@@ -341,7 +334,7 @@ function SourcePicker({
           title="Virtual"
           desc={
             deviceSupported
-              ? "Capture a lecture playing in another tab or app — plus your mic for questions."
+              ? "Capture a lecture playing in another tab or app, plus your mic for questions."
               : deviceSupport === "browser"
                 ? "Capture a lecture playing on your screen. Needs Chrome or Edge."
                 : "Capture a lecture playing on your screen. Only available on a computer."
@@ -370,14 +363,14 @@ function SourcePicker({
           </>
         ) : deviceSupport === "browser" ? (
           <>
-            Safari and Firefox can&apos;t capture a tab&apos;s audio — open Atlas
+            Safari and Firefox can&apos;t capture a tab&apos;s audio. Open Atlas
             in <span className="font-medium text-foreground/80">Chrome</span> or{" "}
             <span className="font-medium text-foreground/80">Edge</span> to record
             a lecture playing on your screen.
           </>
         ) : (
           <>
-            Virtual lectures aren&apos;t available on mobile devices — open Atlas
+            Virtual lectures aren&apos;t available on mobile devices. Open Atlas
             on a laptop or desktop to capture a lecture playing on screen.
           </>
         )}
@@ -408,18 +401,18 @@ function SourceCard({
       disabled={disabled}
       aria-disabled={disabled}
       className={cn(
-        "group flex h-full flex-col items-start gap-2.5 rounded-2xl border border-border/70 bg-background/40 p-4 text-left transition-[transform,border-color,background-color] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none",
+        "group flex h-full flex-col items-start gap-2.5 rounded-[4px] border border-border bg-card p-4 text-left transition-[border-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/40 motion-reduce:transition-none",
         disabled
           ? "cursor-not-allowed opacity-55"
-          : "hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/[0.06] active:translate-y-0 motion-reduce:hover:translate-y-0"
+          : "hover:border-foreground/30 hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]"
       )}
     >
       <span
         className={cn(
-          "grid size-10 place-items-center rounded-xl transition-colors duration-200",
+          "grid size-10 place-items-center rounded-[4px] border border-border transition-colors duration-200",
           disabled
             ? "bg-muted text-muted-foreground"
-            : "bg-primary/10 text-primary group-hover:bg-primary/15"
+            : "bg-background text-foreground"
         )}
       >
         <Icon className="size-5" />
@@ -427,7 +420,7 @@ function SourceCard({
       <span className="flex items-center gap-2 text-base font-medium leading-none">
         {title}
         {badge && (
-          <span className="rounded-full border border-border/70 bg-muted/60 px-2 py-0.5 text-[0.6rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          <span className="rounded-[4px] border border-border bg-secondary px-2 py-0.5 text-[0.6rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
             {badge}
           </span>
         )}
@@ -471,13 +464,13 @@ function FluidTranscript() {
   let placeholder: string | null = null;
   if (source === "device" || !liveTranscriptActive) {
     placeholder =
-      "Capturing the lecture audio. The live transcript isn't shown for virtual lectures — Atlas writes the full transcript from the recording afterward.";
+      "Capturing the lecture audio. The live transcript isn't shown for virtual lectures. Atlas writes the full transcript from the recording afterward.";
   } else if (!transcriptSupported) {
     placeholder =
-      "Live transcript isn't available in this browser — your full transcript is still generated from the audio.";
+      "Live transcript isn't available in this browser. Your full transcript is still generated from the audio.";
   } else if (lines.length === 0) {
     placeholder =
-      phase === "paused" ? "Paused — resume to keep listening." : "Listening…";
+      phase === "paused" ? "Paused. Resume to keep listening." : "Listening…";
   }
 
   return (

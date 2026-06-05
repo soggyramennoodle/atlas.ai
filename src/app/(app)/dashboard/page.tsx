@@ -125,7 +125,7 @@ export default async function DashboardPage() {
               </Link>
             )}
           </div>
-          <Button asChild size="lg" className="group shimmer shrink-0">
+          <Button asChild size="lg" className="group shrink-0">
             <Link href="/upload">
               <Mic className="size-4" />
               Record a lecture
@@ -153,7 +153,7 @@ export default async function DashboardPage() {
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
           <section>
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-2xl font-bold tracking-tight">
+              <h2 className="text-2xl font-bold tracking-tight">
                 Recent recordings
               </h2>
               {notes.length > 0 && (
@@ -177,10 +177,10 @@ export default async function DashboardPage() {
                     <Link
                       key={note.id}
                       href={`/notes/${note.id}`}
-                      className="glow-card group flex flex-col rounded-2xl border bg-card/75 p-5 transition hover:-translate-y-0.5 hover:border-primary/30"
+                      className="group flex flex-col rounded-[4px] border border-border bg-card p-5 transition-shadow hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+                        <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-background text-foreground">
                           {failed ? (
                             <AlertCircle className="size-5 text-destructive" />
                           ) : processing ? (
@@ -192,17 +192,17 @@ export default async function DashboardPage() {
                         <span
                           className={
                             failed
-                              ? "inline-flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-destructive"
+                              ? "inline-flex items-center gap-1.5 rounded-[4px] border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-destructive"
                               : processing
-                                ? "inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-primary"
-                                : "inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-emerald-400"
+                                ? "inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-secondary px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground"
+                                : "inline-flex items-center gap-1.5 rounded-[4px] border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-primary"
                           }
                         >
                           <span className="size-1.5 rounded-full bg-current" />
                           {failed ? "Failed" : processing ? "Processing" : "Ready"}
                         </span>
                       </div>
-                      <h3 className="mt-4 line-clamp-2 font-display text-lg font-bold leading-snug tracking-tight">
+                      <h3 className="mt-4 line-clamp-2 text-lg font-bold leading-snug tracking-tight">
                         {note.title}
                       </h3>
                       <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">
