@@ -213,10 +213,12 @@ export async function POST(request: Request) {
       }
     }
 
-    // Segments still uploading, or recording not finished: release & wait.
+    // Segments still uploading, or recording not finished. Keep a short lease
+    // instead of clearing it immediately; otherwise one incomplete/stalled job
+    // can be re-claimed every tick and starve newer jobs that are ready.
     await db
       .from("lecture_jobs")
-      .update({ heartbeat_at: null, updated_at: new Date().toISOString() })
+      .update({ heartbeat_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq("id", job.id);
     return NextResponse.json({ claimed: true, waiting: true });
   }
