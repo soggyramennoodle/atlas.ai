@@ -25,7 +25,7 @@ export interface ProcessingIssue {
   message: string;
 }
 
-const LONG_RUN_DELAY = 60_000;
+const LONG_RUN_DELAY = 10_000;
 
 export function ProcessingOverlay({
   stage,
@@ -47,8 +47,8 @@ export function ProcessingOverlay({
 
   useEffect(() => {
     if (stage !== "analyzing") {
-      setShowLongRunHint(false);
-      return;
+      const id = window.setTimeout(() => setShowLongRunHint(false), 0);
+      return () => window.clearTimeout(id);
     }
     const id = window.setTimeout(() => setShowLongRunHint(true), LONG_RUN_DELAY);
     return () => window.clearTimeout(id);
@@ -161,7 +161,7 @@ export function ProcessingOverlay({
             )}
           </motion.div>
 
-          {/* Long-run hint — slides up from the bottom after 60 s of analyzing.
+          {/* Long-run hint — slides up from the bottom after 10 s of analyzing.
               Absolutely anchored inside the fixed scrim so it never needs scroll. */}
           <AnimatePresence>
             {showLongRunHint && (
