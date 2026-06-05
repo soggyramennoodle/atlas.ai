@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteNoteButton, ExportMenu } from "@/components/notes/note-actions";
 import { NoteSession } from "@/components/notes/note-session";
+import { ProcessingWatcher } from "@/components/notes/processing-watcher";
 import type { NoteRecord } from "@/lib/types";
 
 async function getNote(id: string) {
@@ -46,8 +47,11 @@ export default async function NotePage({
     ? `${Math.round(note.duration_seconds / 60)} min`
     : null;
 
+  const processing = note.content?.status === "processing";
+
   return (
     <main className="px-4 pb-24 pt-10 lg:pt-16">
+      {processing && <ProcessingWatcher noteId={note.id} />}
       <div className="mx-auto max-w-3xl">
         <div className="flex items-center justify-between">
           <Link

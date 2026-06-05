@@ -1,0 +1,234 @@
+
+<h2 class="sr-only">Full Atlas development roadmap: 2 pre-launch blockers, current product baseline, and 5 phases covering 35 features from launch hardening to platform scale</h2>
+
+<style>
+.pbtn:hover{border-color:var(--color-border-secondary)!important}
+.feat:hover{border-color:var(--color-border-secondary)!important}
+.cfbtn:hover{border-color:var(--color-border-secondary)!important;background:var(--color-background-secondary)!important}
+</style>
+
+<div style="padding:.5rem 0 1.5rem">
+
+<div style="border:.5px solid var(--color-border-danger);background:var(--color-background-danger);border-radius:var(--border-radius-md);padding:14px 16px;margin-bottom:12px">
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+    <i class="ti ti-alert-triangle" aria-hidden="true" style="font-size:16px;color:var(--color-text-danger)"></i>
+    <span style="font-size:13px;font-weight:500;color:var(--color-text-danger)">2 launch blockers — fix before scaling acquisition</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div style="font-size:12px;color:var(--color-text-danger);line-height:1.6">
+      <span style="font-weight:500;display:block;margin-bottom:2px">Privacy / storage mismatch</span>
+      App promises audio deletion post-processing. Original recording stays in Supabase Storage until note deletion. Fix the cleanup or fix the copy.
+    </div>
+    <div style="font-size:12px;color:var(--color-text-danger);line-height:1.6">
+      <span style="font-weight:500;display:block;margin-bottom:2px">Search UI missing</span>
+      Landing page markets notes as searchable. No search UI exists in dashboard or library. Ship it or remove the claim.
+    </div>
+  </div>
+</div>
+
+<div style="border:.5px solid var(--color-border-success);background:var(--color-background-success);border-radius:var(--border-radius-md);padding:12px 16px;margin-bottom:20px">
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+    <i class="ti ti-check" aria-hidden="true" style="font-size:14px;color:var(--color-text-success)"></i>
+    <span style="font-size:12px;font-weight:500;color:var(--color-text-success)">Shipped today</span>
+  </div>
+  <div id="today-chips" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+</div>
+
+<div id="phase-tabs" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"></div>
+<div id="phase-meta" style="margin-bottom:12px"></div>
+<div id="cat-filter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+<div id="feature-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px"></div>
+
+</div>
+
+<script>
+const existing = [
+  'Auth (magic-link + Google)','Onboarding + profile','Dashboard + stats',
+  'Browser recording','Audio file upload','Gemini AI notes pipeline',
+  'Transcript + key concepts','AI concept mini-chat','Rich-text editing (TipTap)',
+  'Memory-based AI preferences','PDF + DOCX export','Settings + privacy',
+];
+
+const phases = [
+  {
+    id:1,title:'Launch hardening',timeframe:'Now → 6 weeks',color:'danger',
+    tagline:'Make the core product trustworthy and reliable before any growth push.',
+    features:[
+      {title:'Audio privacy + storage fix',tag:'Infrastructure',priority:'critical',effort:1,
+       desc:'Delete audio from Supabase Storage post-processing, or update the privacy copy to match real retention. This is a trust issue, not a polish issue.'},
+      {title:'Note search UI',tag:'Core UX',priority:'critical',effort:2,
+       desc:'Full-text search across note titles, summaries, transcripts, and key concepts. Landing page already promises it — ship it or remove the claim.'},
+      {title:'Recording QA + browser compat',tag:'Quality',priority:'high',effort:2,
+       desc:'Manual mic test with real audio. Long-session test (60+ min). Cross-browser MediaRecorder compatibility matrix. Document what\'s unsupported.'},
+      {title:'Background job queue',tag:'Infrastructure',priority:'high',effort:3,
+       desc:'Move Gemini processing off the Vercel request lifecycle. Removes the 300s timeout risk and lets users close the tab during processing.'},
+      {title:'Larger file support',tag:'Infrastructure',priority:'medium',effort:2,
+       desc:'Chunked / resumable uploads to handle recordings beyond the 100 MB cap. Long lectures at decent quality routinely exceed this.'},
+      {title:'Error + loading states',tag:'UX',priority:'medium',effort:1,
+       desc:'Clear failure messages with retry paths. Progress indicators across upload, transcription, and note generation steps.'},
+    ]
+  },
+  {
+    id:2,title:'Organization + Study Sources',timeframe:'6 weeks → 4 months',color:'info',
+    tagline:'Give students structure for their knowledge, and a way to bring course materials into the system.',
+    features:[
+      {title:'Course / class folders',tag:'Organization',priority:'high',effort:2,
+       desc:'Group notes by course. Auto-suggest folder from subject/course tag captured at recording time. Required before Study Sources makes sense.'},
+      {title:'Tag + subject system',tag:'Organization',priority:'high',effort:2,
+       desc:'Multi-tag notes. Filter library by tag, course, date range. Backbone for note collections and study planning in later phases.'},
+      {title:'Sort & filter in library',tag:'Core UX',priority:'high',effort:1,
+       desc:'Sort by date, duration, subject. Filter by course or tag. Foundational — needed before any collection or search feature lands well.'},
+      {title:'Course materials library',tag:'Study Sources',priority:'high',effort:3,
+       desc:'Upload PDFs, PPTX, DOCX, and images (handwritten notes, slides photos) to a course folder. Materials live alongside notes in the course view.'},
+      {title:'Sources panel in generation',tag:'Study Sources',priority:'high',effort:3,
+       desc:'Before generating, show all course materials as selectable sources. Default: all included. Student can exclude any or upload more directly into the session.'},
+      {title:'Pinned + recently viewed',tag:'Core UX',priority:'medium',effort:1,
+       desc:'Pin important notes to the dashboard. Surface recently viewed notes for fast re-access between study sessions.'},
+      {title:'Bulk operations',tag:'Core UX',priority:'medium',effort:2,
+       desc:'Multi-select notes to delete, move to a folder, or export as a zip bundle. Reduces friction once a library grows past ~20 notes.'},
+      {title:'Auto-include preference',tag:'Study Sources',priority:'medium',effort:1,
+       desc:'Settings toggle: auto-include course materials in new notes for a course. On by default, configurable per-course.'},
+    ]
+  },
+  {
+    id:3,title:'Active Learning + Synthesis',timeframe:'4 → 7 months',color:'success',
+    tagline:'Turn passive notes into active retention, and unlock multi-source synthesis for richer, exam-ready notes.',
+    features:[
+      {title:'Multi-source AI synthesis',tag:'Study Sources',priority:'high',effort:4,
+       desc:'Generate a single note from lecture + selected course materials. Each claim carries inline source attribution — lecture, slides p.4, syllabus, assignment instructions.'},
+      {title:'Enrich existing note',tag:'Study Sources',priority:'high',effort:3,
+       desc:'Add a new material to an existing note and re-synthesize. Updated note in-place; original version archived. The "Add material" button in the note footer.'},
+      {title:'Flashcard generation',tag:'Learning',priority:'high',effort:3,
+       desc:'One-click: Anki-style flashcard decks from a note\'s key concepts and sections. Export to Anki CSV for students who already have a deck workflow.'},
+      {title:'AI quiz generator',tag:'Learning',priority:'high',effort:3,
+       desc:'Multiple choice and short-answer quizzes from note content. Graded with explanations that link back to the source transcript segment.'},
+      {title:'Spaced repetition review',tag:'Learning',priority:'high',effort:4,
+       desc:'SM-2 algorithm schedules concept reviews. Daily review queue on the dashboard. The feature that turns Atlas from a notes app into a daily habit.'},
+      {title:'Concept mastery tracking',tag:'Learning',priority:'medium',effort:2,
+       desc:'Per-concept status: not reviewed / learning / mastered. Visible on the note page and summarized in the dashboard stats panel.'},
+      {title:'Study streak improvements',tag:'Engagement',priority:'medium',effort:2,
+       desc:'Weekly goals, streak recovery mechanics, push + email reminders for the daily review queue. Builds the habit that drives retention.'},
+      {title:'Weak spots surface',tag:'Learning',priority:'medium',effort:3,
+       desc:'Dashboard widget: concepts with low quiz scores or not reviewed recently. Tells students what to study next without them having to figure it out.'},
+    ]
+  },
+  {
+    id:4,title:'Academic OS',timeframe:'7 → 11 months',color:'warning',
+    tagline:'Expand from lecture notes into the full academic layer — deadlines, exams, and personalized study plans.',
+    features:[
+      {title:'Assignment + deadline tracker',tag:'Academic',priority:'high',effort:3,
+       desc:'Add assignments with due dates. Dashboard surface shows what\'s due this week alongside the note library and daily review queue.'},
+      {title:'Exam calendar + countdowns',tag:'Academic',priority:'high',effort:2,
+       desc:'Mark exam dates. Prominent countdown on dashboard. Triggers AI study plan generation N weeks out automatically.'},
+      {title:'AI study plan generator',tag:'AI',priority:'high',effort:4,
+       desc:'"Exam in 2 weeks" → day-by-day review schedule using the student\'s actual notes, flashcard queue, known weak spots, and available study time.'},
+      {title:'Class schedule management',tag:'Academic',priority:'medium',effort:3,
+       desc:'Import or manually enter class schedule. Auto-associate new recordings with the right class by matching time and day.'},
+      {title:'Note collections',tag:'Organization',priority:'medium',effort:2,
+       desc:'Manually curated collections like "Final exam prep" that group notes across courses. Built on top of Phase 2 folders and tags.'},
+      {title:'Weekly study reports',tag:'Analytics',priority:'medium',effort:3,
+       desc:'In-app or email: hours studied, notes captured, concepts reviewed, assignments due, and what\'s coming up next week.'},
+      {title:'Cross-note knowledge graph',tag:'AI',priority:'low',effort:5,
+       desc:'Visualize concept connections across notes and courses. Surface "this concept also appeared in your CHEM 201 notes" automatically.'},
+    ]
+  },
+  {
+    id:5,title:'Platform & Scale',timeframe:'12 → 18 months',color:'secondary',
+    tagline:'Reach every student on every device, and grow through the institution rather than just the individual.',
+    features:[
+      {title:'iOS mobile app',tag:'Platform',priority:'high',effort:5,
+       desc:'Native app for recording lectures, reviewing flashcard queues, and checking deadlines on the go. iOS first, Android follows once product-market fit is confirmed.'},
+      {title:'Shared notes + study groups',tag:'Social',priority:'high',effort:4,
+       desc:'Share a note or collection with classmates. Group study rooms with shared flashcard decks and collaborative note editing.'},
+      {title:'LMS integrations',tag:'Integrations',priority:'high',effort:5,
+       desc:'Import assignments and deadlines from Canvas and Blackboard. Auto-sync class schedule and due dates. Removes the biggest manual data-entry burden.'},
+      {title:'Instructor / professor mode',tag:'Platform',priority:'medium',effort:4,
+       desc:'Professors upload lecture recordings and publish structured notes directly to enrolled students. Institutional growth vector.'},
+      {title:'Browser extension',tag:'Platform',priority:'medium',effort:3,
+       desc:'Record any browser-based lecture — Zoom, Teams, YouTube — without leaving the current tab or switching to the Atlas upload page.'},
+      {title:'Institutional licensing',tag:'Business',priority:'low',effort:4,
+       desc:'University-wide deals: SSO, admin dashboards, bulk provisioning, and compliance data exports. The B2B revenue layer.'},
+    ]
+  },
+];
+
+const PRI={
+  critical:{label:'Critical',color:'var(--color-text-danger)',bg:'var(--color-background-danger)'},
+  high:    {label:'High',    color:'var(--color-text-warning)',bg:'var(--color-background-warning)'},
+  medium:  {label:'Medium',  color:'var(--color-text-secondary)',bg:'var(--color-background-secondary)'},
+  low:     {label:'Low',     color:'var(--color-text-tertiary)',bg:'var(--color-background-secondary)'},
+};
+const ACC={
+  danger:   {color:'var(--color-text-danger)',  bg:'var(--color-background-danger)',  border:'var(--color-border-danger)'},
+  info:     {color:'var(--color-text-info)',    bg:'var(--color-background-info)',    border:'var(--color-border-info)'},
+  success:  {color:'var(--color-text-success)', bg:'var(--color-background-success)', border:'var(--color-border-success)'},
+  warning:  {color:'var(--color-text-warning)', bg:'var(--color-background-warning)', border:'var(--color-border-warning)'},
+  secondary:{color:'var(--color-text-secondary)',bg:'var(--color-background-secondary)',border:'var(--color-border-secondary)'},
+};
+
+function tagStyle(tag){
+  if(tag==='Study Sources') return {c:'var(--color-text-warning)',bg:'var(--color-background-warning)'};
+  if(['Learning','AI','Core UX','Analytics','Quality','UX'].includes(tag)) return {c:'var(--color-text-info)',bg:'var(--color-background-info)'};
+  if(['Organization','Engagement','Social'].includes(tag)) return {c:'var(--color-text-success)',bg:'var(--color-background-success)'};
+  return {c:'var(--color-text-secondary)',bg:'var(--color-background-secondary)'};
+}
+
+let active=1, activeCat='All';
+
+// Today chips
+const tc=document.getElementById('today-chips');
+existing.forEach(e=>{
+  const s=document.createElement('span');
+  s.style.cssText='font-size:11px;padding:2px 8px;border-radius:100px;background:var(--color-background-primary);color:var(--color-text-success);border:.5px solid var(--color-border-success);';
+  s.textContent=e;
+  tc.appendChild(s);
+});
+
+function render(){
+  const ph=phases.find(p=>p.id===active);
+  const a=ACC[ph.color];
+
+  document.getElementById('phase-tabs').innerHTML=phases.map(p=>{
+    const pa=ACC[p.color];const on=p.id===active;
+    return `<button class="pbtn" onclick="selectPhase(${p.id})" style="flex:1;min-width:110px;background:${on?'var(--color-background-primary)':'var(--color-background-secondary)'};border:${on?'1px':'0.5px'} solid ${on?pa.border:'var(--color-border-tertiary)'};border-radius:var(--border-radius-md);padding:10px 12px;cursor:pointer;text-align:left;">
+      <div style="font-size:11px;color:${on?pa.color:'var(--color-text-tertiary)'};margin-bottom:3px;font-weight:500;">${p.timeframe}</div>
+      <div style="font-size:12px;font-weight:500;color:var(--color-text-primary);line-height:1.3;">Phase ${p.id}: ${p.title}</div>
+    </button>`;
+  }).join('');
+
+  const crit=ph.features.filter(f=>f.priority==='critical').length;
+  document.getElementById('phase-meta').innerHTML=`
+    <p style="font-size:13px;color:var(--color-text-secondary);margin:0;line-height:1.6;">${ph.tagline}</p>
+    <p style="font-size:11px;color:var(--color-text-tertiary);margin:4px 0 0;">${ph.features.length} features${crit>0?' · '+crit+' critical':''}</p>`;
+
+  const cats=['All',...new Set(ph.features.map(f=>f.tag))];
+  document.getElementById('cat-filter').innerHTML=cats.map(c=>{
+    const on=c===activeCat;
+    const ts=c==='All'?{c:'var(--color-text-secondary)',bg:'var(--color-background-secondary)'}:tagStyle(c);
+    return `<button class="cfbtn" onclick="selectCat('${c}')" style="font-size:11px;padding:3px 10px;border-radius:100px;border:.5px solid ${on?'var(--color-border-secondary)':'var(--color-border-tertiary)'};background:${on?ts.bg:'transparent'};color:${on?ts.c:'var(--color-text-secondary)'};font-weight:${on?'500':'400'};cursor:pointer;">${c}</button>`;
+  }).join('');
+
+  const filtered=activeCat==='All'?ph.features:ph.features.filter(f=>f.tag===activeCat);
+  document.getElementById('feature-grid').innerHTML=filtered.map(f=>{
+    const pr=PRI[f.priority];const ts=tagStyle(f.tag);
+    const dots=Array.from({length:5},(_,i)=>`<span style="width:5px;height:5px;border-radius:50%;display:inline-block;background:${i<f.effort?'var(--color-text-secondary)':'var(--color-border-secondary)'}"></span>`).join('');
+    return `<div class="feat" style="background:var(--color-background-primary);border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:14px;">
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">
+        <span style="flex:1;font-size:13px;font-weight:500;color:var(--color-text-primary);line-height:1.4;">${f.title}</span>
+        <span style="flex-shrink:0;font-size:11px;padding:2px 8px;border-radius:100px;background:${pr.bg};color:${pr.color};font-weight:500;white-space:nowrap;">${pr.label}</span>
+      </div>
+      <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;line-height:1.6;">${f.desc}</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+        <span style="font-size:11px;padding:2px 8px;border-radius:100px;background:${ts.bg};color:${ts.c};">${f.tag}</span>
+        <div style="display:flex;align-items:center;gap:3px;">
+          <span style="font-size:11px;color:var(--color-text-tertiary);margin-right:3px;">Effort</span>${dots}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectPhase(id){active=id;activeCat='All';render();}
+function selectCat(cat){activeCat=cat;render();}
+render();
+</script>

@@ -603,15 +603,6 @@ export function RecordingProvider({
     activeAudioMsRef.current = 0;
   }, []);
 
-  const clipWouldBeSilent = useCallback(
-    (durationSeconds: number) =>
-      durationSeconds >= SILENCE_MIN_DURATION_SECONDS &&
-      audioPeakRef.current < SILENCE_PEAK_THRESHOLD &&
-      activeAudioMsRef.current < SILENCE_MIN_ACTIVE_MS &&
-      !finalTranscriptRef.current.trim(),
-    []
-  );
-
   // Cleanup on unmount.
   useEffect(() => {
     return () => {
@@ -714,23 +705,17 @@ export function RecordingProvider({
     setStage("analyzing"); // shows the ProcessingOverlay
     let noteId: string | null = null;
     try {
-      const enq = await fetch("/api/jobs/enqueue", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jobId: jobIdRef.current, sessionLabel, source: currentSourceRef.current,
-          durationSeconds: Math.round(secondsRef.current) || null,
-          liveTranscript: liveTranscriptRef.current || null,
-        }),
-      }).then((r) => r.json()).catch(() => null);
-      noteId = enq?.noteId ?? null;
-      await fetch("/api/jobs/complete", {
+      // Completing the job creates the placeholder note and flips the job to
+      // recording_complete so the worker picks it up. It returns the note id.
+      const res = await fetch("/api/jobs/complete", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jobId: jobIdRef.current, segmentCount: segmentIndexRef.current,
           durationSeconds: Math.round(secondsRef.current) || null,
           liveTranscript: liveTranscriptRef.current || null,
         }),
-      }).catch(() => {});
+      }).then((r) => r.json()).catch(() => null);
+      noteId = res?.noteId ?? null;
     } catch {}
     // Clear local draft now that all segments are server-side.
     void enqueueDraftWrite(() => clearRecordingDraft(userId));
@@ -743,7 +728,7 @@ export function RecordingProvider({
     enqueuedRef.current = false; segmentIndexRef.current = 0;
     toast.success("Atlas is generating your notes.");
     if (noteId) router.push(`/notes/${noteId}`); else router.push("/dashboard");
-  }, [sessionLabel, userId, enqueueDraftWrite, emitLevels, emitTranscript, router]);
+  }, [userId, enqueueDraftWrite, emitLevels, emitTranscript, router]);
 
   // (Re)arm the rotation timer while recording. On fire it stops the current
   // MediaRecorder (with rotatingRef set), whose onstop finalizes the segment,
