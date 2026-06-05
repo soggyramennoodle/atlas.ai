@@ -66,6 +66,7 @@
   --pop-coral: oklch(0.7 0.16 30);
 
   --noise-opacity: 0.02;
+  --blueprint-strength: 7%;
   --aurora-primary-strength: 26%;
   --aurora-secondary-strength: 20%;
   --grid-strength: 7%;
@@ -113,6 +114,7 @@
   --pop-coral: oklch(0.75 0.16 30);
 
   --noise-opacity: 0.04;
+  --blueprint-strength: 10%;
   --aurora-primary-strength: 30%;
   --aurora-secondary-strength: 22%;
   --grid-strength: 8%;
@@ -451,12 +453,12 @@
     background-image:
       linear-gradient(
         to right,
-        color-mix(in oklch, var(--foreground) 5%, transparent) 1px,
+        color-mix(in oklch, var(--foreground) var(--blueprint-strength), transparent) 1px,
         transparent 1px
       ),
       linear-gradient(
         to bottom,
-        color-mix(in oklch, var(--foreground) 5%, transparent) 1px,
+        color-mix(in oklch, var(--foreground) var(--blueprint-strength), transparent) 1px,
         transparent 1px
       );
     background-size: 76px 76px;
