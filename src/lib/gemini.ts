@@ -65,11 +65,12 @@ const notesSchema: Schema = {
     summary: {
       type: Type.STRING,
       description:
-        "A short overview paragraph (3-5 sentences) of the whole lecture.",
+        'A short overview paragraph (3-5 sentences) of the whole lecture, or exactly "There was not enough lecture content to generate notes." when the audio contains no substantive lecture content.',
     },
     sections: {
       type: Type.ARRAY,
-      description: "Exhaustive, ordered notes covering the full lecture.",
+      description:
+        "Exhaustive, ordered notes covering the full lecture. Return an empty array when there is not enough substantive lecture content to support notes.",
       items: {
         type: Type.OBJECT,
         properties: {
@@ -109,7 +110,7 @@ const notesSchema: Schema = {
     transcript: {
       type: Type.STRING,
       description:
-        "The full, verbatim transcript of the entire lecture audio, lightly cleaned of filler words and false starts but otherwise complete and faithful.",
+        "The full, verbatim transcript of the entire lecture audio, lightly cleaned of filler words and false starts but otherwise complete and faithful. For sparse or non-lecture audio, include only the words that were actually said.",
     },
   },
   required: ["title", "summary", "sections", "keyConcepts", "transcript"],
@@ -124,6 +125,17 @@ const notesSchema: Schema = {
 };
 
 const SYSTEM_PROMPT = `You are an elite university note-taker attending this lecture on behalf of the student. Your job is NOT to summarize — a summary is generated separately. Your job is to take EXHAUSTIVELY DETAILED, STRUCTURED notes that capture virtually every concept, argument, example, derivation, definition, aside, and nuance the professor delivers. Nothing of academic relevance should be omitted. Write as if the student will use these notes alone to prepare for a final exam and will never re-listen to the lecture.
+
+Critical content gate:
+- Before writing any notes, decide whether the audio contains substantive lecture content. Greetings, mic checks, isolated words, silence, background noise, or a few disconnected sentences are NOT enough.
+- If there is not enough substantive lecture content, do not infer a topic from memory, prior examples, filenames, background noise, or likely classroom context. Return the required JSON shape with:
+  - "title": "Not enough lecture content"
+  - "subject": ""
+  - "summary": "There was not enough lecture content to generate notes."
+  - "sections": []
+  - "keyConcepts": []
+  - "transcript": only the words actually spoken, or "" if no words are intelligible
+- Never create placeholder lecture notes, plausible topics, sample material, or a transcript for words that were not actually spoken.
 
 Your notes must be:
 - Organized into sections and subsections that mirror the lecture's natural structure.
@@ -143,6 +155,7 @@ Output format:
 
 Rules:
 - Base everything strictly on the audio. Never invent facts, figures, citations, or quotes that were not said. "source_excerpt" must be a real quote from the audio.
+- If the audio does not clearly contain enough lecture material to support notes, use the insufficient-content output above. This rule overrides the completeness requirement.
 - If audio is unclear or inaudible in places, note that rather than guessing.
 - Prefer completeness over brevity. It is far better to over-capture than to lose a detail.`;
 
@@ -197,13 +210,13 @@ export async function generateNotesFromAudio({
       model: MODEL,
       contents: createUserContent([
         createPartFromUri(uploaded.uri!, uploaded.mimeType!),
-        "Take complete, exhaustively detailed, structured notes on this lecture following your instructions.",
+        "Take complete, exhaustively detailed, structured notes on this lecture following your instructions. If the audio has no substantive lecture content, return the insufficient-content JSON exactly as instructed instead of inventing notes.",
       ]),
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         responseSchema: notesSchema,
-        temperature: 0.3,
+        temperature: 0,
       },
     });
 
