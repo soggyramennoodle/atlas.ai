@@ -13,6 +13,9 @@ interface PresignBody {
   contentType?: string;
   fileSize?: number;
   requestId?: string;
+  /** Durable-job uploads: scope the key to a job + segment index. */
+  jobId?: string;
+  segmentIndex?: number;
 }
 
 function safeFilename(filename: string) {
@@ -74,7 +77,15 @@ export async function POST(request: Request) {
     ? safeFilename(body.filename)
     : `lecture.${extensionForContentType(contentType)}`;
   const requestId = body.requestId?.trim() || crypto.randomUUID();
-  const key = `${user.id}/${requestId}-${filename}`;
+  // Durable-job segment uploads land at a stable, job-scoped key so the worker
+  // (and recovery) can find each segment deterministically.
+  const isSegment =
+    typeof body.jobId === "string" &&
+    body.jobId.trim().length > 0 &&
+    Number.isInteger(body.segmentIndex);
+  const key = isSegment
+    ? `${user.id}/${body.jobId!.trim()}/${body.segmentIndex}.${extensionForContentType(contentType)}`
+    : `${user.id}/${requestId}-${filename}`;
 
   const command = new PutObjectCommand({
     Bucket: getR2Bucket(),
