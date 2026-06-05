@@ -27,101 +27,107 @@ export function Nav({ email }: { email: string | null }) {
   const initials = email ? email[0]?.toUpperCase() : "?";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6">
-        <Link
-          href="/"
-          className="shrink-0 transition-opacity hover:opacity-80"
-        >
-          <Logo beta />
-        </Link>
-
-        <nav className="hidden items-center gap-1 md:flex">
-          {LINKS.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="rounded-[4px] px-3 py-1.5 text-[14px] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          {email ? (
-            <div className="hidden items-center gap-2 md:flex">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
-              <UserMenu email={email} initials={initials} />
-            </div>
-          ) : (
-            <div className="hidden items-center gap-2 md:flex">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/login">Log in</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/signup">Get started</Link>
-              </Button>
-            </div>
-          )}
-
-          <button
-            onClick={() => setOpen((v) => !v)}
-            className="grid size-9 place-items-center rounded-[4px] border border-border bg-card text-foreground transition-colors hover:bg-accent md:hidden"
-            aria-label="Toggle menu"
-            aria-expanded={open}
+    // The <header> is a transparent sticky shell — no full-width strip. The
+    // inner container is the visible floating bar, inset from the top and sides.
+    <header className="sticky top-0 z-50">
+      <div className="mx-auto max-w-[1200px] px-4 pt-3 sm:px-6 sm:pt-4">
+        <div className="flex h-16 items-center justify-between gap-4 rounded-[6px] border border-border bg-background/85 px-4 shadow-[0_2px_8px_rgba(15,23,42,0.04),0_14px_34px_-20px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:h-[68px] sm:px-5">
+          <Link
+            href="/"
+            className="shrink-0 rounded-[4px] transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            {open ? <X className="size-4" /> : <Menu className="size-4" />}
-          </button>
-        </div>
-      </div>
+            <Logo beta size="lg" />
+          </Link>
 
-      {open && (
-        <div className="border-t border-border bg-background px-4 py-3 md:hidden">
-          {LINKS.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className="block rounded-[4px] px-3 py-2.5 text-[14px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            >
-              {l.label}
-            </Link>
-          ))}
-          <div className="my-2 h-px bg-border" />
-          {email ? (
-            <>
+          <nav className="hidden items-center gap-1 md:flex">
+            {LINKS.map((l) => (
               <Link
-                href="/dashboard"
-                onClick={() => setOpen(false)}
-                className="block rounded-[4px] px-3 py-2.5 text-[14px] font-medium transition-colors hover:bg-accent"
+                key={l.href}
+                href={l.href}
+                className="rounded-[4px] px-3.5 py-2 text-[15px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                Dashboard
+                {l.label}
               </Link>
-              <form action="/auth/signout" method="post">
-                <button className="w-full rounded-[4px] px-3 py-2.5 text-left text-[14px] text-muted-foreground transition-colors hover:bg-accent">
-                  Sign out
-                </button>
-              </form>
-            </>
-          ) : (
-            <div className="grid gap-2 p-1">
-              <Button asChild variant="outline">
-                <Link href="/login" onClick={() => setOpen(false)}>
-                  Log in
-                </Link>
-              </Button>
-              <Button asChild>
-                <Link href="/signup" onClick={() => setOpen(false)}>
-                  Get started
-                </Link>
-              </Button>
-            </div>
-          )}
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2">
+            {email ? (
+              <div className="hidden items-center gap-2 md:flex">
+                <Button asChild variant="ghost" size="sm">
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+                <UserMenu email={email} initials={initials} />
+              </div>
+            ) : (
+              <div className="hidden items-center gap-2 md:flex">
+                <Button asChild variant="ghost" size="sm">
+                  <Link href="/login">Log in</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/signup">Get started</Link>
+                </Button>
+              </div>
+            )}
+
+            <button
+              onClick={() => setOpen((v) => !v)}
+              className="grid size-10 place-items-center rounded-[4px] border border-border bg-card text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+              aria-label="Toggle menu"
+              aria-expanded={open}
+            >
+              {open ? <X className="size-4" /> : <Menu className="size-4" />}
+            </button>
+          </div>
         </div>
-      )}
+
+        {/* Mobile panel — a detached floating sheet aligned to the bar, not a
+            full-width strip. */}
+        {open && (
+          <div className="mt-2 rounded-[6px] border border-border bg-background/95 p-2 shadow-[0_2px_8px_rgba(15,23,42,0.04),0_14px_34px_-20px_rgba(15,23,42,0.32)] backdrop-blur-xl md:hidden">
+            {LINKS.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="block rounded-[4px] px-3 py-2.5 text-[15px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                {l.label}
+              </Link>
+            ))}
+            <div className="my-2 h-px bg-border" />
+            {email ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="block rounded-[4px] px-3 py-2.5 text-[15px] font-medium transition-colors hover:bg-accent"
+                >
+                  Dashboard
+                </Link>
+                <form action="/auth/signout" method="post">
+                  <button className="w-full rounded-[4px] px-3 py-2.5 text-left text-[15px] text-muted-foreground transition-colors hover:bg-accent">
+                    Sign out
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div className="grid gap-2 p-1">
+                <Button asChild variant="outline">
+                  <Link href="/login" onClick={() => setOpen(false)}>
+                    Log in
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/signup" onClick={() => setOpen(false)}>
+                    Get started
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </header>
   );
 }

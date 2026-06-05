@@ -50,7 +50,10 @@ export function ThemeToggle() {
         aria-pressed={!isDark}
         onClick={toggleTheme}
         className={cn(
-          "fixed right-[4.5rem] top-5 z-[70] grid size-9 place-items-center overflow-hidden rounded-[4px] border bg-background/90 text-foreground shadow-[0_10px_28px_rgba(15,23,42,0.12)] backdrop-blur-xl transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:right-4 md:top-20 md:size-10 xl:top-4"
+          // Sits clear of the floating site header: just below it on small and
+          // medium widths, tucked into the top-right corner on xl where the
+          // centered bar no longer reaches the edge.
+          "fixed right-4 top-[5.5rem] z-[70] grid size-9 place-items-center overflow-hidden rounded-[4px] border bg-background/90 text-foreground shadow-[0_10px_28px_rgba(15,23,42,0.12)] backdrop-blur-xl transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:top-24 md:size-10 xl:top-4"
         )}
         whileHover={{ y: -2, scale: 1.02 }}
         whileTap={{ scale: 0.95 }}

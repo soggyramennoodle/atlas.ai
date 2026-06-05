@@ -45,17 +45,27 @@ export function Logo({
   className,
   mark = false,
   beta = false,
+  size = "default",
 }: {
   className?: string;
   mark?: boolean;
   beta?: boolean;
+  /** `lg` bumps the mark + wordmark a touch — used by the floating site header. */
+  size?: "default" | "lg";
 }) {
   if (mark) return <AtlasMark className={className} />;
 
+  const lg = size === "lg";
+
   return (
     <span className={cn("inline-flex items-center gap-2 text-primary", className)}>
-      <AtlasMark className="size-7" />
-      <span className="text-[1.35rem] font-semibold leading-none tracking-tight text-foreground">
+      <AtlasMark className={lg ? "size-8" : "size-7"} />
+      <span
+        className={cn(
+          "font-semibold leading-none tracking-tight text-foreground",
+          lg ? "text-[1.5rem]" : "text-[1.35rem]"
+        )}
+      >
         Atlas
       </span>
       {beta && <BetaBadge />}
