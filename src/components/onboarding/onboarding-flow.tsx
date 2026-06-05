@@ -133,7 +133,7 @@ export function OnboardingFlow() {
               <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
                 Step {step + 1} of {STEPS.length}
               </p>
-              <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight">
+              <h1 className="mt-2 font-display text-3xl font-extrabold tracking-[-0.02em]">
                 {field.title}
               </h1>
               <div className="mt-6 space-y-2">

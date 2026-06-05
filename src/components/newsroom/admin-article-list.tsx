@@ -197,7 +197,7 @@ function ConfirmDelete({
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/70 p-4 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl">
-        <h2 className="font-display text-lg font-semibold tracking-tight">
+        <h2 className="font-display text-xl font-bold tracking-tight">
           Delete this article?
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">

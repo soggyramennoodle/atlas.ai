@@ -84,7 +84,7 @@ export function ProcessingOverlay({
               {failed ? <AlertCircle className="size-7" /> : <Sparkles className="size-7" />}
             </div>
 
-            <p className="mt-6 font-display text-2xl font-semibold tracking-tight">
+            <p className="mt-6 font-display text-3xl font-bold tracking-[-0.02em]">
               {title}
             </p>
             <p className="mt-3 max-w-md text-pretty text-sm leading-6 text-muted-foreground">

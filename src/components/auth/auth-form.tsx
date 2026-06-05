@@ -119,12 +119,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
           <Mail className="size-6" />
         </span>
-        <h2 className="mt-5 font-display text-xl font-semibold tracking-tight">
+        <h2 className="mt-5 font-display text-2xl font-bold tracking-tight">
           Check your email
         </h2>
         <p className="mt-2 text-sm text-muted-foreground text-pretty">
-          We sent a magic link to <strong>{email}</strong>. Click it to sign in
-          — no password needed.
+          We sent a magic link to <strong>{email}</strong>. Click it to sign in,
+          no password needed.
         </p>
 
         <div className="mt-6 flex flex-col items-center gap-3">
@@ -151,7 +151,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   return (
     <div className="glass-panel ring-luxe rounded-[1.5rem] p-8">
-      <h1 className="font-display text-2xl font-semibold tracking-tight">
+      <h1 className="font-display text-3xl font-extrabold tracking-[-0.02em]">
         {isSignup ? "Create your account" : "Welcome back"}
       </h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
