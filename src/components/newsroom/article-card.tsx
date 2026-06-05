@@ -47,8 +47,8 @@ export function ArticleCard({
 
       <h3
         className={cn(
-          "mt-4 font-display font-semibold leading-snug tracking-tight text-balance",
-          featured ? "text-2xl sm:text-3xl" : "text-lg"
+          "mt-4 font-display font-bold leading-[1.05] tracking-tight text-balance",
+          featured ? "text-3xl sm:text-4xl" : "text-xl"
         )}
       >
         {article.title}

@@ -99,7 +99,7 @@ export default async function ArticlePage({
             )}
           </div>
 
-          <h1 className="mt-5 font-display text-3xl font-semibold leading-tight tracking-tight text-balance sm:text-4xl">
+          <h1 className="mt-5 font-display text-4xl font-extrabold leading-[0.95] tracking-[-0.025em] text-balance sm:text-5xl">
             {article.title}
           </h1>
 

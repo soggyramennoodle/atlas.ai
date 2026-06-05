@@ -194,12 +194,12 @@ function PrivacyPanel() {
           <Lock className="size-3.5" />
           Atlas Enclave
         </span>
-        <h2 className="mt-4 text-lg font-semibold tracking-tight">
+        <h2 className="mt-4 font-display text-xl font-bold tracking-tight">
           Your notes are private and only visible to you.
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
-          Every recording and note is scoped to your account alone. No one else
-          — not other students, not the public — can see them.
+          Every recording and note is scoped to your account alone. No one else,
+          not other students, not the public, can see them.
         </p>
       </div>
 
@@ -263,7 +263,7 @@ function AccountPanel({
             <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Member since
             </dt>
-            <dd className="mt-1.5 text-sm font-medium">{joined ?? "—"}</dd>
+            <dd className="mt-1.5 text-sm font-medium">{joined ?? "Not set"}</dd>
           </div>
         </dl>
       </div>
