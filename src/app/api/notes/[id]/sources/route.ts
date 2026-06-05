@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import { Type, type Schema } from "@google/genai";
 import { parse } from "node-html-parser";
 import { createClient } from "@/lib/supabase/server";
-import { getGeminiClient, HELPER_MODEL } from "@/lib/gemini";
+import { getGeminiClient } from "@/lib/gemini";
 import { htmlToPlainText, sanitizeNoteHtml } from "@/lib/notes-html";
 import type { BodySource, NotePoint, StructuredNotes } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+// Edit re-reading is a short, frequent classification call — pinned to Flash
+// (not the helper-model env override) so it stays cheap and fast even for a
+// student who only made one small edit.
+const SOURCES_MODEL = "gemini-2.5-flash";
 
 const MAX_ITEMS = 140;
 const MAX_CANDIDATES = 220;
@@ -161,7 +166,7 @@ export async function POST(
   try {
     const ai = getGeminiClient();
     const res = await ai.models.generateContent({
-      model: HELPER_MODEL,
+      model: SOURCES_MODEL,
       contents: `Classify whether each EDITED_NOTE_ITEM still comes from one of the ORIGINAL_SOURCE_POINTS.
 
 Rules:
