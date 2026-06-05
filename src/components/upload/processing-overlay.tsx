@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { AlertCircle, Download, Mic, RefreshCcw, Sparkles, Trash2 } from "lucide-react";
+import { AlertCircle, Clock, Download, Mic, RefreshCcw, Sparkles, Trash2 } from "lucide-react";
 import { AiGlow } from "@/components/ui/ai-glow";
 import { ThinkingStatus } from "@/components/upload/thinking-status";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,8 @@ export interface ProcessingIssue {
   message: string;
 }
 
+const LONG_RUN_DELAY = 60_000;
+
 export function ProcessingOverlay({
   stage,
   issue,
@@ -40,6 +43,16 @@ export function ProcessingOverlay({
   onDownload?: () => void;
 }) {
   const reduceMotion = useReducedMotion();
+  const [showLongRunHint, setShowLongRunHint] = useState(false);
+
+  useEffect(() => {
+    if (stage !== "analyzing") {
+      setShowLongRunHint(false);
+      return;
+    }
+    const id = window.setTimeout(() => setShowLongRunHint(true), LONG_RUN_DELAY);
+    return () => window.clearTimeout(id);
+  }, [stage]);
   const visible = stage !== "idle" || !!issue;
   const failed = !!issue;
   const title = issue?.title ?? (stage === "idle" ? "" : STAGE_COPY[stage]);
@@ -147,6 +160,28 @@ export function ProcessingOverlay({
               </div>
             )}
           </motion.div>
+
+          {/* Long-run hint — slides up from the bottom after 60 s of analyzing.
+              Absolutely anchored inside the fixed scrim so it never needs scroll. */}
+          <AnimatePresence>
+            {showLongRunHint && (
+              <motion.div
+                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: reduceMotion ? 0 : 0.38, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute bottom-6 left-1/2 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 sm:bottom-8"
+              >
+                <div className="flex items-start gap-3 rounded-[6px] border border-border bg-card/95 px-4 py-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.1)] backdrop-blur-sm">
+                  <Clock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Longer lectures can take a few minutes to process.{" "}
+                    <span className="text-foreground">Hang tight.</span>
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>
