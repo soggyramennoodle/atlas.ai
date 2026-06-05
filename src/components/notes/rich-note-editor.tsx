@@ -52,12 +52,12 @@ export function RichNoteEditor({
 
   if (!editor) {
     return (
-      <div className="min-h-[24rem] animate-pulse rounded-2xl bg-muted/40" />
+      <div className="min-h-[24rem] animate-pulse rounded-[4px] bg-muted/40" />
     );
   }
 
   return (
-    <div className="rounded-[1.5rem] border bg-card/40">
+    <div className="rounded-[4px] border bg-card shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       <Toolbar editor={editor} />
       <div className="px-5 py-5 sm:px-7">
         <EditorContent editor={editor} />
@@ -68,7 +68,7 @@ export function RichNoteEditor({
 
 function Toolbar({ editor }: { editor: Editor }) {
   return (
-    <div className="sticky top-16 z-10 flex flex-wrap items-center gap-1 rounded-t-[1.5rem] border-b bg-card/80 px-3 py-2 backdrop-blur-xl">
+    <div className="sticky top-16 z-10 flex flex-wrap items-center gap-1 rounded-t-[4px] border-b bg-card/90 px-3 py-2 backdrop-blur-xl">
       <ToolButton
         label="Bold"
         active={editor.isActive("bold")}
@@ -146,8 +146,8 @@ function ToolButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "grid size-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground",
-        active && "bg-primary/15 text-primary"
+        "grid size-8 place-items-center rounded-[4px] text-muted-foreground transition hover:bg-accent hover:text-foreground",
+        active && "bg-foreground text-background"
       )}
     >
       {children}

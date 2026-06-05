@@ -80,7 +80,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setSending(true);
     try {
       if (await deliverLink()) {
-        toast.success("Sent again — check your inbox.");
+        toast.success("Sent again. Check your inbox.");
         setCooldown(RESEND_COOLDOWN);
       }
     } finally {
@@ -115,11 +115,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   if (sent) {
     return (
-      <div className="glass-panel ring-luxe rounded-[1.5rem] p-8 text-center">
-        <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+      <div className="rounded-[4px] border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
+        <span className="mx-auto grid size-12 place-items-center rounded-[4px] border border-border bg-background text-foreground">
           <Mail className="size-6" />
         </span>
-        <h2 className="mt-5 font-display text-2xl font-bold tracking-tight">
+        <h2 className="mt-5 text-2xl font-bold tracking-tight">
           Check your email
         </h2>
         <p className="mt-2 text-sm text-muted-foreground text-pretty">
@@ -150,8 +150,8 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   }
 
   return (
-    <div className="glass-panel ring-luxe rounded-[1.5rem] p-8">
-      <h1 className="font-display text-3xl font-extrabold tracking-[-0.02em]">
+    <div className="rounded-[4px] border border-border bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
+      <h1 className="text-3xl font-bold tracking-[-0.02em]">
         {isSignup ? "Create your account" : "Welcome back"}
       </h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
@@ -206,7 +206,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       </form>
 
       <p className="mt-5 text-center text-xs text-muted-foreground text-pretty">
-        We&apos;ll email you a secure link to sign in — no password to remember.
+        We&apos;ll email you a secure link to sign in. No password to remember.
       </p>
 
       <p className="mt-4 text-center text-sm text-muted-foreground">

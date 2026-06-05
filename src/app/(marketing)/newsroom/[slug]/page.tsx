@@ -93,13 +93,13 @@ export default async function ArticlePage({
             <CategoryChip category={article.category} />
             {article.severity && <SeverityChip severity={article.severity} />}
             {article.version && (
-              <span className="rounded-full border border-border bg-muted/40 px-2.5 py-0.5 font-mono text-[0.65rem] text-muted-foreground">
+              <span className="rounded-[3px] border border-border bg-muted/40 px-2.5 py-0.5 font-mono text-[0.65rem] text-muted-foreground">
                 {article.version}
               </span>
             )}
           </div>
 
-          <h1 className="mt-5 font-display text-4xl font-extrabold leading-[0.95] tracking-[-0.025em] text-balance sm:text-5xl">
+          <h1 className="mt-5 text-4xl font-extrabold leading-[0.95] text-balance sm:text-5xl">
             {article.title}
           </h1>
 
@@ -149,7 +149,7 @@ export default async function ArticlePage({
       {/* Related */}
       {related.length > 0 && (
         <section className="mx-auto mt-16 w-full max-w-5xl">
-          <h2 className="font-display text-lg font-semibold tracking-tight">
+          <h2 className="text-lg font-semibold tracking-tight">
             More from the Newsroom
           </h2>
           <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

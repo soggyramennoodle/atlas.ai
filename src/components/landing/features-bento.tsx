@@ -127,12 +127,12 @@ export function FeaturesBento() {
       className="scroll-mt-20 border-t border-border py-20 md:py-28"
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-        <Reveal className="max-w-[24ch]">
-          <h2 className="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.03em] sm:text-5xl">
+        <Reveal className="max-w-[820px]">
+          <h2 className="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
             Everything from a lecture,{" "}
             <span className="text-primary">written down.</span>
           </h2>
-          <p className="mt-4 max-w-[48ch] text-pretty text-lg leading-relaxed text-muted-foreground">
+          <p className="mt-4 max-w-[62ch] text-pretty text-lg leading-relaxed text-muted-foreground">
             Not a three-line recap. The full picture, organized the way you would
             study it.
           </p>

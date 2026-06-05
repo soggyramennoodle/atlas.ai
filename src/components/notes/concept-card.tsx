@@ -228,7 +228,7 @@ function ConceptCard({
         }}
         whileHover={dimmed || selected ? undefined : { y: -4, scale: 1.015 }}
         transition={SPRING}
-        className="group concept-card-shell relative block w-full rounded-2xl border bg-card p-5 text-left"
+        className="group concept-card-shell relative block w-full rounded-[4px] border bg-card p-5 text-left transition-shadow duration-300 ease-out hover:border-primary/30 hover:shadow-[0_16px_40px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         style={{ visibility: selected ? "hidden" : "visible" }}
       >
         {/* Faint hover glow bloom (opacity-only — cheap). */}
@@ -258,7 +258,7 @@ function ConceptCard({
             transition={SPRING}
             className="absolute inset-x-0 top-0 z-40 origin-top"
           >
-            <div className="relative max-h-[72vh] overflow-y-auto overflow-x-hidden rounded-2xl border border-primary/30 bg-card/95 shadow-2xl ring-luxe backdrop-blur-xl">
+            <div className="relative max-h-[72vh] overflow-y-auto overflow-x-hidden rounded-[4px] border border-primary/30 bg-card/95 shadow-2xl backdrop-blur-xl">
               {/* Underlying AI glow — idle at rest, active while thinking. */}
               <AiGlow
                 mode={thinking ? "active" : "idle"}
@@ -279,7 +279,7 @@ function ConceptCard({
                     type="button"
                     onClick={onDismiss}
                     aria-label="Close"
-                    className="grid size-7 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                    className="grid size-7 shrink-0 place-items-center rounded-[4px] text-muted-foreground transition hover:bg-accent hover:text-foreground"
                   >
                     <X className="size-4" />
                   </button>
@@ -305,7 +305,7 @@ function ConceptCard({
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ ...SPRING, delay: 0.05 + idx * 0.07 }}
                           onClick={() => ask(a.prompt(concept.term), a.label)}
-                          className="flex items-center gap-2.5 rounded-xl border bg-background/50 px-3 py-2.5 text-left text-sm transition hover:border-primary/40 hover:bg-accent"
+                          className="flex items-center gap-2.5 rounded-[4px] border bg-background/50 px-3 py-2.5 text-left text-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent"
                         >
                           <a.icon className="size-4 text-primary" />
                           {a.label}
@@ -326,7 +326,7 @@ function ConceptCard({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
                         transition={SPRING}
-                        className="rounded-xl border bg-background/40"
+                        className="rounded-[4px] border bg-background/40"
                       >
                         <button
                           type="button"
@@ -397,7 +397,7 @@ function StreamingCaret() {
   );
 }
 
-/** Rounded capsule input with a circular up-arrow submit, soft AI focus glow. */
+/** Boxy input with a compact up-arrow submit and soft AI focus glow. */
 function ChatInput({
   onSubmit,
   busy,
@@ -421,10 +421,10 @@ function ChatInput({
       {/* Soft palette glow that blooms on focus (opacity-only). */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -inset-1 rounded-full opacity-0 blur-md transition-opacity duration-300 group-focus-within:opacity-70"
+        className="pointer-events-none absolute -inset-1 rounded-[6px] opacity-0 blur-md transition-opacity duration-300 group-focus-within:opacity-70"
         style={{ background: HOVER_GLOW }}
       />
-      <div className="relative flex items-center rounded-full border bg-background/70 pl-4 pr-1 transition group-focus-within:border-primary/50">
+      <div className="relative flex items-center rounded-[4px] border bg-background/70 pl-4 pr-1 transition group-focus-within:border-primary/50">
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -442,7 +442,7 @@ function ChatInput({
           onClick={submit}
           disabled={!value.trim() || busy}
           aria-label="Send"
-          className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition enabled:hover:scale-105 disabled:opacity-40"
+          className="grid size-9 shrink-0 place-items-center rounded-[3px] bg-primary text-primary-foreground transition enabled:hover:-translate-y-0.5 enabled:hover:scale-105 disabled:opacity-40"
         >
           <ArrowUp className="size-4" />
         </button>

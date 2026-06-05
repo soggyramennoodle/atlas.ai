@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Check, X } from "lucide-react";
+import { ArrowLeft, Check, Lock, X } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Privacy",
@@ -11,14 +11,14 @@ export const metadata: Metadata = {
 const COLLECT = [
   {
     label: "Your account",
-    body: "The email you sign in with, and the profile details you choose to share — your name, school, and program. Nothing you don’t hand us yourself.",
+    body: "The email you sign in with, and the profile details you choose to share: your name, school, and program. Nothing you don’t hand us yourself.",
   },
   {
     label: "Your notes",
     body: "The notes, summaries, and transcripts Atlas writes for you. We store them so your library is there every time you come back.",
   },
   {
-    label: "Your audio — briefly",
+    label: "Your audio, briefly",
     body: "The recording you make is used to write your notes, then removed from the processor. We keep the notes, not the audio.",
   },
 ];
@@ -27,7 +27,7 @@ const NEVER = [
   "Sell your data. Not to anyone, not ever.",
   "Use your personal notes to train AI without your explicit consent.",
   "Share your recordings or notes with advertisers or data brokers.",
-  "Let another student — or the public — see what’s yours.",
+  "Let another student, or the public, see what’s yours.",
 ];
 
 const CONTROLS = [
@@ -48,10 +48,6 @@ const CONTROLS = [
 export default function PrivacyPhilosophyPage() {
   return (
     <main className="relative overflow-hidden pb-28">
-      {/* Soft editorial backdrop */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[40rem] bg-aurora opacity-60" />
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-20 [mask-image:radial-gradient(60%_40%_at_50%_0%,black,transparent)]" />
-
       <div className="relative mx-auto max-w-3xl px-4 pt-16 lg:pt-24">
         <Link
           href="/"
@@ -63,13 +59,13 @@ export default function PrivacyPhilosophyPage() {
 
         {/* Opening statement */}
         <section className="mt-14 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-primary">
-            <span className="text-sm leading-none">🔒</span>
+          <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-4 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-primary">
+            <Lock className="size-3.5" />
             Atlas Enclave
           </span>
-          <h1 className="mx-auto mt-8 max-w-2xl text-balance font-display text-6xl font-extrabold leading-[0.92] tracking-[-0.03em] sm:text-7xl">
+          <h1 className="mx-auto mt-8 max-w-2xl text-balance text-6xl font-extrabold leading-[0.92] sm:text-7xl">
             Your thoughts are{" "}
-            <span className="font-display font-semibold tracking-tight text-primary">
+            <span className="font-semibold tracking-tight text-primary">
               yours.
             </span>
           </h1>
@@ -86,7 +82,7 @@ export default function PrivacyPhilosophyPage() {
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
             Atlas Enclave
           </p>
-          <h2 className="mt-4 font-display text-balance text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">
+          <h2 className="mt-4 text-balance text-4xl font-extrabold sm:text-5xl">
             A private space that belongs to you.
           </h2>
           <div className="mt-5 space-y-4 text-pretty text-lg leading-relaxed text-muted-foreground">
@@ -109,14 +105,14 @@ export default function PrivacyPhilosophyPage() {
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
             What we collect
           </p>
-          <h2 className="mt-4 font-display text-balance text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">
+          <h2 className="mt-4 text-balance text-4xl font-extrabold sm:text-5xl">
             Only what it takes to write your notes.
           </h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             {COLLECT.map((c) => (
               <div
                 key={c.label}
-                className="rounded-2xl border bg-card/60 p-5 ring-luxe"
+                className="rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-secondary/45"
               >
                 <h3 className="font-semibold tracking-tight">{c.label}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
@@ -134,9 +130,9 @@ export default function PrivacyPhilosophyPage() {
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
             What we never do
           </p>
-          <h2 className="mt-4 font-display text-balance text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">
+          <h2 className="mt-4 text-balance text-4xl font-extrabold sm:text-5xl">
             Some lines we will{" "}
-            <span className="font-display font-semibold tracking-tight text-primary">
+            <span className="font-semibold tracking-tight text-primary">
               never
             </span>{" "}
             cross.
@@ -145,9 +141,9 @@ export default function PrivacyPhilosophyPage() {
             {NEVER.map((n) => (
               <li
                 key={n}
-                className="flex items-start gap-3 rounded-2xl border border-destructive/20 bg-destructive/[0.04] p-4"
+                className="flex items-start gap-3 rounded-[4px] border border-destructive/20 bg-destructive/[0.04] p-4"
               >
-                <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-destructive/15 text-destructive">
+                <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-[3px] bg-destructive/15 text-destructive">
                   <X className="size-3.5" />
                 </span>
                 <span className="text-pretty font-medium leading-relaxed">
@@ -165,16 +161,16 @@ export default function PrivacyPhilosophyPage() {
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
             Your controls
           </p>
-          <h2 className="mt-4 font-display text-balance text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">
+          <h2 className="mt-4 text-balance text-4xl font-extrabold sm:text-5xl">
             You’re always in charge.
           </h2>
           <div className="mt-8 space-y-3">
             {CONTROLS.map((c) => (
               <div
                 key={c.label}
-                className="flex items-start gap-4 rounded-2xl border bg-card/50 p-5"
+                className="flex items-start gap-4 rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-secondary/45"
               >
-                <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-[3px] bg-primary/15 text-primary">
                   <Check className="size-4" />
                 </span>
                 <div>
@@ -191,21 +187,22 @@ export default function PrivacyPhilosophyPage() {
         <Divider />
 
         {/* Closing sign-off */}
-        <section className="relative overflow-hidden rounded-[2rem] border bg-card/50 p-8 ring-luxe sm:p-12">
-          <div className="pointer-events-none absolute inset-0 bg-aurora opacity-50" />
+        <section className="relative overflow-hidden rounded-[4px] border bg-card p-8 shadow-[0_16px_44px_rgba(15,23,42,0.08)] sm:p-12">
           <div className="relative">
-            <span className="text-3xl">🔒</span>
+            <span className="grid size-10 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
+              <Lock className="size-5" />
+            </span>
             <h2 className="mt-4 text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
               A note from the team
             </h2>
             <p className="mt-4 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
               We started Atlas because we wanted to be present in class without
-              losing a word. Privacy isn’t a feature we bolted on — it’s the
+              losing a word. Privacy isn’t a feature we bolted on. It’s the
               reason we trust this tool with our own lectures. We’ll keep it that
               way for you, too.
             </p>
-            <p className="mt-6 font-display text-lg text-foreground/90">
-              — The Atlas team
+            <p className="mt-6 text-lg font-semibold text-foreground/90">
+              The Atlas team
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4 text-sm">
               <Link

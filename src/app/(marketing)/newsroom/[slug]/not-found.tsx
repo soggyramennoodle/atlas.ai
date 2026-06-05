@@ -6,10 +6,10 @@ export default function ArticleNotFound() {
   return (
     <div className="px-4 pb-24 pt-32">
       <div className="mx-auto max-w-md text-center">
-        <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+        <div className="mx-auto grid size-14 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
           <Newspaper className="size-6" />
         </div>
-        <h1 className="mt-5 font-display text-2xl font-semibold tracking-tight">
+        <h1 className="mt-5 text-2xl font-semibold tracking-tight">
           Story not found
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">

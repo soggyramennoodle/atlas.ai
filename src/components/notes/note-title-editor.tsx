@@ -105,7 +105,7 @@ export function NoteTitleEditor({
           rows={1}
           aria-label="Lecture title"
           className={cn(
-            "min-h-[3.75rem] flex-1 resize-none overflow-hidden rounded-xl border border-primary/35 bg-background/80 px-3 py-2 font-display text-4xl font-extrabold leading-[1.02] tracking-[-0.02em] outline-none ring-2 ring-primary/20 transition sm:text-5xl",
+            "min-h-[3.75rem] flex-1 resize-none overflow-hidden rounded-[4px] border border-primary/35 bg-background px-3 py-2 text-4xl font-bold leading-[1.02] tracking-[-0.02em] outline-none ring-[3px] ring-primary/20 transition sm:text-5xl",
             "placeholder:text-muted-foreground"
           )}
         />
@@ -136,7 +136,7 @@ export function NoteTitleEditor({
 
   return (
     <div className="group mt-3 flex items-start gap-2">
-      <h1 className="min-w-0 flex-1 text-balance font-display text-4xl font-extrabold leading-[1.02] tracking-[-0.02em] sm:text-5xl">
+      <h1 className="min-w-0 flex-1 text-balance text-4xl font-bold leading-[1.02] tracking-[-0.02em] sm:text-5xl">
         {saved}
       </h1>
       <Button

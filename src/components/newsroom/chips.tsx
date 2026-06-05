@@ -8,7 +8,7 @@ import {
   type NewsroomStatus,
 } from "@/lib/newsroom";
 
-/** Tailwind classes per category tone — translucent, glass-friendly chips. */
+/** Tailwind classes per category tone, tuned for the light redesign chips. */
 const TONE: Record<string, string> = {
   primary: "border-primary/30 bg-primary/10 text-primary",
   emerald: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
@@ -29,12 +29,12 @@ export function CategoryChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[0.65rem] font-medium uppercase tracking-wider",
+        "inline-flex items-center gap-1.5 rounded-[3px] border px-2.5 py-0.5 font-mono text-[0.65rem] font-medium uppercase tracking-wider",
         TONE[meta?.tone ?? "primary"],
         className
       )}
     >
-      <span className="size-1.5 rounded-full bg-current" />
+      <span className="size-1.5 bg-current" />
       {meta?.label ?? category}
     </span>
   );
@@ -57,12 +57,12 @@ export function StatusChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[0.65rem] font-medium uppercase tracking-wider",
+        "inline-flex items-center gap-1.5 rounded-[3px] border px-2.5 py-0.5 font-mono text-[0.65rem] font-medium uppercase tracking-wider",
         tone,
         className
       )}
     >
-      <span className="size-1.5 rounded-full bg-current" />
+      <span className="size-1.5 bg-current" />
       {STATUS_META[status]?.label ?? status}
     </span>
   );
@@ -85,7 +85,7 @@ export function SeverityChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[0.65rem] font-medium uppercase tracking-wider",
+        "inline-flex items-center gap-1.5 rounded-[3px] border px-2.5 py-0.5 font-mono text-[0.65rem] font-medium uppercase tracking-wider",
         tone,
         className
       )}

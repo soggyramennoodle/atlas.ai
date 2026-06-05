@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { MarketingBackground } from "@/components/marketing-background";
 
 /** Centered, branded container for the auth pages. */
 export function AuthShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
-      <div className="pointer-events-none absolute inset-0 bg-aurora" />
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-50 [mask-image:radial-gradient(60%_50%_at_50%_40%,black,transparent)]" />
+      <MarketingBackground />
       <div className="relative w-full max-w-md">
         <div className="mb-8 flex justify-center">
           <Link href="/">

@@ -332,7 +332,7 @@ export function NoteView({
         {/* Key concepts */}
         {(editMode || shown.keyConcepts.length > 0) && (
           <section>
-            <h3 className="font-display text-2xl font-bold tracking-[-0.02em]">Key concepts</h3>
+            <h3 className="text-2xl font-bold tracking-[-0.02em]">Key concepts</h3>
             <div className="mt-4">
               {editMode ? (
                 <div className="space-y-4">
@@ -358,7 +358,7 @@ export function NoteView({
                         void d.keyConcepts.push({ term: "", definition: "" })
                       )
                     }
-                    className="inline-flex items-center gap-2 rounded-full border border-dashed px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
+                    className="inline-flex items-center gap-2 rounded-[4px] border border-dashed px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
                   >
                     <Plus className="size-4" />
                     Add concept
@@ -388,13 +388,12 @@ function ProcessingNoteState({
   message: string;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border bg-card/70 px-6 py-12 text-center ring-luxe">
-      <div className="pointer-events-none absolute inset-x-10 top-8 h-20 rounded-full bg-primary/15 blur-3xl" />
+    <div className="relative overflow-hidden rounded-[4px] border border-border bg-card px-6 py-12 text-center">
       <span
         className={
           failed
-            ? "relative mx-auto grid size-14 place-items-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/25"
-            : "relative mx-auto grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/25"
+            ? "relative mx-auto grid size-14 place-items-center rounded-[4px] border border-destructive/30 bg-destructive/10 text-destructive"
+            : "relative mx-auto grid size-14 place-items-center rounded-[4px] border border-primary/30 bg-primary/10 text-primary"
         }
       >
         {failed ? (
@@ -403,7 +402,7 @@ function ProcessingNoteState({
           <Loader2 className="size-6 animate-spin" />
         )}
       </span>
-      <h2 className="relative mt-5 font-display text-3xl font-bold tracking-[-0.02em]">
+      <h2 className="relative mt-5 text-3xl font-bold tracking-[-0.02em]">
         {failed ? "Processing failed" : "Still processing"}
       </h2>
       <p className="relative mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -589,7 +588,7 @@ function SectionView({
         <span className="font-mono text-sm text-muted-foreground">
           {(index + 1).toString().padStart(2, "0")}
         </span>
-        <h3 className="font-display text-2xl font-bold tracking-[-0.02em]">
+        <h3 className="text-2xl font-bold tracking-[-0.02em]">
           {section.heading}
         </h3>
       </div>
@@ -636,12 +635,12 @@ function ConceptBlock({
   onRemove: () => void;
 }) {
   return (
-    <div className="group/concept relative rounded-2xl border bg-card p-5">
+    <div className="group/concept relative rounded-[4px] border border-border bg-card p-5">
       <button
         type="button"
         onClick={onRemove}
         aria-label="Remove concept"
-        className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-full text-muted-foreground/70 opacity-0 transition hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 group-hover/concept:opacity-100 motion-reduce:opacity-100"
+        className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-[4px] text-muted-foreground/70 opacity-0 transition hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 group-hover/concept:opacity-100 motion-reduce:opacity-100"
       >
         <X className="size-4" />
       </button>

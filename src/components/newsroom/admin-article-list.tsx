@@ -42,7 +42,7 @@ type Row = Pick<
 
 export function AdminArticleList({ articles }: { articles: Row[] }) {
   return (
-    <ul className="divide-y rounded-2xl border bg-card/50">
+    <ul className="divide-y rounded-[4px] border bg-card shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       {articles.map((a) => (
         <ArticleRow key={a.id} article={a} />
       ))}
@@ -68,7 +68,7 @@ function ArticleRow({ article }: { article: Row }) {
   }
 
   return (
-    <li className="flex items-center gap-4 px-4 py-3.5 first:rounded-t-2xl last:rounded-b-2xl">
+    <li className="flex items-center gap-4 px-4 py-3.5 transition duration-300 ease-out hover:bg-secondary/55">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <StatusChip status={article.status} />
@@ -99,7 +99,7 @@ function ArticleRow({ article }: { article: Row }) {
 
       <Link
         href={`/admin/newsroom/${article.id}`}
-        className="hidden shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground sm:inline-flex"
+        className="hidden shrink-0 items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-foreground/25 hover:bg-accent hover:text-foreground sm:inline-flex"
       >
         <Pencil className="size-3.5" /> Edit
       </Link>
@@ -109,7 +109,7 @@ function ArticleRow({ article }: { article: Row }) {
           <button
             disabled={pending}
             aria-label="Article actions"
-            className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-50"
+            className="grid size-8 shrink-0 place-items-center rounded-[4px] text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-50"
           >
             <MoreHorizontal className="size-4" />
           </button>
@@ -196,8 +196,8 @@ function ConfirmDelete({
 }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/70 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl">
-        <h2 className="font-display text-xl font-bold tracking-tight">
+      <div className="w-full max-w-sm rounded-[4px] border bg-card p-6 shadow-xl">
+        <h2 className="text-xl font-bold tracking-tight">
           Delete this article?
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -207,14 +207,14 @@ function ConfirmDelete({
           <button
             onClick={onCancel}
             disabled={pending}
-            className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            className="rounded-[4px] px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={pending}
-            className="rounded-full bg-destructive px-4 py-2 text-sm font-medium text-white transition hover:bg-destructive/90 disabled:opacity-50"
+            className="rounded-[4px] bg-destructive px-4 py-2 text-sm font-medium text-white transition hover:bg-destructive/90 disabled:opacity-50"
           >
             Delete
           </button>

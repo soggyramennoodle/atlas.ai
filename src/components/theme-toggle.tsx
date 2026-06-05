@@ -50,14 +50,13 @@ export function ThemeToggle() {
         aria-pressed={!isDark}
         onClick={toggleTheme}
         className={cn(
-          "fixed right-[4.5rem] top-5 z-[70] grid size-9 place-items-center overflow-hidden rounded-full border bg-background/80 text-foreground shadow-lg backdrop-blur-xl transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:right-4 md:top-20 md:size-10 xl:top-4",
-          "before:pointer-events-none before:absolute before:inset-0 before:bg-aurora before:opacity-70"
+          "fixed right-[4.5rem] top-5 z-[70] grid size-9 place-items-center overflow-hidden rounded-[4px] border bg-background/90 text-foreground shadow-[0_10px_28px_rgba(15,23,42,0.12)] backdrop-blur-xl transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:right-4 md:top-20 md:size-10 xl:top-4"
         )}
-        whileHover={{ scale: 1.05 }}
+        whileHover={{ y: -2, scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
       >
         <motion.span
-          className="absolute inset-1 rounded-full bg-card/70"
+          className="absolute inset-1 rounded-[3px] bg-card/80"
           layout
           transition={{ type: "spring", stiffness: 360, damping: 28 }}
         />

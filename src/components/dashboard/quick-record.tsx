@@ -5,10 +5,10 @@ export function QuickRecord() {
   return (
     <Link
       href="/upload"
-      className="group block rounded-[4px] border border-border bg-card p-6 transition-shadow hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]"
+      className="group block rounded-[4px] border border-border bg-card p-6 transition-[transform,border-color,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-foreground/25 hover:bg-secondary/55 hover:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_16px_34px_-20px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/35 active:translate-y-0 motion-reduce:hover:translate-y-0"
     >
       <div className="flex items-center gap-5">
-        <span className="grid size-14 shrink-0 place-items-center rounded-[4px] bg-primary text-primary-foreground">
+        <span className="grid size-14 shrink-0 place-items-center rounded-[4px] bg-primary text-primary-foreground transition-transform duration-200 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-y-0">
           <Mic className="size-6" />
         </span>
         <div className="min-w-0">
@@ -22,7 +22,7 @@ export function QuickRecord() {
             Capture audio in your browser. Notes are ready when it ends.
           </p>
         </div>
-        <ArrowRight className="ml-auto hidden size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 sm:block" />
+        <ArrowRight className="ml-auto hidden size-5 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 sm:block" />
       </div>
     </Link>
   );

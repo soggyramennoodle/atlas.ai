@@ -41,7 +41,7 @@ export function SettingsClient({
   return (
     <div className="mt-8">
       {/* Tab bar */}
-      <div className="flex gap-1 rounded-full border bg-card/60 p-1">
+      <div className="flex gap-1 rounded-[4px] border border-border bg-card p-1">
         {TABS.map((t) => {
           const active = tab === t.id;
           return (
@@ -49,16 +49,16 @@ export function SettingsClient({
               key={t.id}
               onClick={() => setTab(t.id)}
               className={cn(
-                "relative flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition",
+                "relative flex flex-1 items-center justify-center gap-2 rounded-[3px] px-4 py-2 text-sm font-medium transition-colors",
                 active
-                  ? "text-primary-foreground"
+                  ? "text-background"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
               {active && (
                 <motion.span
                   layoutId="settings-tab"
-                  className="absolute inset-0 rounded-full bg-primary"
+                  className="absolute inset-0 rounded-[3px] bg-foreground"
                   transition={{ type: "spring", stiffness: 380, damping: 32 }}
                 />
               )}
@@ -131,10 +131,10 @@ function ProfileForm({
   }
 
   return (
-    <div className="rounded-[1.75rem] border bg-card/55 p-6 backdrop-blur-xl ring-luxe">
+    <div className="rounded-[4px] border border-border bg-card p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display font-semibold tracking-tight">Your profile</h2>
+          <h2 className="font-semibold tracking-tight">Your profile</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Atlas uses this to personalize your notes. Changes save as you go.
           </p>
@@ -189,12 +189,12 @@ function SaveStatus({ status }: { status: "idle" | "saving" | "saved" }) {
 function PrivacyPanel() {
   return (
     <div className="space-y-4">
-      <div className="rounded-[1.75rem] border bg-card/55 p-6 backdrop-blur-xl ring-luxe">
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
+      <div className="ai-ring relative isolate overflow-hidden rounded-[4px] border border-border bg-card p-6">
+        <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
           <Lock className="size-3.5" />
           Atlas Enclave
         </span>
-        <h2 className="mt-4 font-display text-xl font-bold tracking-tight">
+        <h2 className="mt-4 text-xl font-bold tracking-tight">
           Your notes are private and only visible to you.
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
@@ -229,8 +229,8 @@ function InfoCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border bg-background/40 p-5">
-      <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
+    <div className="rounded-[4px] border border-border bg-card p-5">
+      <span className="grid size-9 place-items-center rounded-[4px] border border-border bg-background text-foreground">
         <Icon className="size-4" />
       </span>
       <h3 className="mt-3 text-sm font-semibold tracking-tight">{title}</h3>
@@ -250,16 +250,16 @@ function AccountPanel({
 }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-[1.75rem] border bg-card/55 p-6 backdrop-blur-xl">
+      <div className="rounded-[4px] border border-border bg-card p-6">
         <h2 className="font-semibold tracking-tight">Account</h2>
         <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border bg-background/40 p-4">
+          <div className="rounded-[4px] border border-border bg-background p-4">
             <dt className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               <Mail className="size-3.5" /> Email
             </dt>
             <dd className="mt-1.5 truncate text-sm font-medium">{email}</dd>
           </div>
-          <div className="rounded-2xl border bg-background/40 p-4">
+          <div className="rounded-[4px] border border-border bg-background p-4">
             <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Member since
             </dt>
@@ -268,7 +268,7 @@ function AccountPanel({
         </dl>
       </div>
 
-      <div className="flex items-center justify-between rounded-[1.75rem] border bg-card/55 p-6 backdrop-blur-xl">
+      <div className="flex items-center justify-between rounded-[4px] border border-border bg-card p-6">
         <div>
           <h3 className="font-semibold tracking-tight">Sign out</h3>
           <p className="mt-1 text-sm text-muted-foreground">

@@ -42,11 +42,11 @@ export default async function NewsroomPage() {
       <div className="mx-auto w-full max-w-5xl">
         {/* Header */}
         <header className="max-w-2xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
+          <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
             <Newspaper className="size-3.5" />
             Newsroom
           </span>
-          <h1 className="mt-5 font-display text-5xl font-extrabold tracking-[-0.03em] text-balance sm:text-6xl">
+          <h1 className="mt-5 text-5xl font-extrabold text-balance sm:text-6xl">
             What&apos;s new at Atlas
           </h1>
           <p className="mt-4 text-lg text-muted-foreground text-pretty">
@@ -69,15 +69,11 @@ export default async function NewsroomPage() {
 
 function EmptyNewsroom() {
   return (
-    <div className="relative overflow-hidden rounded-3xl border bg-card/50 px-6 py-20 text-center">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-40 w-40 rounded-full bg-primary/20 blur-3xl"
-      />
-      <div className="relative mx-auto grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+    <div className="relative overflow-hidden rounded-[4px] border bg-card px-6 py-20 text-center shadow-[0_12px_34px_rgba(15,23,42,0.07)]">
+      <div className="relative mx-auto grid size-14 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
         <Newspaper className="size-6" />
       </div>
-      <h2 className="relative mt-5 font-display text-2xl font-bold tracking-tight">
+      <h2 className="relative mt-5 text-2xl font-bold tracking-tight">
         No stories yet
       </h2>
       <p className="relative mx-auto mt-2 max-w-sm text-sm text-muted-foreground">

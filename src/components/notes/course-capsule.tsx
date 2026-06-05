@@ -61,7 +61,7 @@ export function CourseCapsule({
           }
         }}
         placeholder="Add a course…"
-        className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-sm font-medium text-primary outline-none ring-2 ring-primary/30"
+        className="rounded-[4px] border border-primary/40 bg-primary/10 px-3 py-1 text-sm font-medium text-primary outline-none ring-2 ring-primary/30"
       />
     );
   }
@@ -72,7 +72,7 @@ export function CourseCapsule({
       onClick={() => setEditing(true)}
       whileTap={{ scale: 0.97 }}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition",
+        "inline-flex items-center gap-1.5 rounded-[4px] border px-3 py-1 text-sm font-medium transition duration-300 ease-out hover:-translate-y-0.5",
         saved
           ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
           : "border-dashed border-border text-muted-foreground hover:text-foreground"

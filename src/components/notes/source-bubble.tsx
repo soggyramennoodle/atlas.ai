@@ -63,7 +63,7 @@ export function SourceBullet({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 4 }}
             transition={{ duration: 0.16, ease: "easeOut" }}
-            className={`absolute top-1/2 z-30 w-72 -translate-y-1/2 rounded-2xl border bg-popover p-3.5 text-sm shadow-2xl ring-luxe ${
+            className={`absolute top-1/2 z-30 w-72 -translate-y-1/2 rounded-[4px] border bg-popover p-3.5 text-sm shadow-2xl ${
               side === "right" ? "left-full ml-3" : "right-full mr-3"
             }`}
           >

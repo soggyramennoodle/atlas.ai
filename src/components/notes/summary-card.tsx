@@ -87,7 +87,7 @@ export function SummaryCard({
   return (
     <motion.section
       className={cn(
-        "ai-ring relative isolate overflow-hidden rounded-[1.5rem] bg-primary/[0.04] p-6 backdrop-blur-xl sm:p-7"
+        "ai-ring relative isolate overflow-hidden rounded-[6px] border border-border bg-card p-6 sm:p-7"
       )}
       animate={
         regenerating
@@ -129,7 +129,7 @@ export function SummaryCard({
             onClick={regenerate}
             disabled={regenerating}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1.5",
+              "inline-flex items-center gap-1.5 rounded-[4px] border border-primary/30 bg-primary/10 px-3.5 py-1.5",
               "text-xs font-medium text-primary transition-colors",
               "hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-70",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"

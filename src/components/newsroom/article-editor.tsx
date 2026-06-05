@@ -27,7 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const SELECT_CLASS =
-  "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30";
+  "h-9 w-full rounded-[4px] border border-input bg-transparent px-3 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30";
 
 /** Convert an ISO timestamp to a `datetime-local` input value (local time). */
 function toLocalInput(iso: string | null): string {
@@ -141,7 +141,7 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
         </div>
       </div>
 
-      <h1 className="mt-6 font-display text-3xl font-extrabold tracking-[-0.02em]">
+      <h1 className="mt-6 text-3xl font-extrabold">
         {article ? "Edit article" : "New article"}
       </h1>
 
@@ -198,14 +198,14 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
           <div>
             <div className="flex items-center justify-between">
               <Label>Body</Label>
-              <div className="flex rounded-lg border bg-card/60 p-0.5 text-xs">
+              <div className="flex rounded-[4px] border bg-card p-0.5 text-xs">
                 <button
                   type="button"
                   onClick={() => setTab("write")}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition",
+                    "inline-flex items-center gap-1.5 rounded-[3px] px-2.5 py-1 font-medium transition",
                     tab === "write"
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-foreground text-background"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -215,9 +215,9 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
                   type="button"
                   onClick={() => setTab("preview")}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition",
+                    "inline-flex items-center gap-1.5 rounded-[3px] px-2.5 py-1 font-medium transition",
                     tab === "preview"
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-foreground text-background"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -240,7 +240,7 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
               />
             ) : (
               <div
-                className="article-prose mt-2 min-h-[24rem] rounded-md border bg-card/40 p-5"
+                className="article-prose mt-2 min-h-[24rem] rounded-[4px] border bg-card p-5"
                 dangerouslySetInnerHTML={{ __html: previewHtml }}
               />
             )}
@@ -248,7 +248,7 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
         </div>
 
         {/* Sidebar: metadata */}
-        <aside className="space-y-6 rounded-2xl border bg-card/50 p-5 lg:sticky lg:top-8 lg:self-start">
+        <aside className="space-y-6 rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] lg:sticky lg:top-8 lg:self-start">
           <Field label="Status" htmlFor="status">
             <select
               id="status"
@@ -345,7 +345,7 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
             />
           </Field>
 
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border bg-card/60 p-3">
+          <label className="flex cursor-pointer items-center gap-3 rounded-[4px] border bg-card p-3 transition hover:border-primary/30 hover:bg-secondary/45">
             <input
               type="checkbox"
               checked={featured}

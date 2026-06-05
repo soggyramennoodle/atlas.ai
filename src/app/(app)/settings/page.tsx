@@ -32,27 +32,26 @@ export default async function SettingsPage() {
   return (
     <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
       <div className="mx-auto max-w-3xl">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
           Account
         </p>
-        <h1 className="mt-3 font-display text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">
+        <h1 className="mt-3 text-4xl font-bold tracking-[-0.02em] sm:text-5xl">
           Settings
         </h1>
 
         {/* Identity header */}
-        <div className="mt-8 overflow-hidden rounded-[1.75rem] border bg-card/55 backdrop-blur-xl ring-luxe">
-          <div className="relative h-24 bg-gradient-to-br from-primary/25 via-primary/10 to-transparent">
-            <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
+        <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card">
+          <div className="relative h-24 bg-secondary bg-hairlines">
           </div>
           <div className="px-6 pb-6">
             <div className="-mt-10 flex items-end gap-4">
-              <Avatar className="size-20 border-4 border-card">
-                <AvatarFallback className="bg-primary/15 text-2xl font-semibold text-primary">
+              <Avatar className="size-20 rounded-[4px] border-4 border-card">
+                <AvatarFallback className="rounded-[4px] bg-primary text-2xl font-semibold text-primary-foreground">
                   {displayName[0]?.toUpperCase() ?? "?"}
                 </AvatarFallback>
               </Avatar>
               <div className="pb-1">
-                <h2 className="font-display text-xl font-semibold tracking-tight">
+                <h2 className="text-xl font-semibold tracking-tight">
                   {displayName}
                 </h2>
                 <p className="text-sm text-muted-foreground">

@@ -177,10 +177,10 @@ export default async function DashboardPage() {
                     <Link
                       key={note.id}
                       href={`/notes/${note.id}`}
-                      className="group flex flex-col rounded-[4px] border border-border bg-card p-5 transition-shadow hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]"
+                      className="group flex flex-col rounded-[4px] border border-border bg-card p-5 transition-[transform,border-color,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-foreground/25 hover:bg-secondary/55 hover:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_16px_34px_-20px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/35 active:translate-y-0 motion-reduce:hover:translate-y-0"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-background text-foreground">
+                        <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-background text-foreground transition-[transform,border-color] duration-200 group-hover:-translate-y-0.5 group-hover:border-foreground/25 motion-reduce:group-hover:translate-y-0">
                           {failed ? (
                             <AlertCircle className="size-5 text-destructive" />
                           ) : processing ? (
@@ -219,7 +219,7 @@ export default async function DashboardPage() {
                         {note.subject && (
                           <Badge
                             variant="secondary"
-                            className="ml-auto font-normal"
+                            className="ml-auto font-normal transition-colors group-hover:border-foreground/20"
                           >
                             {note.subject}
                           </Badge>

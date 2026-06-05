@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/logo";
+import { MarketingBackground } from "@/components/marketing-background";
 
 interface Field {
   key: "display_name" | "institution" | "program" | "year" | "grad_year";
@@ -97,8 +98,7 @@ export function OnboardingFlow() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
-      <div className="pointer-events-none absolute inset-0 bg-aurora" />
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-40 [mask-image:radial-gradient(60%_50%_at_50%_40%,black,transparent)]" />
+      <MarketingBackground />
 
       <div className="relative w-full max-w-md">
         <div className="mb-8 flex justify-center">
@@ -120,7 +120,7 @@ export function OnboardingFlow() {
           ))}
         </div>
 
-        <div className="glass-panel overflow-hidden rounded-[1.5rem] p-8 shadow-2xl ring-luxe">
+        <div className="overflow-hidden rounded-[4px] border border-border bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={step}
@@ -133,7 +133,7 @@ export function OnboardingFlow() {
               <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
                 Step {step + 1} of {STEPS.length}
               </p>
-              <h1 className="mt-2 font-display text-3xl font-extrabold tracking-[-0.02em]">
+              <h1 className="mt-2 text-3xl font-bold tracking-[-0.02em]">
                 {field.title}
               </h1>
               <div className="mt-6 space-y-2">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Lock, ShieldCheck, Trash2, EyeOff } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
+import { AiGlow } from "@/components/ui/ai-glow";
 
 const POINTS = [
   {
@@ -24,17 +25,23 @@ const POINTS = [
 export function PrivacyTrust() {
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 sm:px-6">
-      <Reveal className="overflow-hidden rounded-[4px] border border-border bg-card p-8 sm:p-12">
-        <div className="max-w-2xl">
+      <Reveal className="ai-ring relative isolate overflow-hidden rounded-[4px] border border-border bg-card p-8 sm:p-12">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 opacity-35 [mask-image:radial-gradient(70%_70%_at_22%_18%,black,transparent_78%)] animate-breathe"
+        >
+          <AiGlow density="lean" blur={72} />
+        </div>
+        <div className="max-w-3xl">
           <span className="inline-flex items-center gap-2 rounded-[4px] border border-border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             <Lock className="size-3.5" />
             Atlas Enclave
           </span>
-          <h2 className="mt-5 text-balance text-3xl font-bold leading-[1.03] tracking-[-0.03em] sm:text-5xl">
+          <h2 className="mt-5 text-balance text-3xl font-bold leading-[1.03] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
             Your lectures are private.{" "}
             <span className="text-primary">Always.</span>
           </h2>
-          <p className="mt-3 text-pretty text-muted-foreground">
+          <p className="mt-3 max-w-[64ch] text-pretty text-muted-foreground">
             Everything you record lives inside the Atlas Enclave, a private,
             encrypted space that belongs to you and no one else.
           </p>

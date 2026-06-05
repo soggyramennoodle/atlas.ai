@@ -25,8 +25,8 @@ export function HowItWorks() {
       id="how"
       className="mx-auto max-w-[1200px] scroll-mt-20 px-4 py-20 sm:px-6 md:py-28"
     >
-      <Reveal className="max-w-[20ch]">
-        <h2 className="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.03em] sm:text-5xl">
+      <Reveal className="max-w-[760px]">
+        <h2 className="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
           From recording to <span className="text-primary">study-ready</span> in
           three steps.
         </h2>

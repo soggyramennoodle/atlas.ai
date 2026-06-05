@@ -20,7 +20,6 @@ export function LegalShell({
 }) {
   return (
     <main className="relative px-4 pb-24 pt-16 lg:pt-24">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-aurora opacity-50" />
       <article className="relative mx-auto max-w-2xl">
         <Link
           href="/"
@@ -32,7 +31,7 @@ export function LegalShell({
         <p className="mt-8 font-mono text-xs uppercase tracking-[0.25em] text-primary">
           Legal
         </p>
-        <h1 className="mt-4 text-balance font-display text-5xl font-extrabold tracking-[-0.02em] sm:text-6xl">
+        <h1 className="mt-4 text-balance text-5xl font-extrabold sm:text-6xl">
           {title}
         </h1>
         <p className="mt-3 text-sm text-muted-foreground">Last updated {updated}</p>
@@ -44,7 +43,7 @@ export function LegalShell({
         <div className="mt-10 space-y-9">
           {sections.map((s, i) => (
             <section key={i}>
-              <h2 className="flex items-baseline gap-3 font-display text-2xl font-bold tracking-tight">
+              <h2 className="flex items-baseline gap-3 text-2xl font-bold tracking-tight">
                 <span className="font-mono text-sm text-muted-foreground">
                   {(i + 1).toString().padStart(2, "0")}
                 </span>
@@ -64,7 +63,7 @@ export function LegalShell({
           ))}
         </div>
 
-        <p className="mt-12 rounded-2xl border bg-card/50 p-5 text-sm text-muted-foreground text-pretty">
+        <p className="mt-12 rounded-[4px] border bg-card p-5 text-sm text-muted-foreground shadow-[0_10px_28px_rgba(15,23,42,0.05)] text-pretty">
           This is a template document provided for transparency while Atlas is in
           active development. It will be replaced with a finalized policy
           reviewed by counsel before general availability.
