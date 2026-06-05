@@ -12,6 +12,33 @@ import { Reveal } from "@/components/landing/reveal";
 import { AiGlow } from "@/components/ui/ai-glow";
 import { cn } from "@/lib/utils";
 
+/** A pop-accented icon chip — the one sanctioned sparing use of pop colors. */
+function IconChip({
+  children,
+  pop = "var(--primary)",
+  size = "md",
+}: {
+  children: React.ReactNode;
+  pop?: string;
+  size?: "md" | "lg";
+}) {
+  return (
+    <span
+      className={cn(
+        "grid place-items-center rounded-2xl",
+        size === "lg" ? "size-12" : "size-11"
+      )}
+      style={{
+        backgroundColor: `color-mix(in oklch, ${pop} 14%, transparent)`,
+        color: pop,
+        boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${pop} 28%, transparent)`,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 function Cell({
   className,
   children,
@@ -144,14 +171,16 @@ export function FeaturesBento() {
   return (
     <section
       id="features"
-      className="render-section scroll-mt-24 border-y bg-card/20 py-28"
+      className="render-section scroll-mt-24 border-y bg-card/20 py-32"
     >
       <div className="mx-auto max-w-6xl px-4">
-        <Reveal className="max-w-2xl">
-          <h2 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-            Everything you need from a lecture, written down.
+        <Reveal className="max-w-3xl">
+          <h2 className="font-display text-5xl font-extrabold leading-[0.9] tracking-[-0.03em] sm:text-7xl">
+            Everything from a lecture,
+            <br />
+            <span className="text-gradient-brand">written down.</span>
           </h2>
-          <p className="mt-4 max-w-md text-pretty text-muted-foreground">
+          <p className="mt-5 max-w-md text-pretty text-lg text-muted-foreground">
             Not a three-line recap. The full picture, organized the way you
             would study it.
           </p>
@@ -164,10 +193,10 @@ export function FeaturesBento() {
               <AiGlow density="lean" blur={64} />
             </div>
             <div className="relative flex h-full flex-col">
-              <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+              <IconChip size="lg">
                 <ListChecks className="size-5" />
-              </span>
-              <h3 className="mt-4 text-xl font-semibold tracking-tight">
+              </IconChip>
+              <h3 className="mt-4 font-display text-2xl font-bold tracking-tight">
                 Notes that miss nothing
               </h3>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -180,10 +209,12 @@ export function FeaturesBento() {
           </Cell>
 
           <Cell delay={0.06}>
-            <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+            <IconChip pop="var(--pop-sky)">
               <Layers className="size-5" />
-            </span>
-            <h3 className="mt-4 font-semibold tracking-tight">A summary up top</h3>
+            </IconChip>
+            <h3 className="mt-4 font-display text-lg font-bold tracking-tight">
+              A summary up top
+            </h3>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
               Each lecture opens with a short overview, so you recall the gist in
               seconds.
@@ -192,10 +223,10 @@ export function FeaturesBento() {
           </Cell>
 
           <Cell delay={0.12}>
-            <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+            <IconChip pop="var(--pop-lime)">
               <BookMarked className="size-5" />
-            </span>
-            <h3 className="mt-4 font-semibold tracking-tight">
+            </IconChip>
+            <h3 className="mt-4 font-display text-lg font-bold tracking-tight">
               Your personal library
             </h3>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
@@ -205,10 +236,12 @@ export function FeaturesBento() {
           </Cell>
 
           <Cell delay={0.06}>
-            <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+            <IconChip pop="var(--pop-amber)">
               <Clock className="size-5" />
-            </span>
-            <h3 className="mt-4 font-semibold tracking-tight">Any lecture length</h3>
+            </IconChip>
+            <h3 className="mt-4 font-display text-lg font-bold tracking-tight">
+              Any lecture length
+            </h3>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
               From a 20-minute seminar to a three-hour lab, powered by long-audio
               understanding.
@@ -220,10 +253,10 @@ export function FeaturesBento() {
           <Cell delay={0.12} className="sm:col-span-2">
             <div className="flex h-full items-start justify-between gap-6">
               <div className="flex h-full flex-col">
-                <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-xl leading-none ring-1 ring-primary/20">
-                  🔒
-                </span>
-                <h3 className="mt-4 font-semibold tracking-tight">
+                <IconChip pop="var(--pop-coral)">
+                  <span className="text-xl leading-none">🔒</span>
+                </IconChip>
+                <h3 className="mt-4 font-display text-lg font-bold tracking-tight">
                   Atlas Enclave
                 </h3>
                 <p className="mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Inter, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -11,11 +11,12 @@ const sans = Inter({
   subsets: ["latin"],
 });
 
-// The geometric display face of Spatial Liquid Glass — crisp, techy headlines.
-// Exposed as --font-display; the legacy --font-serif slot maps onto it in CSS.
-const display = Space_Grotesk({
+// The bold editorial display face — characterful grotesque for oversized,
+// rivocareers-inspired headlines. Exposed as --font-display; the legacy
+// --font-serif slot maps onto it in CSS.
+const display = Bricolage_Grotesque({
   variable: "--font-display",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
 });
 

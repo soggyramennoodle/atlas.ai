@@ -25,48 +25,39 @@ export function HowItWorks() {
   return (
     <section
       id="how"
-      className="render-section mx-auto max-w-5xl scroll-mt-24 px-4 py-28"
+      className="render-section mx-auto max-w-6xl scroll-mt-24 px-4 py-32"
     >
-      <Reveal className="max-w-2xl">
-        <h2 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-          From recording to study-ready, in three steps.
+      <Reveal className="max-w-3xl">
+        <h2 className="font-display text-5xl font-extrabold leading-[0.9] tracking-[-0.03em] sm:text-7xl">
+          From recording to
+          <br />
+          <span className="text-gradient-brand">study-ready</span> in three steps.
         </h2>
-        <p className="mt-4 max-w-md text-pretty text-muted-foreground">
-          No setup, no formatting, no scrambling to keep up. You press record;
-          Atlas does the rest.
-        </p>
       </Reveal>
 
-      {/* Vertical timeline — one connected spine, not a row of equal cards. */}
-      <ol className="mt-16 max-w-2xl">
+      <div className="mt-20 space-y-px overflow-hidden rounded-[1.75rem] border bg-border">
         {STEPS.map((step, i) => (
-          <Reveal key={step.title} delay={i * 0.1}>
-            <li className="relative grid grid-cols-[auto_1fr] gap-x-6 pb-12 last:pb-0">
-              {/* connecting line */}
-              {i < STEPS.length - 1 && (
-                <span
-                  aria-hidden
-                  className="absolute left-[1.6rem] top-14 bottom-2 w-px bg-gradient-to-b from-primary/40 to-border"
-                />
-              )}
-              <div className="relative grid size-[3.25rem] place-items-center rounded-2xl border bg-card/70 text-primary ring-1 ring-primary/15">
-                <step.icon className="size-6" />
-                <span className="absolute -right-2 -top-2 grid size-6 place-items-center rounded-full border bg-background font-mono text-[0.7rem] text-muted-foreground">
-                  {i + 1}
-                </span>
-              </div>
-              <div className="pt-1.5">
-                <h3 className="text-xl font-semibold tracking-tight">
+          <Reveal key={step.title} delay={i * 0.08}>
+            <div className="group relative grid grid-cols-[auto_1fr] items-center gap-6 bg-card/70 px-6 py-10 transition-colors hover:bg-card sm:grid-cols-[8rem_auto_1fr] sm:gap-10 sm:px-12">
+              {/* Oversized ghost numeral. */}
+              <span className="font-display text-6xl font-extrabold leading-none text-primary/15 transition-colors group-hover:text-primary/30 sm:text-8xl">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="hidden size-14 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20 sm:grid">
+                <step.icon className="size-7" />
+              </span>
+              <div>
+                <h3 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
                   {step.title}
                 </h3>
-                <p className="mt-2 max-w-md text-pretty leading-relaxed text-muted-foreground">
+                <p className="mt-2 max-w-lg text-pretty leading-relaxed text-muted-foreground">
                   {step.body}
                 </p>
               </div>
-            </li>
+            </div>
           </Reveal>
         ))}
-      </ol>
+      </div>
     </section>
   );
 }

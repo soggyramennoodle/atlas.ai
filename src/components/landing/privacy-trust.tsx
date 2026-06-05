@@ -31,8 +31,9 @@ export function PrivacyTrust() {
               <Lock className="size-3.5" />
               Atlas Enclave
             </span>
-            <h2 className="mt-5 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-              Your lectures are private. Always.
+            <h2 className="mt-5 font-display text-balance text-4xl font-extrabold leading-[0.92] tracking-[-0.03em] sm:text-6xl">
+              Your lectures are private.{" "}
+              <span className="text-gradient-brand">Always.</span>
             </h2>
             <p className="mt-3 text-pretty text-muted-foreground">
               Everything you record lives inside the Atlas Enclave, a private,

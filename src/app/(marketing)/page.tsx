@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Hero } from "@/components/landing/hero";
+import { SubjectsMarquee } from "@/components/landing/subjects-marquee";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { FeaturesBento } from "@/components/landing/features-bento";
 import { Faq } from "@/components/landing/faq";
@@ -16,6 +17,7 @@ export default async function Home() {
   return (
     <>
       <Hero ctaHref={ctaHref} />
+      <SubjectsMarquee />
       <HowItWorks />
       <FeaturesBento />
       <Faq />
