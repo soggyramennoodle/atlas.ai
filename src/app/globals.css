@@ -1040,12 +1040,12 @@
   to { transform: translate3d(-50%, 0, 0); }
 }
 .animate-marquee {
-  animation: atlas-marquee 38s linear infinite;
+  animation: atlas-marquee 54s linear infinite;
 }
 /* Same track, opposite direction — used by the universities strip so the two
    marquees drift against each other. */
 .animate-marquee-reverse {
-  animation: atlas-marquee 46s linear infinite reverse;
+  animation: atlas-marquee 68s linear infinite reverse;
 }
 .marquee-mask {
   -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
