@@ -4,9 +4,11 @@ import {
   Type,
   createUserContent,
   createPartFromUri,
+  createPartFromBase64,
   type Schema,
 } from "@google/genai";
-import type { StructuredNotes } from "./types";
+import type { SegmentNotes, StructuredNotes } from "./types";
+import { mergeSegmentNotes } from "./notes-compose";
 
 /**
  * The model used for note generation. Defaults to Gemini 2.5 Pro, which
@@ -161,6 +163,141 @@ Rules:
 - If the audio contains intelligible academic content but not enough material for comprehensive notes, say so in the summary and write sparse notes from only the heard content. Use the insufficient-content output only for silence, unintelligible audio, or non-academic mic checks/greetings with no note-worthy content.
 - If audio is unclear or inaudible in places, note that rather than guessing.
 - Prefer completeness over brevity. It is far better to over-capture than to lose a detail.`;
+
+/** Schema for one ~5-minute segment: transcript + audio-grounded notes only. */
+const segmentSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    transcript: {
+      type: Type.STRING,
+      description:
+        "The full, verbatim transcript of THIS audio segment only, lightly cleaned of filler/false starts.",
+    },
+    sections: notesSchema.properties!.sections,
+    keyConcepts: notesSchema.properties!.keyConcepts,
+  },
+  required: ["transcript", "sections", "keyConcepts"],
+  propertyOrdering: ["transcript", "sections", "keyConcepts"],
+};
+
+const SEGMENT_PROMPT = `${SYSTEM_PROMPT}
+
+SEGMENT MODE: This audio is ONE ~5-minute slice of a longer lecture, not the whole thing. Take exhaustive, audio-grounded notes for THIS slice only:
+- Do NOT write a title, subject, or overall summary — those are produced once for the whole lecture later.
+- Do NOT emit the insufficient-content rejection. If this slice is sparse (e.g. a pause, transition, or the lecturer is mid-sentence from the previous slice), simply return the few sections/concepts/transcript that apply, or empty arrays and an empty/partial transcript. The whole-lecture judgement is made elsewhere.
+- A point may continue a thought from the previous slice; that is fine — capture what is said here.
+- "source_excerpt" must be a real quote from THIS audio.`;
+
+const COMPOSE_PROMPT = `You are finalizing a student's lecture notes. You are given the already-extracted, audio-grounded notes for each consecutive segment of one lecture, in order, plus the stitched transcript. Your ONLY job is to produce the lecture-level framing and light reconciliation. Do NOT invent any content, fact, figure, or quote not present in the provided segment notes/transcript.
+
+Return JSON with:
+- "title": a clean, descriptive title for the WHOLE lecture.
+- "subject": the course/subject if identifiable from the content, else "".
+- "summary": a 3-5 sentence overview of the whole lecture, written from the provided notes.
+- "sections": the provided sections, kept in order. You MAY merge two adjacent sections only when the later one is clearly a direct continuation of the previous (e.g. identical heading), preserving every point. Never drop points.
+- "keyConcepts": the provided key concepts, deduplicated.
+- "transcript": return exactly the provided stitched transcript.
+
+Insufficient-content rule (judged here, over the whole lecture): if the combined sections are empty and the transcript has no intelligible lecture words, return title "Not enough lecture content", subject "", summary "There was not enough lecture content to generate notes.", sections [], keyConcepts [], and the transcript as given.`;
+
+interface SegmentArgs {
+  bytes: Buffer | Uint8Array;
+  mimeType: string;
+  memoryContext?: string;
+}
+
+/**
+ * Transcribe + take audio-grounded notes for a single ~5-minute segment.
+ * Segments are small (<20 MB), so the audio is sent inline — no Files API
+ * upload/ACTIVE wait — which keeps each call well under the 60s worker budget.
+ */
+export async function transcribeSegment({
+  bytes,
+  mimeType,
+  memoryContext,
+}: SegmentArgs): Promise<SegmentNotes> {
+  const ai = getClient();
+  const base64 = Buffer.from(bytes).toString("base64");
+
+  const systemInstruction = memoryContext
+    ? `${SEGMENT_PROMPT}\n\n--- About this student (personalization context) ---\n${memoryContext}\nUse this context to tailor terminology, depth, and emphasis. Never fabricate details to fit it.`
+    : SEGMENT_PROMPT;
+
+  const response = await ai.models.generateContent({
+    model: MODEL,
+    contents: createUserContent([
+      createPartFromBase64(base64, mimeType),
+      "Transcribe and take exhaustive, audio-grounded notes on THIS lecture segment, following SEGMENT MODE.",
+    ]),
+    config: {
+      systemInstruction,
+      responseMimeType: "application/json",
+      responseSchema: segmentSchema,
+      temperature: 0,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned an empty segment response.");
+  const parsed = JSON.parse(text) as SegmentNotes;
+  if (!Array.isArray(parsed.sections) || typeof parsed.transcript !== "string") {
+    throw new Error("Gemini returned a segment in an unexpected format.");
+  }
+  parsed.keyConcepts ??= [];
+  return parsed;
+}
+
+interface ComposeArgs {
+  segments: SegmentNotes[];
+  memoryContext?: string;
+}
+
+/**
+ * Reconcile ordered per-segment notes into the final whole-lecture
+ * `StructuredNotes`. The structural merge (section order, concept dedupe,
+ * transcript join) is done deterministically by `mergeSegmentNotes`; this LLM
+ * pass only adds title/subject/summary and may merge directly-continuing
+ * adjacent headings. Text-only, so it stays within the worker budget.
+ */
+export async function composeNotes({
+  segments,
+  memoryContext,
+}: ComposeArgs): Promise<StructuredNotes> {
+  const merged = mergeSegmentNotes(segments);
+  const ai = getClient();
+
+  const systemInstruction = memoryContext
+    ? `${COMPOSE_PROMPT}\n\n--- About this student ---\n${memoryContext}`
+    : COMPOSE_PROMPT;
+
+  const response = await ai.models.generateContent({
+    model: MODEL,
+    contents: createUserContent([
+      JSON.stringify({
+        sections: merged.sections,
+        keyConcepts: merged.keyConcepts,
+        transcript: merged.transcript,
+      }),
+    ]),
+    config: {
+      systemInstruction,
+      responseMimeType: "application/json",
+      responseSchema: notesSchema,
+      temperature: 0,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned an empty compose response.");
+  const parsed = JSON.parse(text) as StructuredNotes;
+  if (!parsed.title || !Array.isArray(parsed.sections)) {
+    throw new Error("Gemini returned composed notes in an unexpected format.");
+  }
+  if (!parsed.transcript?.trim()) parsed.transcript = merged.transcript;
+  if (!parsed.keyConcepts?.length) parsed.keyConcepts = merged.keyConcepts;
+  parsed.status = "ready";
+  return parsed;
+}
 
 interface GenerateArgs {
   bytes: Buffer | Uint8Array;
