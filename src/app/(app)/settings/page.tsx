@@ -40,24 +40,21 @@ export default async function SettingsPage() {
         </h1>
 
         {/* Identity header */}
-        <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card">
-          <div className="relative h-24 bg-secondary bg-hairlines">
-          </div>
-          <div className="px-6 pb-6">
-            <div className="-mt-10 flex items-end gap-4">
-              <Avatar className="size-20 rounded-[4px] border-4 border-card">
-                <AvatarFallback className="rounded-[4px] bg-primary text-2xl font-semibold text-primary-foreground">
-                  {displayName[0]?.toUpperCase() ?? "?"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="pb-1">
-                <h2 className="text-xl font-semibold tracking-tight">
-                  {displayName}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {joined ? `Atlas member since ${joined}` : "Atlas member"}
-                </p>
-              </div>
+        <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+          <div className="h-14 border-b border-border bg-secondary bg-hairlines" />
+          <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
+            <Avatar className="size-18 rounded-[4px] border border-border bg-card shadow-[0_8px_20px_rgba(15,23,42,0.10)] sm:size-20">
+              <AvatarFallback className="rounded-[4px] bg-primary text-2xl font-semibold text-primary-foreground">
+                {displayName[0]?.toUpperCase() ?? "?"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <h2 className="text-xl font-semibold tracking-tight">
+                {displayName}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {joined ? `Atlas member since ${joined}` : "Atlas member"}
+              </p>
             </div>
           </div>
         </div>
