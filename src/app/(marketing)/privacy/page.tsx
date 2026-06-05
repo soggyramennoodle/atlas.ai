@@ -67,7 +67,7 @@ export default function PrivacyPhilosophyPage() {
             <span className="text-sm leading-none">🔒</span>
             Atlas Enclave
           </span>
-          <h1 className="mx-auto mt-8 max-w-2xl text-balance text-5xl font-semibold leading-[0.98] tracking-tight sm:text-6xl">
+          <h1 className="mx-auto mt-8 max-w-2xl text-balance font-display text-6xl font-extrabold leading-[0.92] tracking-[-0.03em] sm:text-7xl">
             Your thoughts are{" "}
             <span className="font-display font-semibold tracking-tight text-primary">
               yours.
@@ -75,7 +75,7 @@ export default function PrivacyPhilosophyPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
             We built Atlas that way from the start. Your lectures, your notes,
-            your recordings — private by design, not as an afterthought.
+            your recordings, private by design, not an afterthought.
           </p>
         </section>
 
@@ -86,12 +86,12 @@ export default function PrivacyPhilosophyPage() {
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
             Atlas Enclave
           </p>
-          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h2 className="mt-4 font-display text-balance text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">
             A private space that belongs to you.
           </h2>
           <div className="mt-5 space-y-4 text-pretty text-lg leading-relaxed text-muted-foreground">
             <p>
-              Everything you bring to Atlas lives inside Atlas Enclave — our
+              Everything you bring to Atlas lives inside Atlas Enclave, our
               system made to protect your account, so
               that no one, not even us, can reach your information.
             </p>
@@ -109,7 +109,7 @@ export default function PrivacyPhilosophyPage() {
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
             What we collect
           </p>
-          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h2 className="mt-4 font-display text-balance text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">
             Only what it takes to write your notes.
           </h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -134,7 +134,7 @@ export default function PrivacyPhilosophyPage() {
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
             What we never do
           </p>
-          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h2 className="mt-4 font-display text-balance text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">
             Some lines we will{" "}
             <span className="font-display font-semibold tracking-tight text-primary">
               never
@@ -165,7 +165,7 @@ export default function PrivacyPhilosophyPage() {
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
             Your controls
           </p>
-          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h2 className="mt-4 font-display text-balance text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">
             You’re always in charge.
           </h2>
           <div className="mt-8 space-y-3">
