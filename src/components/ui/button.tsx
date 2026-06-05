@@ -10,22 +10,22 @@ import { cn } from "@/lib/utils"
  * that fills from transparent to ink on hover. No pills, no growth-on-hover.
  */
 const buttonVariants = cva(
-  "magnetic inline-flex shrink-0 select-none items-center justify-center gap-2 rounded-[4px] text-[14px] font-medium whitespace-nowrap outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45 focus-visible:border-ring disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "magnetic icon-animate inline-flex shrink-0 select-none items-center justify-center gap-2 rounded-[4px] text-[14px] font-medium whitespace-nowrap outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45 focus-visible:border-ring disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         // Filled ink - the primary CTA (rivo "Get started free").
-        default: "bg-foreground text-background hover:bg-foreground/88",
+        default: "hover-glow bg-foreground text-background hover:bg-foreground/88",
         // Brand-filled - for the rare emerald CTA / AI affordance.
-        brand: "bg-primary text-primary-foreground hover:bg-primary/90",
+        brand: "hover-glow bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/30",
+          "hover-glow bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/30",
         // Fill-from-ink on hover - rivo "See how it works".
         outline:
-          "border border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background",
+          "hover-glow border border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background",
         secondary:
-          "border border-border bg-secondary text-secondary-foreground hover:bg-muted",
-        ghost: "bg-transparent text-foreground hover:bg-accent",
+          "hover-glow border border-border bg-secondary text-secondary-foreground hover:bg-muted",
+        ghost: "hover-glow bg-transparent text-foreground hover:bg-accent",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

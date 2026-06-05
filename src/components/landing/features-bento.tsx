@@ -14,7 +14,7 @@ function IconChip({
   return (
     <span
       className={cn(
-        "grid place-items-center rounded-[4px] border border-border bg-background text-foreground",
+        "icon-animate grid place-items-center rounded-[4px] border border-border bg-background text-foreground",
         size === "lg" ? "size-12" : "size-10"
       )}
     >
@@ -33,7 +33,7 @@ function Cell({
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-[4px] border border-border bg-card p-6 transition-shadow hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]",
+        "group hover-glow-inside icon-animate relative flex flex-col overflow-hidden rounded-[4px] border border-border bg-card p-6 transition-shadow hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]",
         className
       )}
     >

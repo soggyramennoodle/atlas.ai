@@ -31,7 +31,7 @@ export function ArticleCard({
     <Link
       href={`/newsroom/${article.slug}`}
       className={cn(
-        "group relative flex flex-col rounded-[4px] border bg-card p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition duration-300 ease-out hover:-translate-y-1 hover:border-primary/35 hover:bg-secondary/45 hover:shadow-[0_18px_46px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+        "group hover-glow icon-animate relative flex flex-col rounded-[4px] border bg-card p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition duration-300 ease-out hover:-translate-y-1 hover:border-primary/35 hover:bg-secondary/45 hover:shadow-[0_18px_46px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none motion-reduce:hover:translate-y-0",
         featured && "sm:p-8"
       )}
     >

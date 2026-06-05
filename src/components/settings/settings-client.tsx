@@ -49,7 +49,7 @@ export function SettingsClient({
               key={t.id}
               onClick={() => setTab(t.id)}
               className={cn(
-                "relative flex flex-1 items-center justify-center gap-2 rounded-[3px] px-4 py-2 text-sm font-medium transition-colors",
+                "icon-animate relative flex flex-1 items-center justify-center gap-2 rounded-[3px] px-4 py-2 text-sm font-medium transition-colors",
                 active
                   ? "text-background"
                   : "text-muted-foreground hover:text-foreground"
@@ -189,7 +189,7 @@ function SaveStatus({ status }: { status: "idle" | "saving" | "saved" }) {
 function PrivacyPanel() {
   return (
     <div className="space-y-4">
-      <div className="ai-ring relative isolate overflow-hidden rounded-[4px] border border-border bg-card p-6">
+      <div className="ai-ring icon-animate relative isolate overflow-hidden rounded-[4px] border border-border bg-card p-6">
         <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
           <Lock className="size-3.5" />
           Atlas Enclave
@@ -229,7 +229,7 @@ function InfoCard({
   body: string;
 }) {
   return (
-    <div className="rounded-[4px] border border-border bg-card p-5">
+    <div className="hover-glow icon-animate rounded-[4px] border border-border bg-card p-5">
       <span className="grid size-9 place-items-center rounded-[4px] border border-border bg-background text-foreground">
         <Icon className="size-4" />
       </span>
@@ -253,13 +253,13 @@ function AccountPanel({
       <div className="rounded-[4px] border border-border bg-card p-6">
         <h2 className="font-semibold tracking-tight">Account</h2>
         <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-[4px] border border-border bg-background p-4">
+          <div className="hover-glow icon-animate rounded-[4px] border border-border bg-background p-4">
             <dt className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               <Mail className="size-3.5" /> Email
             </dt>
             <dd className="mt-1.5 truncate text-sm font-medium">{email}</dd>
           </div>
-          <div className="rounded-[4px] border border-border bg-background p-4">
+          <div className="hover-glow rounded-[4px] border border-border bg-background p-4">
             <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Member since
             </dt>

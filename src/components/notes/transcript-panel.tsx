@@ -15,14 +15,14 @@ export function TranscriptPanel({ transcript }: { transcript: string }) {
   return (
     <motion.section
       layout
-      className="overflow-hidden rounded-[4px] border border-border bg-card"
+      className="hover-glow-inside overflow-hidden rounded-[4px] border border-border bg-card"
     >
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 px-6 py-4 text-left transition-colors hover:bg-secondary"
+        className="group icon-animate flex w-full items-center gap-3 px-6 py-4 text-left transition-colors hover:bg-secondary"
         aria-expanded={open}
       >
-        <span className="grid size-9 shrink-0 place-items-center rounded-[4px] border border-border bg-background text-foreground">
+        <span className="icon-animate grid size-9 shrink-0 place-items-center rounded-[4px] border border-border bg-background text-foreground">
           <FileAudio className="size-4" />
         </span>
         <span className="flex-1">

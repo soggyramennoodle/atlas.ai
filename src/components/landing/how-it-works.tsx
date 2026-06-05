@@ -35,7 +35,7 @@ export function HowItWorks() {
       <div className="mt-14 overflow-hidden rounded-[4px] border border-border">
         {STEPS.map((step, i) => (
           <Reveal key={step.title} delay={i * 0.08}>
-            <div className="group grid grid-cols-[auto_1fr] items-start gap-5 border-t border-border bg-card px-5 py-8 transition-colors first:border-t-0 hover:bg-secondary sm:grid-cols-[6rem_auto_1fr] sm:items-center sm:gap-8 sm:px-10">
+            <div className="group hover-glow-inside icon-animate grid grid-cols-[auto_1fr] items-start gap-5 border-t border-border bg-card px-5 py-8 transition-colors first:border-t-0 hover:bg-secondary sm:grid-cols-[6rem_auto_1fr] sm:items-center sm:gap-8 sm:px-10">
               <span className="text-5xl font-bold leading-none tabular-nums text-foreground/10 transition-colors group-hover:text-primary/25 sm:text-7xl">
                 {String(i + 1).padStart(2, "0")}
               </span>

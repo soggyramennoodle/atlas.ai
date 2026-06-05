@@ -29,9 +29,9 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.19 0 0);
 
-  /* Natural emerald brand - deepened slightly for AA contrast on white. */
-  --primary: oklch(0.54 0.13 162);
-  --primary-foreground: oklch(0.99 0.01 162);
+  /* Deep Atlas green - darkened per brand direction. Not used for hover glow. */
+  --primary: #06402b;
+  --primary-foreground: #ffffff;
 
   --secondary: oklch(0.965 0 0); /* #f5f5f5 surface */
   --secondary-foreground: oklch(0.25 0 0);
@@ -48,7 +48,7 @@
 
   --border: oklch(0.91 0 0); /* hairline ~#e6e6e6 */
   --input: oklch(0.88 0 0);
-  --ring: oklch(0.54 0.13 162);
+  --ring: #06402b;
 
   /* The living AI palette, also used by the aurora + brand gradient. */
   --chart-1: oklch(0.62 0.15 160);  /* emerald */
@@ -86,8 +86,8 @@
   --card-foreground: oklch(0.97 0 0);
   --popover: oklch(0.215 0 0);
   --popover-foreground: oklch(0.97 0 0);
-  --primary: oklch(0.72 0.15 162);
-  --primary-foreground: oklch(0.17 0.04 162);
+  --primary: #2fcf94;
+  --primary-foreground: #062116;
   --secondary: oklch(0.25 0 0);
   --secondary-foreground: oklch(0.95 0 0);
   --muted: oklch(0.24 0 0);
@@ -332,6 +332,135 @@
   }
   .magnetic:active {
     transform: translateY(0.5px);
+  }
+
+  /* Subtle non-brand hover glow. The brand green stays crisp; the glow uses
+     sky, violet, honey and coral so it feels like Atlas AI without muddying
+     the darker primary. */
+  .hover-glow,
+  .hover-glow-inside,
+  .icon-animate {
+    position: relative;
+  }
+  .hover-glow,
+  .hover-glow-inside {
+    isolation: isolate;
+  }
+  .hover-glow::after,
+  .hover-glow-inside::after {
+    content: "";
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.985);
+    transition:
+      opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .hover-glow::after {
+    inset: -4px;
+    z-index: -1;
+    filter: blur(16px);
+    background:
+      radial-gradient(34% 40% at 18% 18%, color-mix(in oklch, var(--pop-sky) 42%, transparent), transparent 72%),
+      radial-gradient(36% 44% at 86% 24%, color-mix(in oklch, #8b5cf6 32%, transparent), transparent 74%),
+      radial-gradient(44% 42% at 50% 102%, color-mix(in oklch, var(--pop-amber) 38%, transparent), transparent 76%),
+      radial-gradient(32% 40% at 80% 86%, color-mix(in oklch, var(--pop-coral) 30%, transparent), transparent 72%);
+  }
+  .hover-glow-inside::after {
+    inset: 0;
+    z-index: 0;
+    filter: blur(18px);
+    background:
+      radial-gradient(36% 42% at 10% 8%, color-mix(in oklch, var(--pop-sky) 24%, transparent), transparent 74%),
+      radial-gradient(44% 48% at 92% 18%, color-mix(in oklch, #8b5cf6 18%, transparent), transparent 76%),
+      radial-gradient(48% 44% at 62% 112%, color-mix(in oklch, var(--pop-amber) 22%, transparent), transparent 78%);
+  }
+  .hover-glow:hover::after,
+  .hover-glow:focus-visible::after,
+  .hover-glow-inside:hover::after,
+  .hover-glow-inside:focus-visible::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .hover-glow-inside > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .icon-animate svg,
+  .group:hover .icon-animate svg,
+  .icon-animate:hover svg {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .icon-animate svg,
+  .icon-animate svg * {
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .icon-animate:hover .lucide-lock path:first-child,
+  .group:hover .icon-animate .lucide-lock path:first-child {
+    transform: translateY(-1px) rotate(-18deg);
+    transform-origin: 35% 45%;
+  }
+  .icon-animate:hover .lucide-clock polyline,
+  .group:hover .icon-animate .lucide-clock polyline {
+    transform: rotate(330deg);
+    transform-origin: center;
+    transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .icon-animate:hover .lucide-mic,
+  .group:hover .icon-animate .lucide-mic {
+    animation: atlas-icon-mic 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .icon-animate:hover .lucide-sparkles,
+  .group:hover .icon-animate .lucide-sparkles {
+    animation: atlas-icon-sparkle 0.52s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .icon-animate:hover .lucide-upload-cloud,
+  .group:hover .icon-animate .lucide-upload-cloud {
+    animation: atlas-icon-upload 0.46s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .icon-animate:hover .lucide-trash-2,
+  .group:hover .icon-animate .lucide-trash-2,
+  .icon-animate:hover .lucide-x,
+  .group:hover .icon-animate .lucide-x {
+    animation: atlas-icon-nudge 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .icon-animate:hover .lucide-eye-off,
+  .group:hover .icon-animate .lucide-eye-off {
+    animation: atlas-icon-blink 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .icon-animate:hover .lucide-shield-check,
+  .group:hover .icon-animate .lucide-shield-check,
+  .icon-animate:hover .lucide-check,
+  .group:hover .icon-animate .lucide-check {
+    animation: atlas-icon-confirm 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .icon-animate:hover .lucide-arrow-right,
+  .group:hover .icon-animate .lucide-arrow-right,
+  .icon-animate:hover .lucide-arrow-up-right,
+  .group:hover .icon-animate .lucide-arrow-up-right {
+    animation: atlas-icon-arrow 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .icon-animate:hover .lucide-book-open,
+  .group:hover .icon-animate .lucide-book-open,
+  .icon-animate:hover .lucide-book-marked,
+  .group:hover .icon-animate .lucide-book-marked,
+  .icon-animate:hover .lucide-file-text,
+  .group:hover .icon-animate .lucide-file-text,
+  .icon-animate:hover .lucide-newspaper,
+  .group:hover .icon-animate .lucide-newspaper,
+  .icon-animate:hover .lucide-pencil,
+  .group:hover .icon-animate .lucide-pencil,
+  .icon-animate:hover .lucide-notebook-pen,
+  .group:hover .icon-animate .lucide-notebook-pen,
+  .icon-animate:hover .lucide-list-checks,
+  .group:hover .icon-animate .lucide-list-checks,
+  .icon-animate:hover .lucide-layers,
+  .group:hover .icon-animate .lucide-layers {
+    animation: atlas-icon-lift 0.38s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* Subtle blueprint line texture for the marketing canvas - faint ruled grid
@@ -857,6 +986,40 @@
 @keyframes atlas-angle {
   to { --atlas-angle: 360deg; }
 }
+@keyframes atlas-icon-mic {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  35% { transform: translateY(-1px) scaleY(1.08); }
+  70% { transform: translateY(1px) scaleY(0.94); }
+}
+@keyframes atlas-icon-sparkle {
+  0%, 100% { transform: rotate(0deg) scale(1); opacity: 1; }
+  45% { transform: rotate(12deg) scale(1.16); opacity: 0.82; }
+}
+@keyframes atlas-icon-upload {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-3px); }
+}
+@keyframes atlas-icon-nudge {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  35% { transform: translateX(-1px) rotate(-5deg); }
+  70% { transform: translateX(1px) rotate(4deg); }
+}
+@keyframes atlas-icon-blink {
+  0%, 100% { transform: scaleX(1); }
+  45% { transform: scaleX(0.82); }
+}
+@keyframes atlas-icon-confirm {
+  0%, 100% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-1px) scale(1.1); }
+}
+@keyframes atlas-icon-arrow {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(2px, -1px, 0); }
+}
+@keyframes atlas-icon-lift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(-2deg); }
+}
 /* Compositor-only loops for the feature-bento "transcribing" mock. Driving
    these through Framer ran ~23 JS animations on the main thread continuously;
    as CSS transforms they run on the compositor for ~no cost. */
@@ -892,5 +1055,16 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+  .hover-glow::after,
+  .hover-glow-inside::after {
+    opacity: 0 !important;
+  }
+  .icon-animate svg,
+  .icon-animate svg *,
+  .group:hover .icon-animate svg,
+  .group:hover .icon-animate svg * {
+    animation: none !important;
+    transform: none !important;
   }
 }

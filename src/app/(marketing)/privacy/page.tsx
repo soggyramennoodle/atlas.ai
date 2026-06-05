@@ -112,7 +112,7 @@ export default function PrivacyPhilosophyPage() {
             {COLLECT.map((c) => (
               <div
                 key={c.label}
-                className="rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-secondary/45"
+                className="hover-glow icon-animate rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-secondary/45"
               >
                 <h3 className="font-semibold tracking-tight">{c.label}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
@@ -141,7 +141,7 @@ export default function PrivacyPhilosophyPage() {
             {NEVER.map((n) => (
               <li
                 key={n}
-                className="flex items-start gap-3 rounded-[4px] border border-destructive/20 bg-destructive/[0.04] p-4"
+                className="hover-glow icon-animate flex items-start gap-3 rounded-[4px] border border-destructive/20 bg-destructive/[0.04] p-4"
               >
                 <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-[3px] bg-destructive/15 text-destructive">
                   <X className="size-3.5" />
@@ -168,7 +168,7 @@ export default function PrivacyPhilosophyPage() {
             {CONTROLS.map((c) => (
               <div
                 key={c.label}
-                className="flex items-start gap-4 rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-secondary/45"
+                className="hover-glow icon-animate flex items-start gap-4 rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-secondary/45"
               >
                 <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-[3px] bg-primary/15 text-primary">
                   <Check className="size-4" />

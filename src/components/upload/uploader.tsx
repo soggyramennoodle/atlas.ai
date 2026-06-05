@@ -160,7 +160,7 @@ export function Uploader({ userId }: { userId: string }) {
           tabIndex={0}
           onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
           className={cn(
-            "group flex cursor-pointer flex-col items-center justify-center rounded-[4px] border-2 border-dashed border-border bg-card px-6 py-16 text-center transition-colors",
+            "group hover-glow icon-animate flex cursor-pointer flex-col items-center justify-center rounded-[4px] border-2 border-dashed border-border bg-card px-6 py-16 text-center transition-colors",
             dragging
               ? "border-primary bg-primary/[0.04]"
               : "hover:border-foreground/40 hover:bg-secondary"
@@ -188,7 +188,7 @@ export function Uploader({ userId }: { userId: string }) {
           initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
-          className="rounded-[4px] border border-border bg-card p-5"
+          className="hover-glow-inside rounded-[4px] border border-border bg-card p-5"
         >
           <div className="flex items-start gap-4">
             <span className="grid size-12 shrink-0 place-items-center rounded-[4px] border border-border bg-background text-foreground">

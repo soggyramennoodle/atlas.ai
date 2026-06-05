@@ -59,7 +59,7 @@ function NavLinks({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "group relative flex items-center gap-3 rounded-[4px] px-3 py-2.5 text-sm font-medium transition-colors",
+              "group hover-glow-inside icon-animate relative flex items-center gap-3 rounded-[4px] px-3 py-2.5 text-sm font-medium transition-colors",
               active
                 ? "text-foreground"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -97,7 +97,7 @@ function Profile({ email }: { email: string }) {
       <form action="/auth/signout" method="post">
         <button
           aria-label="Sign out"
-          className="grid size-8 place-items-center rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="hover-glow icon-animate grid size-8 place-items-center rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
         >
           <LogOut className="size-4" />
         </button>
@@ -129,7 +129,7 @@ function SidebarBody({
 
       {/* Upsell / spacer */}
       <div className="mt-auto space-y-4">
-        <div className="rounded-[4px] border border-border bg-secondary p-4">
+        <div className="hover-glow icon-animate rounded-[4px] border border-border bg-secondary p-4">
           <Sparkles className="size-5 text-primary" />
           <p className="mt-2 text-sm font-medium">Flashcards & quizzes</p>
           <p className="mt-1 text-xs text-muted-foreground">

@@ -51,7 +51,7 @@ export function PrivacyTrust() {
           {POINTS.map((p) => (
             <div
               key={p.title}
-              className="border-t border-border bg-background p-6 first:border-t-0 sm:border-l sm:border-t-0 sm:first:border-l-0"
+              className="group hover-glow-inside icon-animate border-t border-border bg-background p-6 first:border-t-0 sm:border-l sm:border-t-0 sm:first:border-l-0"
             >
               <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-card text-foreground">
                 <p.icon className="size-5" />

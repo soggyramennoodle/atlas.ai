@@ -401,7 +401,7 @@ function SourceCard({
       disabled={disabled}
       aria-disabled={disabled}
       className={cn(
-        "group flex h-full flex-col items-start gap-2.5 rounded-[4px] border border-border bg-card p-4 text-left transition-[border-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/40 motion-reduce:transition-none",
+        "group hover-glow icon-animate flex h-full flex-col items-start gap-2.5 rounded-[4px] border border-border bg-card p-4 text-left transition-[border-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/40 motion-reduce:transition-none",
         disabled
           ? "cursor-not-allowed opacity-55"
           : "hover:border-foreground/30 hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]"

@@ -635,7 +635,7 @@ function ConceptBlock({
   onRemove: () => void;
 }) {
   return (
-    <div className="group/concept relative rounded-[4px] border border-border bg-card p-5">
+    <div className="group/concept hover-glow icon-animate relative rounded-[4px] border border-border bg-card p-5">
       <button
         type="button"
         onClick={onRemove}
