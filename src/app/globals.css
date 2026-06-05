@@ -4,51 +4,51 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Atlas theme system — "Spatial Liquid Glass".
-  Dark mode is the primary, dramatic treatment: a deep near-black space canvas
-  with frosted, translucent glass panels that have real depth and specular
-  edges. Light mode is its luminous twin — bright frosted glass floating on a
-  soft pearl gradient. The brand is a natural emerald green, cohesive with the
-  living AI glow, with a soft mint accent.
+  Atlas theme system - rivo-light.
+  Light mode is now the primary, designed-for treatment: a clean white canvas,
+  neutral greys, hairline borders, boxy 4px geometry, and a single natural
+  emerald accent (the brand, preserved). Depth comes from restraint and real
+  shadow, not glass. The living multicolor AI glow is reserved for AI-powered
+  surfaces only, where it signals "this was made by Atlas".
 
-  Legacy utility class names (ring-luxe, text-gradient-gold, bg-aurora, glass…)
-  are intentionally kept but redefined to the new glass language, so every
-  consuming component is transformed without churn.
+  Dark mode is kept as a secondary, neutral twin (no more indigo cast). Legacy
+  utility class names (ring-luxe, glass, bg-aurora, text-gradient-gold) are kept
+  so the app shell keeps working until its own redesign phase.
 */
 
 :root {
-  --radius: 1.25rem;
+  --radius: 0.25rem; /* 4px - boxy rivo geometry */
 
-  /* Luminous pearl canvas, faint cool indigo cast. */
-  --background: oklch(0.975 0.006 285);
-  --foreground: oklch(0.235 0.03 285);
+  /* Clean neutral canvas. */
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.19 0 0); /* near-#0d0d0d ink */
 
-  --card: oklch(0.995 0.003 285);
-  --card-foreground: oklch(0.235 0.03 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0 0);
 
-  --popover: oklch(0.995 0.003 285);
-  --popover-foreground: oklch(0.235 0.03 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0 0);
 
-  /* Natural emerald brand. */
-  --primary: oklch(0.58 0.135 160);
-  --primary-foreground: oklch(0.99 0.01 160);
+  /* Natural emerald brand - deepened slightly for AA contrast on white. */
+  --primary: oklch(0.54 0.13 162);
+  --primary-foreground: oklch(0.99 0.01 162);
 
-  --secondary: oklch(0.94 0.012 285);
-  --secondary-foreground: oklch(0.28 0.03 285);
+  --secondary: oklch(0.965 0 0); /* #f5f5f5 surface */
+  --secondary-foreground: oklch(0.25 0 0);
 
-  --muted: oklch(0.94 0.01 285);
-  --muted-foreground: oklch(0.5 0.025 285);
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.45 0 0); /* #666 muted text */
 
-  /* Soft mint accent. */
-  --accent: oklch(0.915 0.04 160);
-  --accent-foreground: oklch(0.3 0.055 160);
+  /* Neutral hover surface (rivo never tints hovers). */
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.19 0 0);
 
   --destructive: oklch(0.58 0.21 25);
-  --destructive-foreground: oklch(0.985 0.006 285);
+  --destructive-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.86 0.014 285);
-  --input: oklch(0.84 0.016 285);
-  --ring: oklch(0.58 0.135 160);
+  --border: oklch(0.91 0 0); /* hairline ~#e6e6e6 */
+  --input: oklch(0.88 0 0);
+  --ring: oklch(0.54 0.13 162);
 
   /* The living AI palette, also used by the aurora + brand gradient. */
   --chart-1: oklch(0.62 0.15 160);  /* emerald */
@@ -58,7 +58,7 @@
   --chart-5: oklch(0.7 0.1 200);    /* deep teal */
 
   /* Sparing "pop" accents (rivocareers-inspired). Used for category cues and
-     bursts of energy over the emerald base — never as the brand color. */
+     bursts of energy over the emerald base - never as the brand color. */
   --pop-lime: oklch(0.82 0.16 130);
   --pop-sky: oklch(0.7 0.13 230);
   --pop-amber: oklch(0.78 0.15 75);
@@ -79,25 +79,25 @@
 }
 
 .dark {
-  /* Deep space canvas — near-black with an indigo undertone. */
-  --background: oklch(0.165 0.022 280);
-  --foreground: oklch(0.97 0.006 285);
-  --card: oklch(0.225 0.026 280);
-  --card-foreground: oklch(0.97 0.006 285);
-  --popover: oklch(0.235 0.028 280);
-  --popover-foreground: oklch(0.97 0.006 285);
+  /* Neutral near-black canvas (no indigo cast), rivo dark twin. */
+  --background: oklch(0.16 0 0);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.215 0 0);
+  --popover-foreground: oklch(0.97 0 0);
   --primary: oklch(0.72 0.15 162);
   --primary-foreground: oklch(0.17 0.04 162);
-  --secondary: oklch(0.275 0.024 280);
-  --secondary-foreground: oklch(0.95 0.006 285);
-  --muted: oklch(0.255 0.022 280);
-  --muted-foreground: oklch(0.74 0.018 285);
-  --accent: oklch(0.34 0.05 165);
-  --accent-foreground: oklch(0.95 0.02 160);
+  --secondary: oklch(0.25 0 0);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.24 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --accent: oklch(0.26 0 0);
+  --accent-foreground: oklch(0.95 0 0);
   --destructive: oklch(0.64 0.21 25);
-  --destructive-foreground: oklch(0.98 0.005 285);
-  --border: oklch(0.36 0.022 282);
-  --input: oklch(0.38 0.022 282);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.3 0 0);
+  --input: oklch(0.32 0 0);
   --ring: oklch(0.72 0.15 162);
 
   --chart-1: oklch(0.74 0.16 162);
@@ -153,17 +153,20 @@
   --color-pop-amber: var(--pop-amber);
   --color-pop-coral: var(--pop-coral);
 
-  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  /* "serif" slot now carries the geometric display face (Space Grotesk). */
-  --font-serif: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-mono), ui-monospace, monospace;
+  /* Geist throughout - one neutral grotesque for body + display, Geist Mono for
+     the uppercase tracking eyebrows. The legacy "serif" and "display" slots both
+     map onto Geist Sans so existing `font-display` call sites keep working. */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 12px);
+  /* Boxy rivo radius scale (everything is a multiple of ~2px). */
+  --radius-sm: 0.125rem; /* 2px */
+  --radius-md: 0.1875rem; /* 3px */
+  --radius-lg: 0.25rem; /* 4px */
+  --radius-xl: 0.375rem; /* 6px */
+  --radius-2xl: 0.5rem; /* 8px */
 }
 
 @layer base {
@@ -201,15 +204,15 @@
 }
 
 @layer utilities {
-  /* Global film grain — eliminates flat digital gradients. Sits above page
+  /* Global film grain - eliminates flat digital gradients. Sits above page
      content (pointer-events none) but below the navbar and modals.
 
      Performance: the SVG carries an explicit 128×128 size so `feTurbulence`
      (an expensive filter) is rasterized ONCE into a small tile and then cheaply
      repeated, instead of being scaled to the full Retina viewport and
-     re-rasterized over the animating background — which saturated Chrome's GPU
+     re-rasterized over the animating background - which saturated Chrome's GPU
      on every page. `stitchTiles='stitch'` keeps the tile seamless, and two
-     octaves are plenty of grain at 2–4% opacity. `transform: translateZ(0)`
+     octaves are plenty of grain at 2-4% opacity. `transform: translateZ(0)`
      promotes it to its own cached layer so the page underneath can animate
      without forcing it to repaint. */
   .noise-overlay {
@@ -224,7 +227,7 @@
     transform: translateZ(0);
   }
 
-  /* A living spatial aurora — three drifting blooms of the AI palette that
+  /* A living spatial aurora - three drifting blooms of the AI palette that
      read as light suspended behind the glass. Softer in light, deeper in dark. */
   .bg-aurora {
     background-image:
@@ -259,14 +262,14 @@
      palette.
 
      STATIC by design. Frosted glass (`backdrop-filter`) is used pervasively
-     across the app shell — the sidebar, theme toggle, recording dock, stat
+     across the app shell - the sidebar, theme toggle, recording dock, stat
      cards, settings panels, the notes summary card. Each of those must
      re-rasterize its blurred backdrop on every frame this background moves, so
      a drifting bloom multiplied into a continuous, app-wide GPU stall that
      dragged the whole machine in Chrome. Keeping the canvas still lets every
      glass blur be cached once. Depth comes from the layered radials, not
-     motion. (If ambient motion is wanted back, it has to live ABOVE the glass —
-     not behind it — or the glass has to stop using backdrop-filter.) */
+     motion. (If ambient motion is wanted back, it has to live ABOVE the glass -
+     not behind it - or the glass has to stop using backdrop-filter.) */
   .spatial-bloom {
     position: absolute;
     border-radius: 9999px;
@@ -297,7 +300,7 @@
     );
   }
 
-  /* Glass depth ring — a bright specular top edge, a faint full-perimeter
+  /* Glass depth ring - a bright specular top edge, a faint full-perimeter
      highlight, and a soft indigo-tinted ambient shadow that floats the surface
      off the canvas. (Legacy name kept; meaning is now "glass", not "gold".) */
   .ring-luxe {
@@ -315,21 +318,48 @@
       0 6px 26px -14px color-mix(in oklch, var(--foreground) 16%, transparent);
   }
 
-  /* Magnetic interaction — every button/link gets weighted hover motion. */
+  /* Boxy press - rivo buttons don't grow on hover, they get a crisp colour
+     transition and a tiny physical push on press. (Class name kept so every
+     existing call site is restyled without churn.) */
   .magnetic {
     transition:
-      transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-      background-color 0.25s ease,
-      border-color 0.25s ease,
-      color 0.25s ease,
-      box-shadow 0.25s ease,
-      opacity 0.25s ease;
-  }
-  .magnetic:hover {
-    transform: scale(1.03);
+      transform 0.18s cubic-bezier(0.2, 0.9, 0.2, 1),
+      background-color 0.18s cubic-bezier(0.2, 0.9, 0.2, 1),
+      border-color 0.18s cubic-bezier(0.2, 0.9, 0.2, 1),
+      color 0.18s cubic-bezier(0.2, 0.9, 0.2, 1),
+      box-shadow 0.18s cubic-bezier(0.2, 0.9, 0.2, 1),
+      opacity 0.18s ease;
   }
   .magnetic:active {
-    transform: scale(0.97);
+    transform: translateY(0.5px);
+  }
+
+  /* Subtle blueprint line texture for the marketing canvas - faint ruled grid
+     that reads as paper/atelier guides, not decoration. Masked so it fades out
+     toward the edges and never competes with content. */
+  .bg-blueprint {
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in oklch, var(--foreground) 5%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklch, var(--foreground) 5%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 76px 76px;
+  }
+  /* A single hairline ruled in one direction, for section dividers/guides. */
+  .bg-hairlines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--foreground) 4%, transparent) 0,
+      color-mix(in oklch, var(--foreground) 4%, transparent) 1px,
+      transparent 1px,
+      transparent 38px
+    );
   }
 
   .text-balance {
@@ -340,7 +370,7 @@
     text-wrap: pretty;
   }
 
-  /* Brand gradient text — emerald → teal → lime, flowing like the AI glow.
+  /* Brand gradient text - emerald → teal → lime, flowing like the AI glow.
      (Legacy `.text-gradient-gold` kept as an alias of the new brand gradient.) */
   .text-gradient-gold,
   .text-gradient-brand {
@@ -356,7 +386,7 @@
     color: transparent;
   }
 
-  /* Frosted liquid-glass surface — translucent, saturated, with a specular top
+  /* Frosted liquid-glass surface - translucent, saturated, with a specular top
      edge so it reads as a real pane of glass floating over the canvas. */
   .glass {
     background-color: color-mix(in oklch, var(--card) var(--glass-alpha), transparent);
@@ -405,7 +435,7 @@
   }
   /* Static gradient. Animating `background-position` repaints the element every
      frame, and on `background-clip: text` (the hero/CTA headlines) that means
-     re-rasterizing the glyphs continuously — a heavy paint cost with several on
+     re-rasterizing the glyphs continuously - a heavy paint cost with several on
      screen at once. The gradient still reads premium without the flow. */
   .animate-gradient {
     background-size: 200% 200%;
@@ -445,7 +475,7 @@
     animation: atlas-shimmer 0.9s ease;
   }
 
-  /* Persistent multicolor "AI-powered" ring — a slowly flowing gradient border
+  /* Persistent multicolor "AI-powered" ring - a slowly flowing gradient border
      in the living AI palette (indigo · blue · amber · lavender) that signals a
      surface is AI-generated, even at rest. Pair with <AiGlow/> for the inner
      bloom. The border is drawn with a padding-box mask so it never clips text. */
@@ -461,11 +491,13 @@
     padding: 1.25px;
     background: linear-gradient(
       120deg,
-      #2bb673,
-      #2fd4c4,
-      #ffc24f,
-      #9ad05b,
-      #2bb673
+      #12a36b,
+      #1ac4c0,
+      #3b82f6,
+      #8b5cf6,
+      #fb6f4c,
+      #ffb22e,
+      #12a36b
     );
     background-size: 220% 220%;
     -webkit-mask:
@@ -475,7 +507,7 @@
     mask-composite: exclude;
     opacity: 0.6;
     pointer-events: none;
-    /* Static — see `.animate-gradient`. A flowing `background-position` here
+    /* Static - see `.animate-gradient`. A flowing `background-position` here
        repaints the masked border ring every frame on the notes summary card. */
     background-position: 0% 50%;
   }
@@ -522,7 +554,7 @@
   }
 }
 
-/* Note body typography — shared by the rich-text editor and the read-only
+/* Note body typography - shared by the rich-text editor and the read-only
    view so an edited note reads identically to how it was written (§1). */
 .note-prose {
   color: var(--foreground);
@@ -597,7 +629,7 @@
   pointer-events: none;
 }
 
-/* Newsroom article body — rendered from sanitized Markdown HTML. Editorial,
+/* Newsroom article body - rendered from sanitized Markdown HTML. Editorial,
    readable measure with restrained accents matching the glass language. */
 .article-prose {
   color: color-mix(in oklch, var(--foreground) 92%, transparent);
@@ -717,7 +749,7 @@
    keyframes, reused by the summary box, key-concept AI panels and the
    recording aura. Animations touch ONLY transform + opacity and each blob is
    promoted to its own layer (will-change), so the blur is rasterized once and
-   merely composited — no per-frame repaint, no scroll jank.
+   merely composited - no per-frame repaint, no scroll jank.
    Palette: #2BB673 emerald · #2FD4C4 teal · #FFC24F honey · #9AD05B lime.
    ───────────────────────────────────────────────────────────────────────── */
 .ai-glow {
@@ -838,7 +870,7 @@
   0%, 100% { transform: scaleX(0.4); }
   50% { transform: scaleX(0.92); }
 }
-/* Kinetic marquee — one continuous compositor-only translate of a duplicated
+/* Kinetic marquee - one continuous compositor-only translate of a duplicated
    track, so the subject strip scrolls endlessly without per-frame JS. */
 @keyframes atlas-marquee {
   from { transform: translate3d(0, 0, 0); }

@@ -1,38 +1,22 @@
-"use client";
-
-import Link from "next/link";
-import {
-  ListChecks,
-  Layers,
-  BookMarked,
-  Clock,
-  ArrowRight,
-} from "lucide-react";
+import { ListChecks, Layers, BookMarked, Clock } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
 import { AiGlow } from "@/components/ui/ai-glow";
 import { cn } from "@/lib/utils";
 
-/** A pop-accented icon chip — the one sanctioned sparing use of pop colors. */
+/** A boxed, neutral icon chip. Colour is reserved for the AI glow. */
 function IconChip({
   children,
-  pop = "var(--primary)",
   size = "md",
 }: {
   children: React.ReactNode;
-  pop?: string;
   size?: "md" | "lg";
 }) {
   return (
     <span
       className={cn(
-        "grid place-items-center rounded-2xl",
-        size === "lg" ? "size-12" : "size-11"
+        "grid place-items-center rounded-[4px] border border-border bg-background text-foreground",
+        size === "lg" ? "size-12" : "size-10"
       )}
-      style={{
-        backgroundColor: `color-mix(in oklch, ${pop} 14%, transparent)`,
-        color: pop,
-        boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${pop} 28%, transparent)`,
-      }}
     >
       {children}
     </span>
@@ -42,35 +26,32 @@ function IconChip({
 function Cell({
   className,
   children,
-  delay = 0,
 }: {
   className?: string;
   children: React.ReactNode;
-  delay?: number;
 }) {
   return (
-    <Reveal
-      delay={delay}
+    <div
       className={cn(
-        "glow-card group relative flex flex-col overflow-hidden rounded-[1.75rem] border bg-card/80 p-6 transition hover:border-primary/30 hover:-translate-y-0.5",
+        "group relative flex flex-col overflow-hidden rounded-[4px] border border-border bg-card p-6 transition-shadow hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]",
         className
       )}
     >
       {children}
-    </Reveal>
+    </div>
   );
 }
 
-/** Looping waveform that "writes" note lines — fills the tall hero card. */
+/** Looping waveform that "writes" note lines - the one AI affordance visual. */
 function WaveToNotes() {
   return (
-    <div className="relative mt-6 flex flex-1 flex-col gap-4 rounded-2xl border bg-background/30 p-5">
+    <div className="mt-6 flex flex-1 flex-col gap-4 rounded-[4px] border border-border bg-background p-5">
       <div className="flex items-center gap-4">
         <div className="flex h-12 items-end gap-[3px]">
           {Array.from({ length: 18 }).map((_, i) => (
             <span
               key={i}
-              className="h-full w-[3px] origin-bottom rounded-full bg-gradient-to-t from-primary/40 to-primary transform-gpu"
+              className="h-full w-[3px] origin-bottom rounded-full bg-primary/70 transform-gpu"
               style={{
                 transform: "scaleY(0.4)",
                 animation: `atlas-wave 1.8s ease-in-out ${(i * 0.07).toFixed(2)}s infinite`,
@@ -78,7 +59,7 @@ function WaveToNotes() {
             />
           ))}
         </div>
-        <span className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-primary">
+        <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary">
           transcribing
         </span>
       </div>
@@ -98,54 +79,26 @@ function WaveToNotes() {
   );
 }
 
-/** A particle orbiting a definition dot. */
-function OrbitDot() {
-  return (
-    <div className="mt-6 grid h-24 flex-1 place-items-center">
-      <div className="relative size-20">
-        <div className="absolute inset-0 rounded-full border border-dashed border-primary/25" />
-        <div className="absolute inset-0 animate-spin-slow">
-          <span className="absolute -top-1 left-1/2 size-2.5 -translate-x-1/2 rounded-full bg-primary shadow-[0_0_12px] shadow-primary/60" />
-        </div>
-        <div className="absolute inset-0 grid place-items-center">
-          <span className="size-3 rounded-full bg-primary/70" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Pulsing concentric clock ring. */
-function PulseClock() {
-  return (
-    <div className="mt-6 grid h-24 flex-1 place-items-center">
-      <div className="relative grid size-16 place-items-center rounded-full bg-primary/10 ring-1 ring-primary/20 animate-pulse-ring">
-        <Clock className="size-6 text-primary" />
-      </div>
-    </div>
-  );
-}
-
-/** Realistic, tangible note cards — what a student would actually have. */
+/** A small fanned stack of note cards - the personal library. */
 function LibraryCards() {
   const cards = [
-    { title: "Lecture 4: Mitosis", tag: "Biology", x: -52, rot: -7, z: 10, lines: 3 },
-    { title: "Limits & Continuity", tag: "Calculus", x: 0, rot: 2, z: 20, lines: 4 },
-    { title: "The French Revolution", tag: "History", x: 52, rot: 8, z: 10, lines: 3 },
+    { title: "Lecture 4: Mitosis", tag: "Biology", x: -54, rot: -7, z: 10, lines: 3 },
+    { title: "Limits and Continuity", tag: "Calculus", x: 0, rot: 2, z: 20, lines: 4 },
+    { title: "The French Revolution", tag: "History", x: 54, rot: 8, z: 10, lines: 3 },
   ];
   return (
-    <div className="mt-6 grid h-40 flex-1 place-items-center">
+    <div className="mt-6 grid h-40 place-items-center">
       <div className="relative h-36 w-full">
         {cards.map((c) => (
           <div
             key={c.title}
-            className="absolute left-1/2 top-1/2 w-36 rounded-xl border border-border/80 bg-gradient-to-b from-card to-background/80 p-3 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.7)]"
+            className="absolute left-1/2 top-1/2 w-36 rounded-[4px] border border-border bg-background p-3 shadow-[0_8px_24px_-14px_rgba(0,0,0,0.3)]"
             style={{
               transform: `translate(-50%, -50%) translateX(${c.x}px) rotate(${c.rot}deg)`,
               zIndex: c.z,
             }}
           >
-            <p className="truncate text-[0.7rem] font-semibold tracking-tight text-foreground/90">
+            <p className="truncate text-[0.72rem] font-semibold tracking-tight text-foreground">
               {c.title}
             </p>
             <div className="mt-2 space-y-1.5">
@@ -157,7 +110,7 @@ function LibraryCards() {
                 />
               ))}
             </div>
-            <span className="mt-2.5 inline-block rounded-full bg-primary/15 px-2 py-0.5 text-[0.6rem] font-medium text-primary">
+            <span className="mt-2.5 inline-block rounded-[4px] border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
               {c.tag}
             </span>
           </div>
@@ -171,114 +124,94 @@ export function FeaturesBento() {
   return (
     <section
       id="features"
-      className="render-section scroll-mt-24 border-y bg-card/20 py-32"
+      className="scroll-mt-20 border-t border-border py-20 md:py-28"
     >
-      <div className="mx-auto max-w-6xl px-4">
-        <Reveal className="max-w-3xl">
-          <h2 className="font-display text-5xl font-extrabold leading-[0.9] tracking-[-0.03em] sm:text-7xl">
-            Everything from a lecture,
-            <br />
-            <span className="text-gradient-brand">written down.</span>
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
+        <Reveal className="max-w-[24ch]">
+          <h2 className="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.03em] sm:text-5xl">
+            Everything from a lecture,{" "}
+            <span className="text-primary">written down.</span>
           </h2>
-          <p className="mt-5 max-w-md text-pretty text-lg text-muted-foreground">
-            Not a three-line recap. The full picture, organized the way you
-            would study it.
+          <p className="mt-4 max-w-[48ch] text-pretty text-lg leading-relaxed text-muted-foreground">
+            Not a three-line recap. The full picture, organized the way you would
+            study it.
           </p>
         </Reveal>
 
-        <div className="mt-16 grid auto-rows-[minmax(0,1fr)] grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Hero cell — carries the living glow so the grid feels alive. */}
-          <Cell className="relative sm:col-span-2 lg:row-span-2">
-            <div className="pointer-events-none absolute inset-0 opacity-50">
-              <AiGlow density="lean" blur={64} />
-            </div>
-            <div className="relative flex h-full flex-col">
-              <IconChip size="lg">
-                <ListChecks className="size-5" />
-              </IconChip>
-              <h3 className="mt-4 font-display text-2xl font-bold tracking-tight">
-                Notes that miss nothing
-              </h3>
-              <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                Detailed, structured notes that capture examples, formulas and
-                asides, not a short summary. Atlas writes them the way a
-                diligent student would, in full.
-              </p>
-              <WaveToNotes />
-            </div>
-          </Cell>
-
-          <Cell delay={0.06}>
-            <IconChip pop="var(--pop-sky)">
-              <Layers className="size-5" />
-            </IconChip>
-            <h3 className="mt-4 font-display text-lg font-bold tracking-tight">
-              A summary up top
-            </h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-              Each lecture opens with a short overview, so you recall the gist in
-              seconds.
-            </p>
-            <OrbitDot />
-          </Cell>
-
-          <Cell delay={0.12}>
-            <IconChip pop="var(--pop-lime)">
-              <BookMarked className="size-5" />
-            </IconChip>
-            <h3 className="mt-4 font-display text-lg font-bold tracking-tight">
-              Your personal library
-            </h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-              Every lecture saved and searchable, a notebook for the whole term.
-            </p>
-            <LibraryCards />
-          </Cell>
-
-          <Cell delay={0.06}>
-            <IconChip pop="var(--pop-amber)">
-              <Clock className="size-5" />
-            </IconChip>
-            <h3 className="mt-4 font-display text-lg font-bold tracking-tight">
-              Any lecture length
-            </h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-              From a 20-minute seminar to a three-hour lab, powered by long-audio
-              understanding.
-            </p>
-            <PulseClock />
-          </Cell>
-
-          {/* Atlas Enclave — privacy. Lock emoji is part of the brand (§3d). */}
-          <Cell delay={0.12} className="sm:col-span-2">
-            <div className="flex h-full items-start justify-between gap-6">
-              <div className="flex h-full flex-col">
-                <IconChip pop="var(--pop-coral)">
-                  <span className="text-xl leading-none">🔒</span>
+        <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3 md:auto-rows-[minmax(0,1fr)]">
+          {/* AI hero cell - carries the living glow and the AI ring. */}
+          <Reveal className="md:col-span-2 md:row-span-2 md:flex" delay={0.04}>
+            <Cell className="ai-ring h-full w-full">
+              <div className="pointer-events-none absolute inset-0 opacity-45">
+                <AiGlow density="lean" blur={64} />
+              </div>
+              <div className="relative flex h-full flex-col">
+                <IconChip size="lg">
+                  <ListChecks className="size-5" />
                 </IconChip>
-                <h3 className="mt-4 font-display text-lg font-bold tracking-tight">
-                  Atlas Enclave
+                <h3 className="mt-4 text-2xl font-bold tracking-tight">
+                  Notes that miss nothing
                 </h3>
-                <p className="mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">
-                  Recordings and notes live in a private space tied to your
-                  account and protected with database row-level security. Never
-                  sold, never shared, never used to train anyone else&apos;s AI.
+                <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                  Detailed, structured notes that capture examples, formulas and
+                  asides, not a short summary. Atlas writes them the way a
+                  diligent student would, in full.
                 </p>
-                <Link
-                  href="/privacy"
-                  className="group/cta mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary"
-                >
-                  Learn how we protect you
-                  <ArrowRight className="size-4 transition-transform group-hover/cta:translate-x-0.5" />
-                </Link>
+                <WaveToNotes />
               </div>
-              <div className="hidden shrink-0 sm:block">
-                <div className="relative grid size-20 place-items-center rounded-2xl border bg-background/40 text-3xl animate-breathe">
-                  🔒
-                </div>
+            </Cell>
+          </Reveal>
+
+          <Reveal className="md:flex" delay={0.1}>
+            <Cell className="h-full w-full">
+              <IconChip>
+                <Layers className="size-5" />
+              </IconChip>
+              <h3 className="mt-4 text-lg font-semibold tracking-tight">
+                A summary up top
+              </h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                Each lecture opens with a short overview, so you recall the gist
+                in seconds.
+              </p>
+            </Cell>
+          </Reveal>
+
+          <Reveal className="md:flex" delay={0.16}>
+            <Cell className="h-full w-full">
+              <IconChip>
+                <Clock className="size-5" />
+              </IconChip>
+              <h3 className="mt-4 text-lg font-semibold tracking-tight">
+                Any lecture length
+              </h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                From a 20-minute seminar to a three-hour lab, powered by
+                long-audio understanding.
+              </p>
+            </Cell>
+          </Reveal>
+
+          {/* Wide library cell spans the full row, breaking the grid rhythm. */}
+          <Reveal className="md:col-span-3 md:flex" delay={0.1}>
+            <Cell className="h-full w-full sm:flex-row sm:items-center sm:gap-10">
+              <div className="sm:max-w-sm">
+                <IconChip>
+                  <BookMarked className="size-5" />
+                </IconChip>
+                <h3 className="mt-4 text-lg font-semibold tracking-tight">
+                  Your personal library
+                </h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                  Every lecture saved and searchable, a notebook for the whole
+                  term.
+                </p>
               </div>
-            </div>
-          </Cell>
+              <div className="mt-2 flex-1 sm:mt-0">
+                <LibraryCards />
+              </div>
+            </Cell>
+          </Reveal>
         </div>
       </div>
     </section>

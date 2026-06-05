@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { LogOut, Menu, X, LayoutDashboard } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
 
 const LINKS = [
   { href: "/#how", label: "How it works" },
@@ -25,49 +23,16 @@ const LINKS = [
 ];
 
 export function Nav({ email }: { email: string | null }) {
-  const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const scrolledRef = useRef(false);
-
-  useEffect(() => {
-    const update = () => {
-      const next = window.scrollY > 24;
-      if (next === scrolledRef.current) return;
-      scrolledRef.current = next;
-      setScrolled(next);
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
-  }, []);
-
   const initials = email ? email[0]?.toUpperCase() : "?";
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-3 sm:pt-4">
-      <motion.nav
-        initial={false}
-        animate={{
-          backgroundColor: scrolled
-            ? "color-mix(in oklch, var(--background) 72%, transparent)"
-            : "color-mix(in oklch, var(--background) 0%, transparent)",
-          borderColor: scrolled
-            ? "color-mix(in oklch, var(--border) 100%, transparent)"
-            : "color-mix(in oklch, var(--border) 0%, transparent)",
-          boxShadow: scrolled
-            ? "0 8px 30px -12px color-mix(in oklch, var(--primary) 22%, transparent)"
-            : "0 0 0 0 transparent",
-        }}
-        transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className={cn(
-          // No backdrop-filter: this wide bar is fixed over the drifting
-          // background blooms, and blurring a moving backdrop forces a re-blur
-          // every frame (a Chrome GPU sink). When scrolled it gets a ~72%
-          // opaque background, so the blur added almost nothing visually anyway.
-          "flex w-full max-w-5xl items-center justify-between gap-4 rounded-2xl border px-3 py-2 sm:px-4"
-        )}
-      >
-        <Link href="/" className="shrink-0 transition hover:-translate-y-px">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-sm">
+      <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6">
+        <Link
+          href="/"
+          className="shrink-0 transition-opacity hover:opacity-80"
+        >
           <Logo beta />
         </Link>
 
@@ -76,7 +41,7 @@ export function Nav({ email }: { email: string | null }) {
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:-translate-y-px hover:text-foreground"
+              className="rounded-[4px] px-3 py-1.5 text-[14px] text-muted-foreground transition-colors hover:text-foreground"
             >
               {l.label}
             </Link>
@@ -96,7 +61,7 @@ export function Nav({ email }: { email: string | null }) {
               <Button asChild variant="ghost" size="sm">
                 <Link href="/login">Log in</Link>
               </Button>
-              <Button asChild size="sm" className="group relative">
+              <Button asChild size="sm">
                 <Link href="/signup">Get started</Link>
               </Button>
             </div>
@@ -104,26 +69,23 @@ export function Nav({ email }: { email: string | null }) {
 
           <button
             onClick={() => setOpen((v) => !v)}
-            className="grid size-9 place-items-center rounded-full border bg-background/60 md:hidden"
+            className="grid size-9 place-items-center rounded-[4px] border border-border bg-card text-foreground transition-colors hover:bg-accent md:hidden"
             aria-label="Toggle menu"
+            aria-expanded={open}
           >
             {open ? <X className="size-4" /> : <Menu className="size-4" />}
           </button>
         </div>
-      </motion.nav>
+      </div>
 
       {open && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute top-[4.5rem] w-[calc(100%-2rem)] max-w-5xl rounded-2xl border bg-background/90 p-2 shadow-xl backdrop-blur-xl md:hidden"
-        >
+        <div className="border-t border-border bg-background px-4 py-3 md:hidden">
           {LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className="block rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+              className="block rounded-[4px] px-3 py-2.5 text-[14px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               {l.label}
             </Link>
@@ -134,12 +96,12 @@ export function Nav({ email }: { email: string | null }) {
               <Link
                 href="/dashboard"
                 onClick={() => setOpen(false)}
-                className="block rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-accent"
+                className="block rounded-[4px] px-3 py-2.5 text-[14px] font-medium transition-colors hover:bg-accent"
               >
                 Dashboard
               </Link>
               <form action="/auth/signout" method="post">
-                <button className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-muted-foreground hover:bg-accent">
+                <button className="w-full rounded-[4px] px-3 py-2.5 text-left text-[14px] text-muted-foreground transition-colors hover:bg-accent">
                   Sign out
                 </button>
               </form>
@@ -158,7 +120,7 @@ export function Nav({ email }: { email: string | null }) {
               </Button>
             </div>
           )}
-        </motion.div>
+        </div>
       )}
     </header>
   );
@@ -168,9 +130,9 @@ function UserMenu({ email, initials }: { email: string; initials: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="rounded-full outline-none transition hover:-translate-y-px focus-visible:ring-2 focus-visible:ring-ring">
-          <Avatar className="size-9 border">
-            <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+        <button className="rounded-[4px] outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring">
+          <Avatar className="size-9 rounded-[4px] border border-border">
+            <AvatarFallback className="rounded-[4px] bg-secondary text-sm font-semibold text-foreground">
               {initials}
             </AvatarFallback>
           </Avatar>

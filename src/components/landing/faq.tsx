@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
 
@@ -26,16 +26,17 @@ const FAQ = [
 
 export function Faq() {
   const [open, setOpen] = useState<number | null>(0);
+  const reduce = useReducedMotion();
 
   return (
     <section
       id="faq"
-      className="render-section mx-auto max-w-6xl scroll-mt-24 px-4 py-28"
+      className="mx-auto max-w-[1200px] scroll-mt-20 px-4 py-20 sm:px-6 md:py-28"
     >
-      <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
+      <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
         <Reveal className="lg:col-span-5">
-          <div className="lg:sticky lg:top-28">
-            <h2 className="font-display text-balance text-5xl font-extrabold leading-[0.9] tracking-[-0.03em] sm:text-6xl">
+          <div className="lg:sticky lg:top-24">
+            <h2 className="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.03em] sm:text-5xl">
               Questions,
               <br />
               answered.
@@ -53,25 +54,25 @@ export function Faq() {
           </div>
         </Reveal>
 
-        <div className="space-y-3 lg:col-span-7">
-          {FAQ.map((item, i) => {
-            const isOpen = open === i;
-            return (
-              <Reveal key={item.q} delay={i * 0.05}>
-                {/* Self-frosted (translucent fill, no live backdrop-filter): a
-                    stack of FAQ rows over the background blooms would otherwise
-                    re-blur every frame and stall Chrome. */}
-                <div className="overflow-hidden rounded-2xl border bg-card/75 shadow-sm">
+        <div className="lg:col-span-7">
+          <div className="overflow-hidden rounded-[4px] border border-border">
+            {FAQ.map((item, i) => {
+              const isOpen = open === i;
+              return (
+                <div
+                  key={item.q}
+                  className="border-t border-border bg-card first:border-t-0"
+                >
                   <button
                     onClick={() => setOpen(isOpen ? null : i)}
-                    className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
+                    className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left transition-colors hover:bg-secondary sm:px-6"
                     aria-expanded={isOpen}
                   >
                     <span className="font-medium tracking-tight">{item.q}</span>
                     <motion.span
                       animate={{ rotate: isOpen ? 45 : 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="grid size-7 shrink-0 place-items-center rounded-full border border-primary/30 text-primary"
+                      transition={{ duration: reduce ? 0 : 0.25 }}
+                      className="grid size-7 shrink-0 place-items-center rounded-[4px] border border-border text-foreground"
                     >
                       <Plus className="size-4" />
                     </motion.span>
@@ -82,18 +83,21 @@ export function Faq() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{
+                          duration: reduce ? 0 : 0.3,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
                       >
-                        <p className="px-6 pb-5 text-sm leading-relaxed text-muted-foreground text-pretty">
+                        <p className="px-5 pb-5 text-sm leading-relaxed text-muted-foreground text-pretty sm:px-6">
                           {item.a}
                         </p>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-              </Reveal>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

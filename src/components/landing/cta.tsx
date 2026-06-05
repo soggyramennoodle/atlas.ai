@@ -2,45 +2,38 @@ import Link from "next/link";
 import { ArrowRight, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/landing/reveal";
+import { AiGlow } from "@/components/ui/ai-glow";
 
 export function FinalCta({ ctaHref }: { ctaHref: string }) {
   return (
-    <section className="render-section mx-auto mt-28 max-w-6xl px-4 pb-16">
-      <Reveal className="relative isolate overflow-hidden rounded-[2.5rem] border border-primary/20 bg-card/40 px-6 py-24 text-center ring-luxe sm:px-10 sm:py-28">
-        {/* Layered background treatment — static aurora + grid + glow blobs. */}
-        <div className="pointer-events-none absolute inset-0 bg-aurora opacity-70" />
-        <div className="pointer-events-none absolute inset-0 bg-grid opacity-30 [mask-image:radial-gradient(70%_60%_at_50%_40%,black,transparent)]" />
-        <div className="pointer-events-none absolute -left-24 top-0 size-80 rounded-full bg-primary/20 blur-3xl" />
-        <div className="pointer-events-none absolute -right-20 bottom-0 size-80 rounded-full bg-chart-4/20 blur-3xl" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+    <section className="mx-auto mt-20 max-w-[1200px] px-4 pb-20 sm:px-6 md:mt-28">
+      <Reveal className="relative isolate overflow-hidden rounded-[4px] border border-border bg-card px-6 py-20 text-center sm:px-10 sm:py-24">
+        {/* The one colourful moment: a soft, contained AI glow behind the type. */}
+        <div className="pointer-events-none absolute inset-0 -z-10 opacity-40 [mask-image:radial-gradient(60%_60%_at_50%_45%,black,transparent)]">
+          <AiGlow density="lean" blur={80} />
+        </div>
 
-        <div className="relative">
-          <h2 className="mx-auto max-w-4xl font-display text-balance text-6xl font-extrabold leading-[0.88] tracking-[-0.03em] sm:text-7xl lg:text-8xl">
-            Stop scribbling.
-            <br />
-            <span className="text-gradient-brand animate-gradient">
-              Start understanding.
-            </span>
-          </h2>
-          <p className="mx-auto mt-6 max-w-md text-pretty text-lg text-muted-foreground">
-            Record your next lecture and let Atlas take the notes, so you can
-            finally be present in class.
-          </p>
-          <Button
-            asChild
-            size="lg"
-            className="group shimmer magnetic mt-10 h-12 px-8 text-base"
-          >
+        <h2 className="mx-auto max-w-3xl text-balance text-4xl font-bold leading-[1.0] tracking-[-0.03em] sm:text-6xl">
+          Stop scribbling.
+          <br />
+          <span className="text-primary">Start understanding.</span>
+        </h2>
+        <p className="mx-auto mt-5 max-w-md text-pretty text-lg leading-relaxed text-muted-foreground">
+          Record your next lecture and let Atlas take the notes, so you can
+          finally be present in class.
+        </p>
+        <div className="mt-9 flex justify-center">
+          <Button asChild size="lg" className="group">
             <Link href={ctaHref}>
               <Mic className="size-4" />
               Record a lecture
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </Button>
-          <p className="mt-5 font-mono text-xs text-muted-foreground">
-            No card required. Your recordings stay private.
-          </p>
         </div>
+        <p className="mt-5 font-mono text-xs text-muted-foreground">
+          No card required. Your recordings stay private.
+        </p>
       </Reveal>
     </section>
   );

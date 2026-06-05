@@ -4,6 +4,7 @@ import { isNewsroomAdmin } from "@/lib/newsroom";
 import { AppSidebar } from "@/components/app/app-sidebar";
 import { RecordingProvider } from "@/components/recording/recording-context";
 import { RecordingDock } from "@/components/recording/recording-dock";
+import { SpatialBackground } from "@/components/spatial-background";
 
 export default async function AppLayout({
   children,
@@ -30,9 +31,11 @@ export default async function AppLayout({
   return (
     <RecordingProvider userId={user.id}>
       <div className="relative min-h-screen">
-        {/* The shared spatial canvas (aurora + grid + drifting blooms) is now
-            mounted once at the root layout, so every app surface floats on the
-            same living background. */}
+        {/* The app shell keeps the spatial canvas (aurora + grid + drifting
+            blooms) until its own redesign phase. The marketing surface no longer
+            uses it. */}
+        <SpatialBackground />
+        <div aria-hidden className="noise-overlay" />
         <AppSidebar email={user.email ?? ""} isAdmin={isNewsroomAdmin(user.email)} />
         <div className="lg:pl-64">
           <div className="pt-16 lg:pt-0">{children}</div>

@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * A single endless kinetic strip of subjects (rivocareers-inspired motion),
- * communicating "Atlas works for any lecture." One compositor-only translate of
- * a duplicated track; the pop accents appear only as small separator dots, the
- * one sanctioned sparing use of the pop palette here.
+ * One endless kinetic strip of subjects, communicating "Atlas works for any
+ * lecture." A single compositor-only translate of a duplicated track. Neutral
+ * and quiet to match the rivo language: muted type, hairline dot separators, no
+ * pop colours.
  */
 
 const SUBJECTS = [
@@ -22,19 +22,11 @@ const SUBJECTS = [
   "Calculus",
 ];
 
-const POPS = [
-  "var(--pop-lime)",
-  "var(--pop-sky)",
-  "var(--pop-amber)",
-  "var(--pop-coral)",
-  "var(--primary)",
-];
-
 export function SubjectsMarquee() {
   return (
     <section
       aria-label="Subjects Atlas works with"
-      className="render-section relative overflow-hidden border-y border-border/60 py-7"
+      className="relative overflow-hidden border-y border-border py-6"
     >
       <div className="marquee-mask flex w-max animate-marquee will-change-transform">
         {[0, 1].map((track) => (
@@ -43,15 +35,14 @@ export function SubjectsMarquee() {
             aria-hidden={track === 1}
             className="flex shrink-0 items-center"
           >
-            {SUBJECTS.map((s, i) => (
+            {SUBJECTS.map((s) => (
               <li key={`${track}-${s}`} className="flex items-center">
-                <span className="px-7 font-display text-2xl font-semibold tracking-tight text-foreground/80 sm:text-3xl">
+                <span className="px-7 text-xl font-medium tracking-tight text-muted-foreground sm:text-2xl">
                   {s}
                 </span>
                 <span
                   aria-hidden
-                  className="size-2 rounded-full"
-                  style={{ backgroundColor: POPS[i % POPS.length] }}
+                  className="size-1 rounded-full bg-border"
                 />
               </li>
             ))}

@@ -10,18 +10,22 @@ import { cn } from "@/lib/utils";
  * palette.
  *
  * Performance: every blob animates with CSS keyframes that touch only transform
- * and opacity, and each is promoted to its own compositor layer — so the blur
+ * and opacity, and each is promoted to its own compositor layer - so the blur
  * is rasterized once and merely composited. The animation also pauses itself
  * via IntersectionObserver when scrolled out of view, keeping note scrolling at
  * 60fps regardless of how many glows are mounted.
  */
 
-// The exclusive AI palette.
+// The Atlas AI palette - now genuinely multicolor (emerald brand anchor plus
+// vivid teal, sky, violet, coral and honey), deepened so every blob still reads
+// with contrast when it blooms over a white surface.
 const PALETTE = {
-  emerald: "#2BB673",
-  teal: "#2FD4C4",
-  honey: "#FFC24F",
-  lime: "#9AD05B",
+  emerald: "#12A36B",
+  teal: "#1AC4C0",
+  sky: "#3B82F6",
+  violet: "#8B5CF6",
+  coral: "#FB6F4C",
+  honey: "#FFB22E",
 } as const;
 
 interface BlobSpec {
@@ -34,12 +38,15 @@ interface BlobSpec {
   dur: number;
 }
 
+// Ordered so the leanest density (3) keeps the emerald-teal-sky brand core, and
+// fuller densities layer in violet, coral and honey for the full rainbow.
 const BLOBS: BlobSpec[] = [
   { color: PALETTE.emerald, size: "72%", top: "-12%", left: "-8%", anim: "a", dur: 19 },
   { color: PALETTE.teal, size: "60%", top: "8%", left: "46%", anim: "b", dur: 23 },
-  { color: PALETTE.honey, size: "56%", top: "44%", left: "2%", anim: "c", dur: 29 },
-  { color: PALETTE.lime, size: "64%", top: "26%", left: "34%", anim: "d", dur: 17 },
-  { color: PALETTE.emerald, size: "46%", top: "52%", left: "56%", anim: "e", dur: 31 },
+  { color: PALETTE.sky, size: "56%", top: "44%", left: "2%", anim: "c", dur: 29 },
+  { color: PALETTE.violet, size: "64%", top: "26%", left: "34%", anim: "d", dur: 17 },
+  { color: PALETTE.coral, size: "50%", top: "52%", left: "56%", anim: "e", dur: 31 },
+  { color: PALETTE.honey, size: "44%", top: "2%", left: "20%", anim: "a", dur: 25 },
 ];
 
 // Memoized: the recording aura mounts this while the level meter re-renders
@@ -65,7 +72,7 @@ function AiGlowImpl({
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Pause the CSS animations entirely while off-screen — no wasted compositing.
+  // Pause the CSS animations entirely while off-screen - no wasted compositing.
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof IntersectionObserver === "undefined") return;

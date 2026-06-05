@@ -1,5 +1,3 @@
-"use client";
-
 import { Mic, Ear, NotebookPen } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
 
@@ -25,32 +23,30 @@ export function HowItWorks() {
   return (
     <section
       id="how"
-      className="render-section mx-auto max-w-6xl scroll-mt-24 px-4 py-32"
+      className="mx-auto max-w-[1200px] scroll-mt-20 px-4 py-20 sm:px-6 md:py-28"
     >
-      <Reveal className="max-w-3xl">
-        <h2 className="font-display text-5xl font-extrabold leading-[0.9] tracking-[-0.03em] sm:text-7xl">
-          From recording to
-          <br />
-          <span className="text-gradient-brand">study-ready</span> in three steps.
+      <Reveal className="max-w-[20ch]">
+        <h2 className="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.03em] sm:text-5xl">
+          From recording to <span className="text-primary">study-ready</span> in
+          three steps.
         </h2>
       </Reveal>
 
-      <div className="mt-20 space-y-px overflow-hidden rounded-[1.75rem] border bg-border">
+      <div className="mt-14 overflow-hidden rounded-[4px] border border-border">
         {STEPS.map((step, i) => (
           <Reveal key={step.title} delay={i * 0.08}>
-            <div className="group relative grid grid-cols-[auto_1fr] items-center gap-6 bg-card/70 px-6 py-10 transition-colors hover:bg-card sm:grid-cols-[8rem_auto_1fr] sm:gap-10 sm:px-12">
-              {/* Oversized ghost numeral. */}
-              <span className="font-display text-6xl font-extrabold leading-none text-primary/15 transition-colors group-hover:text-primary/30 sm:text-8xl">
+            <div className="group grid grid-cols-[auto_1fr] items-start gap-5 border-t border-border bg-card px-5 py-8 transition-colors first:border-t-0 hover:bg-secondary sm:grid-cols-[6rem_auto_1fr] sm:items-center sm:gap-8 sm:px-10">
+              <span className="text-5xl font-bold leading-none tabular-nums text-foreground/10 transition-colors group-hover:text-primary/25 sm:text-7xl">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <span className="hidden size-14 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20 sm:grid">
-                <step.icon className="size-7" />
+              <span className="hidden size-12 place-items-center rounded-[4px] border border-border bg-background text-foreground sm:grid">
+                <step.icon className="size-5" />
               </span>
               <div>
-                <h3 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+                <h3 className="text-xl font-semibold tracking-tight sm:text-2xl">
                   {step.title}
                 </h3>
-                <p className="mt-2 max-w-lg text-pretty leading-relaxed text-muted-foreground">
+                <p className="mt-1.5 max-w-lg text-pretty leading-relaxed text-muted-foreground">
                   {step.body}
                 </p>
               </div>
