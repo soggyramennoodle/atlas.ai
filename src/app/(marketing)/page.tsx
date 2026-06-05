@@ -19,6 +19,7 @@ export default async function Home() {
     <>
       <Hero ctaHref={ctaHref} />
       <SubjectsMarquee />
+      <div aria-hidden className="h-12 sm:h-14 lg:h-16" />
       <UniversitiesMarquee />
       <HowItWorks />
       <FeaturesBento />

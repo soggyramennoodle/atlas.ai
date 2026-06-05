@@ -7,7 +7,7 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
   return (
     // overflow-x-clip (desktop only) lets the product shot bleed off the right
     // edge as an intentional peek without ever creating a horizontal scrollbar.
-    <section className="relative flex min-h-[calc(100svh-5.75rem)] px-4 pb-24 pt-14 sm:px-6 sm:pb-28 sm:pt-16 lg:min-h-[calc(100svh-6rem)] lg:pb-32 lg:pt-10 lg:overflow-x-clip">
+    <section className="relative flex min-h-[calc(100svh-5.75rem)] px-4 pb-24 pt-14 sm:px-6 sm:pb-28 sm:pt-16 lg:min-h-[calc(100svh-11rem)] lg:pb-4 lg:pt-6 lg:overflow-x-clip">
       <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 items-center gap-14 lg:grid-cols-12 lg:gap-8">
         {/* Copy — held to the left of an asymmetric split. */}
         <div className="lg:col-span-5">
