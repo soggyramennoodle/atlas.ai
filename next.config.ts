@@ -33,7 +33,15 @@ try {
  * - everything else is locked down: object-src none, base-uri self,
  *   frame-ancestors none, form-action self.
  */
-const connectSrc = ["'self'", supabaseHttp, supabaseWs, isDev ? "ws:" : ""]
+// The browser uploads recordings directly to a Cloudflare R2 presigned URL
+// (https://<account>.r2.cloudflarestorage.com), so connect-src must allow it.
+const connectSrc = [
+  "'self'",
+  supabaseHttp,
+  supabaseWs,
+  "https://*.r2.cloudflarestorage.com",
+  isDev ? "ws:" : "",
+]
   .filter(Boolean)
   .join(" ");
 

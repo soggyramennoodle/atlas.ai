@@ -9,12 +9,19 @@
  */
 
 const UNIVERSITIES = [
-  { src: "/universities/toronto-metropolitan.png", name: "Toronto Metropolitan University" },
+  { src: "/universities/toronto.png", name: "University of Toronto" },
   { src: "/universities/waterloo.png", name: "University of Waterloo" },
   { src: "/universities/mcgill.png", name: "McGill University" },
+  { src: "/universities/ubc.png", name: "University of British Columbia" },
+  { src: "/universities/queens.png", name: "Queen's University" },
+  { src: "/universities/western.png", name: "Western University" },
+  { src: "/universities/mcmaster.png", name: "McMaster University" },
   { src: "/universities/alberta.png", name: "University of Alberta" },
+  { src: "/universities/york.png", name: "York University" },
+  { src: "/universities/toronto-metropolitan.png", name: "Toronto Metropolitan University" },
   { src: "/universities/calgary.png", name: "University of Calgary" },
   { src: "/universities/victoria.png", name: "University of Victoria" },
+  { src: "/universities/new-brunswick.png", name: "University of New Brunswick" },
   { src: "/universities/manitoba.png", name: "University of Manitoba" },
   { src: "/universities/saskatchewan.png", name: "University of Saskatchewan" },
 ];

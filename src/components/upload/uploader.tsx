@@ -38,6 +38,27 @@ const ACCEPTED = [
   "audio/x-flac",
 ];
 
+/** Audio MIME by file extension — recovers a usable type when the browser
+ *  reports a non-audio/empty type (e.g. a downloaded recording shows as
+ *  "video/webm"). Returns null if the extension isn't a known audio one. */
+const EXT_TO_AUDIO_MIME: Record<string, string> = {
+  webm: "audio/webm",
+  ogg: "audio/ogg",
+  m4a: "audio/mp4",
+  mp4: "audio/mp4",
+  mp3: "audio/mpeg",
+  wav: "audio/wav",
+  aac: "audio/aac",
+  flac: "audio/flac",
+};
+
+function audioMimeForFile(f: File): string | null {
+  const t = baseMimeType(f.type || "");
+  if (t.startsWith("audio/")) return t;
+  const ext = f.name.split(".").pop()?.toLowerCase();
+  return (ext && EXT_TO_AUDIO_MIME[ext]) || null;
+}
+
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -64,7 +85,9 @@ export function Uploader({ userId }: { userId: string }) {
 
   const selectFile = useCallback((f: File) => {
     const okType =
-      ACCEPTED.includes(f.type) || /\.(mp3|m4a|wav|aac|ogg|flac|webm)$/i.test(f.name);
+      ACCEPTED.includes(f.type) ||
+      audioMimeForFile(f) !== null ||
+      /\.(mp3|m4a|wav|aac|ogg|flac|webm)$/i.test(f.name);
     if (!okType) {
       toast.error("Please choose an audio file (MP3, M4A, WAV, AAC, OGG…).");
       return;
@@ -106,7 +129,10 @@ export function Uploader({ userId }: { userId: string }) {
   async function generate() {
     if (!file) return;
     const supabase = createClient();
-    const mimeType = baseMimeType(file.type || "audio/mpeg");
+    // Coerce to a proper audio/* type. A downloaded recording is often a .webm
+    // the OS reports as "video/webm" (or with no type), which the presign route
+    // rejects — map it back to audio/* by extension so webm uploads work.
+    const mimeType = audioMimeForFile(file) ?? baseMimeType(file.type || "audio/mpeg");
     const ext = file.name.split(".").pop()?.toLowerCase() || extForMime(mimeType);
 
     try {
@@ -138,7 +164,7 @@ export function Uploader({ userId }: { userId: string }) {
       <input
         ref={inputRef}
         type="file"
-        accept="audio/*"
+        accept="audio/*,video/webm,.webm,.ogg,.m4a,.mp3,.wav,.aac,.flac"
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
@@ -178,7 +204,7 @@ export function Uploader({ userId }: { userId: string }) {
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             or <span className="text-primary">browse your files</span> · MP3,
-            M4A, WAV, AAC up to {formatBytes(MAX_BYTES)}
+            M4A, WAV, AAC, OGG, WebM up to {formatBytes(MAX_BYTES)}
           </p>
         </div>
       )}
