@@ -45,7 +45,7 @@ export function UniversitiesMarquee() {
             {UNIVERSITIES.map((u) => (
               <li
                 key={`${track}-${u.name}`}
-                className="flex h-9 w-[150px] items-center justify-center px-4 sm:w-[180px]"
+                className="flex h-14 w-[220px] shrink-0 items-center justify-center sm:h-16 sm:w-[250px]"
               >
                 {/* Plain img: a decorative, duplicated logo strip — next/image's
                     intrinsic-sizing adds friction here for no benefit. */}
@@ -54,7 +54,7 @@ export function UniversitiesMarquee() {
                   src={u.src}
                   alt={u.name}
                   loading="lazy"
-                  className="uni-logo max-h-8 w-auto max-w-full object-contain sm:max-h-9"
+                  className="uni-logo h-11 w-auto max-w-full object-contain sm:h-12"
                 />
               </li>
             ))}
