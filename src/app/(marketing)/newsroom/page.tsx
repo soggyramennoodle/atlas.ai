@@ -46,11 +46,11 @@ export default async function NewsroomPage() {
             <Newspaper className="size-3.5" />
             Newsroom
           </span>
-          <h1 className="mt-5 font-display text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+          <h1 className="mt-5 font-display text-5xl font-extrabold tracking-[-0.03em] text-balance sm:text-6xl">
             What&apos;s new at Atlas
           </h1>
           <p className="mt-4 text-lg text-muted-foreground text-pretty">
-            Product updates, release notes, announcements and service notices —
+            Product updates, release notes, announcements and service notices,
             straight from the team building Atlas.
           </p>
         </header>
@@ -77,7 +77,7 @@ function EmptyNewsroom() {
       <div className="relative mx-auto grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
         <Newspaper className="size-6" />
       </div>
-      <h2 className="relative mt-5 font-display text-xl font-semibold tracking-tight">
+      <h2 className="relative mt-5 font-display text-2xl font-bold tracking-tight">
         No stories yet
       </h2>
       <p className="relative mx-auto mt-2 max-w-sm text-sm text-muted-foreground">

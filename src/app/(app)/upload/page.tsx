@@ -21,17 +21,15 @@ export default async function UploadPage() {
         <p className="font-mono text-xs uppercase tracking-[0.25em] text-primary">
           New lecture
         </p>
-        <h1 className="mt-4 text-balance font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="mt-4 text-balance font-display text-5xl font-extrabold leading-[0.9] tracking-[-0.03em] sm:text-6xl">
           Press record.
           <br />
           We&apos;ll take the{" "}
-          <span className="font-display text-5xl font-semibold tracking-tight text-primary sm:text-6xl">
-            notes.
-          </span>
+          <span className="text-gradient-brand">notes.</span>
         </h1>
         <p className="mx-auto mt-5 max-w-md text-pretty text-muted-foreground">
           Record the lecture right here in your browser and Atlas returns
-          thorough, structured notes — saved straight to your library.
+          thorough, structured notes, saved straight to your library.
         </p>
       </div>
 
