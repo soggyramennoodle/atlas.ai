@@ -1,6 +1,5 @@
 import { ListChecks, Layers, BookMarked, Clock } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
-import { AiGlow } from "@/components/ui/ai-glow";
 import { cn } from "@/lib/utils";
 
 /** A boxed, neutral icon chip. Colour is reserved for the AI glow. */
@@ -139,12 +138,9 @@ export function FeaturesBento() {
         </Reveal>
 
         <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3 md:auto-rows-[minmax(0,1fr)]">
-          {/* AI hero cell - carries the living glow and the AI ring. */}
+          {/* AI hero cell - signed by the fluid AI edge ring on its border. */}
           <Reveal className="md:col-span-2 md:row-span-2 md:flex" delay={0.04}>
             <Cell className="ai-ring h-full w-full">
-              <div className="pointer-events-none absolute inset-0 opacity-45">
-                <AiGlow density="lean" blur={64} />
-              </div>
               <div className="relative flex h-full flex-col">
                 <IconChip size="lg">
                   <ListChecks className="size-5" />

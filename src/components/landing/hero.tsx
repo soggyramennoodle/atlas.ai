@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowRight, Mic, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/landing/reveal";
-import { AiGlow } from "@/components/ui/ai-glow";
 
 export function Hero({ ctaHref }: { ctaHref: string }) {
   return (
@@ -78,11 +77,8 @@ function NotePreview() {
         </div>
 
         <div className="grid gap-5 px-5 py-6 sm:grid-cols-[1.6fr_1fr] sm:px-7 sm:py-7">
-          {/* AI summary - the AI-powered surface, with the ring + glow. */}
-          <div className="ai-ring relative overflow-hidden rounded-[6px] bg-card p-5">
-            <div className="pointer-events-none absolute inset-0 opacity-60">
-              <AiGlow mode="idle" density="lean" blur={52} />
-            </div>
+          {/* AI summary - the AI-powered surface, signed by the fluid edge glow. */}
+          <div className="ai-ring relative rounded-[6px] bg-card p-5">
             <div className="relative">
               <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-primary">
                 <Sparkles className="size-3.5" />

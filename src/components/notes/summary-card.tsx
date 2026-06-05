@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { AiGlow } from "@/components/ui/ai-glow";
 
 /**
  * The lecture summary (§ summary §). The text itself is read-only — students no
@@ -85,38 +84,12 @@ export function SummaryCard({
   const shown = regenerating ? streamed : summary;
 
   return (
-    <motion.section
+    <section
       className={cn(
-        "ai-ring relative isolate overflow-hidden rounded-[6px] border border-border bg-card p-6 sm:p-7"
+        "ai-ring relative isolate rounded-[6px] border border-border bg-card p-6 sm:p-7",
+        regenerating && "ai-ring--active"
       )}
-      animate={
-        regenerating
-          ? {
-              borderColor: [
-                "rgba(108,99,255,0.25)",
-                "rgba(108,99,255,0.75)",
-                "rgba(108,99,255,0.25)",
-              ],
-              boxShadow: [
-                "0 0 0px 0px rgba(108,99,255,0.0)",
-                "0 0 38px 2px rgba(108,99,255,0.45)",
-                "0 0 0px 0px rgba(108,99,255,0.0)",
-              ],
-            }
-          : { borderColor: "var(--border)", boxShadow: "0 0 0px 0px rgba(108,99,255,0)" }
-      }
-      transition={
-        regenerating
-          ? { duration: 2.4, repeat: Infinity, ease: "easeInOut" }
-          : { duration: 0.5 }
-      }
     >
-      <AiGlow
-        mode={regenerating ? "active" : "idle"}
-        blur={56}
-        className={regenerating ? "opacity-90" : "opacity-50"}
-      />
-
       <div className="relative">
         <div className="flex items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
@@ -149,7 +122,7 @@ export function SummaryCard({
           {regenerating && <StreamingCaret />}
         </p>
       </div>
-    </motion.section>
+    </section>
   );
 }
 

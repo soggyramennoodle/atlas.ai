@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import type { KeyConcept } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { AiGlow } from "@/components/ui/ai-glow";
 
 type Mode = "simple" | "analogy" | "why";
 
@@ -258,18 +257,16 @@ function ConceptCard({
             transition={SPRING}
             className="absolute inset-x-0 top-0 z-40 origin-top"
           >
-            <div className="relative max-h-[72vh] overflow-y-auto overflow-x-hidden rounded-[4px] border border-primary/30 bg-card/95 shadow-2xl backdrop-blur-xl">
-              {/* Underlying AI glow — idle at rest, active while thinking. */}
-              <AiGlow
-                mode={thinking ? "active" : "idle"}
-                blur={44}
-                className={cn(
-                  "transition-opacity duration-500",
-                  thinking ? "opacity-60" : "opacity-25"
-                )}
-              />
-
-              <div className="relative p-5">
+            {/* AI panel — signed by the fluid edge ring; brighter while thinking.
+                The glow shell never scrolls (so the outer bloom isn't clipped);
+                the inner wrapper carries the scroll. */}
+            <div
+              className={cn(
+                "ai-ring relative rounded-[4px] border border-primary/30 bg-card shadow-2xl",
+                thinking && "ai-ring--active"
+              )}
+            >
+              <div className="relative max-h-[72vh] overflow-y-auto overflow-x-hidden rounded-[4px] p-5">
                 <div className="flex items-start justify-between gap-2">
                   <span className="flex items-center gap-2 font-semibold tracking-tight">
                     <Sparkles className="size-4 text-primary" />
