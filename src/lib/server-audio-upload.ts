@@ -4,8 +4,6 @@ import { uploadSegment } from "@/lib/segment-upload";
 
 /** Vercel Hobby request-body cap is ~4.5 MB; direct upload stays under it. */
 export const DIRECT_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
-/** Multipart parts are sent through the app server at this size. */
-export const MULTIPART_CHUNK_BYTES = 3 * 1024 * 1024;
 
 async function readError(res: Response, fallback: string) {
   try {
@@ -16,7 +14,12 @@ async function readError(res: Response, fallback: string) {
   }
 }
 
-async function uploadLargeViaMultipart(args: {
+/**
+ * Large files go straight to R2 via a presigned PUT. Server-side multipart
+ * can't work here: R2 requires ≥5 MB parts but Vercel caps request bodies at
+ * ~4.5 MB. The checksum fix in src/lib/r2.ts keeps presigned PUTs from 403ing.
+ */
+async function uploadLargeViaPresign(args: {
   blob: Blob;
   mime: string;
   jobId: string;
@@ -24,74 +27,56 @@ async function uploadLargeViaMultipart(args: {
   durationSeconds?: number | null;
   signal?: AbortSignal;
 }): Promise<string> {
-  const initRes = await fetch("/api/upload/multipart/init", {
+  const presignRes = await fetch("/api/upload/presign", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     signal: args.signal,
     body: JSON.stringify({
+      contentType: args.mime,
+      fileSize: args.blob.size,
       jobId: args.jobId,
       segmentIndex: args.segmentIndex,
-      contentType: args.mime,
     }),
   });
-  if (!initRes.ok) {
-    throw new Error(await readError(initRes, "Could not prepare the upload."));
+  if (!presignRes.ok) {
+    throw new Error(await readError(presignRes, "Could not prepare the upload."));
   }
-  const { uploadId, key } = (await initRes.json()) as {
-    uploadId: string;
+  const { presignedUrl, key } = (await presignRes.json()) as {
+    presignedUrl: string;
     key: string;
   };
 
-  const parts: { partNumber: number; etag: string }[] = [];
-  const totalParts = Math.ceil(args.blob.size / MULTIPART_CHUNK_BYTES);
-
-  for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
-    const start = (partNumber - 1) * MULTIPART_CHUNK_BYTES;
-    const end = Math.min(start + MULTIPART_CHUNK_BYTES, args.blob.size);
-    const chunk = args.blob.slice(start, end);
-
-    const partRes = await fetch("/api/upload/multipart/part", {
-      method: "POST",
-      headers: {
-        "Content-Type": args.mime,
-        "x-job-id": args.jobId,
-        "x-segment-index": String(args.segmentIndex),
-        "x-upload-id": uploadId,
-        "x-part-number": String(partNumber),
-      },
-      body: chunk,
-      signal: args.signal,
-    });
-    if (!partRes.ok) {
-      throw new Error(await readError(partRes, "Upload failed. Please try again."));
-    }
-    const { etag } = (await partRes.json()) as { etag: string };
-    parts.push({ partNumber, etag });
+  const uploadRes = await fetch(presignedUrl, {
+    method: "PUT",
+    body: args.blob,
+    headers: { "Content-Type": args.mime },
+    signal: args.signal,
+  });
+  if (!uploadRes.ok) {
+    throw new Error("Upload failed. Please try again.");
   }
 
-  const completeRes = await fetch("/api/upload/multipart/complete", {
+  const registerRes = await fetch("/api/jobs/segment", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     signal: args.signal,
     body: JSON.stringify({
       jobId: args.jobId,
       segmentIndex: args.segmentIndex,
-      contentType: args.mime,
-      uploadId,
-      parts,
+      r2Key: key,
       durationSeconds: args.durationSeconds ?? null,
     }),
   });
-  if (!completeRes.ok) {
-    throw new Error(await readError(completeRes, "Could not finish the upload."));
+  if (!registerRes.ok) {
+    throw new Error(await readError(registerRes, "Could not register the uploaded audio."));
   }
 
   return key;
 }
 
 /**
- * Upload audio through the app server into R2. Avoids brittle browser PUT +
- * CORS to R2 (Safari "access control checks", presigned checksum 403s).
+ * Upload audio into R2. Small files go through the app server (no CORS). Larger
+ * files use a presigned PUT to R2 (checksum-safe; see src/lib/r2.ts).
  */
 export async function uploadAudioViaServer(args: {
   blob: Blob;
@@ -104,5 +89,5 @@ export async function uploadAudioViaServer(args: {
   if (args.blob.size <= DIRECT_UPLOAD_MAX_BYTES) {
     return uploadSegment(args);
   }
-  return uploadLargeViaMultipart(args);
+  return uploadLargeViaPresign(args);
 }
