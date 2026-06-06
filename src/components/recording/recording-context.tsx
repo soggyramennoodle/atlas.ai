@@ -821,7 +821,6 @@ export function RecordingProvider({
         if (current) URL.revokeObjectURL(current.url);
         return null;
       });
-      setStage("idle");
       setPhase("idle");
       setSeconds(0);
       secondsRef.current = 0;
@@ -834,7 +833,9 @@ export function RecordingProvider({
       setProcessingIssue(null);
       toast.success("Atlas is generating your notes.");
       setProcessingSafeToLeave(true);
-      router.push(`/notes/${completeBody.noteId}`);
+      // Stay on the glowy processing scrim — the user can leave after 15 s via
+      // the glassy dashboard link, or keep waiting here.
+      setStage("analyzing");
     } catch (err) {
       setStage("idle");
       setProcessingSafeToLeave(false);

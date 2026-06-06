@@ -29,7 +29,7 @@ export interface ProcessingIssue {
   message: string;
 }
 
-const LONG_RUN_DELAY = 10_000;
+const LONG_RUN_DELAY = 15_000;
 
 export function ProcessingOverlay({
   stage,
@@ -50,17 +50,17 @@ export function ProcessingOverlay({
 }) {
   const reduceMotion = useReducedMotion();
   const [showLongRunHint, setShowLongRunHint] = useState(false);
+  const visible = stage !== "idle" || !!issue;
+  const failed = !!issue;
 
   useEffect(() => {
-    if (stage !== "analyzing") {
+    if (stage === "idle" || failed) {
       const id = window.setTimeout(() => setShowLongRunHint(false), 0);
       return () => window.clearTimeout(id);
     }
     const id = window.setTimeout(() => setShowLongRunHint(true), LONG_RUN_DELAY);
     return () => window.clearTimeout(id);
-  }, [stage]);
-  const visible = stage !== "idle" || !!issue;
-  const failed = !!issue;
+  }, [stage, failed]);
   const title = issue?.title ?? (stage === "idle" ? "" : STAGE_COPY[stage]);
   const detail = issue?.message ?? (stage === "idle" ? "" : STAGE_DETAIL[stage]);
 
@@ -166,7 +166,7 @@ export function ProcessingOverlay({
               </div>
             )}
 
-            {!failed && safeToLeave && (
+            {!failed && safeToLeave && showLongRunHint && (
               <Link
                 href="/dashboard"
                 className="mt-7 inline-flex h-12 items-center gap-2 rounded-[6px] border border-white/25 bg-white/15 px-5 text-sm font-medium text-foreground shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur-md transition hover:border-foreground/25 hover:bg-background/80"
@@ -177,10 +177,10 @@ export function ProcessingOverlay({
             )}
           </motion.div>
 
-          {/* Long-run hint — slides up from the bottom after 10 s of analyzing.
-              Absolutely anchored inside the fixed scrim so it never needs scroll. */}
+          {/* Long-run hint + optional exit — both appear together after 15 s on the
+              processing scrim, once the recording is safely on the server. */}
           <AnimatePresence>
-            {showLongRunHint && (
+            {showLongRunHint && safeToLeave && (
               <motion.div
                 initial={reduceMotion ? false : { opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
