@@ -66,6 +66,17 @@ Rules:
     parts: [{ text: m.content }],
   }));
 
+  // Gemini 2.5 models count internal "thinking" tokens against maxOutputTokens.
+  // A short concept reply doesn't need extended reasoning, so thinking is
+  // disabled and the budget is generous — otherwise thinking eats the cap and
+  // the visible answer streams in truncated mid-sentence.
+  const generationConfig = {
+    systemInstruction,
+    temperature: 0.6,
+    maxOutputTokens: 2048,
+    thinkingConfig: { thinkingBudget: 0 },
+  } as const;
+
   async function startStream() {
     const ai = getGeminiClient();
     // Try with Google Search grounding; fall back without it if unsupported.
@@ -74,9 +85,7 @@ Rules:
         model: HELPER_MODEL,
         contents,
         config: {
-          systemInstruction,
-          temperature: 0.6,
-          maxOutputTokens: 900,
+          ...generationConfig,
           tools: [{ googleSearch: {} }],
         },
       });
@@ -84,11 +93,7 @@ Rules:
       return ai.models.generateContentStream({
         model: HELPER_MODEL,
         contents,
-        config: {
-          systemInstruction,
-          temperature: 0.6,
-          maxOutputTokens: 900,
-        },
+        config: generationConfig,
       });
     }
   }

@@ -48,7 +48,13 @@ export async function POST(request: Request) {
     iterator = await ai.models.generateContentStream({
       model: HELPER_MODEL,
       contents: instruction,
-      config: { temperature: 0.6, maxOutputTokens: 400 },
+      // Gemini 2.5 counts thinking tokens against maxOutputTokens; disable
+      // thinking and keep a generous cap so the short reply never truncates.
+      config: {
+        temperature: 0.6,
+        maxOutputTokens: 1024,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     });
   } catch (err) {
     console.error("Concept explanation failed:", err);
