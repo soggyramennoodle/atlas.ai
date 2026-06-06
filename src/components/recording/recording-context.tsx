@@ -1666,13 +1666,14 @@ export function RecordingProvider({
         .single();
       const status = (data?.content as { status?: string } | null)?.status;
       // "ready" and "failed" are both terminal — the note page renders the right
-      // UI for each, so either way we get the user off the endless scrim.
+      // UI for each, so either way we get the user off the endless scrim. Use a
+      // hard navigation: a soft router.push can serve a stale client-cached RSC
+      // for the route, and router.refresh on the note page keeps client useState,
+      // so a full load is the only thing guaranteed to render the finished note.
       if (status === "ready" || status === "failed") {
         navigated = true;
-        setStage("idle");
-        setProcessingSafeToLeave(false);
-        setProcessingNoteId(null);
-        router.push(`/notes/${noteId}`);
+        clearInterval(poll);
+        window.location.assign(`/notes/${noteId}`);
       }
     };
 
@@ -1693,7 +1694,7 @@ export function RecordingProvider({
       clearInterval(poll);
       void supabase.removeChannel(channel);
     };
-  }, [processingNoteId, router]);
+  }, [processingNoteId]);
 
   const value: RecordingValue = {
     phase,
