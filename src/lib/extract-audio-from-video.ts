@@ -57,7 +57,10 @@ async function getFfmpeg(): Promise<FFmpeg> {
 
   ffmpegLoading = (async () => {
     const ffmpeg = new FFmpeg();
-    // Self-hosted so CSP connect-src 'self' allows the fetch (jsdelivr is blocked).
+    // Self-hosted under /ffmpeg (jsdelivr is blocked by CSP). toBlobURL fetches
+    // these same-origin files then hands ffmpeg blob: URLs; the worker's
+    // emscripten core fetches the wasm blob to compile it, which is why CSP
+    // needs connect-src blob: + script-src 'wasm-unsafe-eval' (see next.config.ts).
     const baseURL = `${window.location.origin}/ffmpeg`;
     try {
       await ffmpeg.load({

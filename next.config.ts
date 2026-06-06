@@ -39,6 +39,11 @@ try {
 // (https://<account>.r2.cloudflarestorage.com), so connect-src must allow it.
 const connectSrc = [
   "'self'",
+  // ffmpeg.wasm wraps its self-hosted core/wasm in blob: URLs (see
+  // extract-audio-from-video.ts); the emscripten core then fetches the wasm
+  // blob URL to compile it, so connect-src must allow blob: or that fetch is
+  // blocked and surfaces as "TypeError: Load failed" in WebKit.
+  "blob:",
   supabaseHttp,
   supabaseWs,
   "https://*.r2.cloudflarestorage.com",
@@ -53,7 +58,9 @@ const csp = [
   `object-src 'none'`,
   `frame-ancestors 'none'`,
   `form-action 'self'`,
-  `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""}`,
+  // 'wasm-unsafe-eval' lets ffmpeg.wasm compile its WebAssembly core in
+  // production (dev already permits it via 'unsafe-eval').
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:${isDev ? " 'unsafe-eval'" : ""}`,
   `worker-src 'self' blob:`,
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' data: blob:`,
