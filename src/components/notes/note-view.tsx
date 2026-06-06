@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { HTMLElement, NodeType, parse, type Node } from "node-html-parser";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import { AlertCircle, Check, Loader2, Pencil, Plus, Sparkles, X } from "lucide-react";
@@ -12,7 +13,6 @@ import type {
   NoteSection,
   StructuredNotes,
 } from "@/lib/types";
-import { AiGlow } from "@/components/ui/ai-glow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -52,9 +52,6 @@ const clone = <T,>(v: T): T =>
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 type SaveStatus = "idle" | "saving" | "saved";
-
-/** Beyond this many edited regions, switch from the cursor to a full overlay. */
-const MAX_CURSOR_REGIONS = 6;
 
 const normText = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
 
@@ -107,7 +104,6 @@ export function NoteView({
   const [doneInProgress, setDoneInProgress] = useState(false);
   const [readingActive, setReadingActive] = useState(false);
   const [readingFinished, setReadingFinished] = useState(false);
-  const [readingOverlay, setReadingOverlay] = useState(false);
   const [editedTexts, setEditedTexts] = useState<string[]>([]);
 
   const draftRef = useRef(draft);
@@ -264,25 +260,22 @@ export function NoteView({
     if (!same(edited, savedRef.current)) await persist();
 
     // Compute the edited regions, then render the note body so Atlas's cursor
-    // (or the overlay) can target the real elements that changed.
+    // can target the real elements that changed. However many regions there are,
+    // the cursor visits them in turn and keeps hovering until the source re-read
+    // resolves below — there is no separate full-screen overlay.
     const edits = changed ? diffEditedTexts(originalRef.current, edited) : [];
     setEditMode(false);
     setDoneInProgress(false);
 
     if (changed) {
-      if (edits.length > MAX_CURSOR_REGIONS) {
-        setReadingOverlay(true);
-      } else {
-        setEditedTexts(edits);
-        setReadingActive(true);
-      }
+      setEditedTexts(edits);
+      setReadingActive(true);
     }
 
     const sourced = changed ? await refreshBodySources() : edited;
 
     if (changed) {
       setReadingActive(false);
-      setReadingOverlay(false);
       setReadingFinished(true);
       window.setTimeout(() => setReadingFinished(false), 3200);
     }
@@ -382,7 +375,6 @@ export function NoteView({
         editedTexts={editedTexts}
         containerRef={articleRef}
       />
-      <ReadingEditsOverlay open={readingOverlay} />
       <article ref={articleRef} className="relative space-y-10">
         {/* Summary — read-only text with an AI "Regenerate" capsule. The
             summary is no longer hand-edited; it's re-derived from the full
@@ -628,8 +620,10 @@ function AtlasPointer() {
  * Atlas's autonomous cursor. After an edit, it flies to each edited region in
  * the note, scrolls it into view, and wanders over it with natural (curved,
  * jittery) motion while the source re-read runs — then resolves into a large
- * "finished reading" popup at its last position. For heavy edits the parent
- * shows a full-screen overlay instead (see ReadingEditsOverlay).
+ * "finished reading" popup at its last position. It visits every edited region
+ * in turn, however many there are, and keeps hovering until the re-read resolves.
+ * Positions are page coordinates rendered through a body portal, so the cursor
+ * stays glued to the note content as the page scrolls.
  */
 function AtlasCursor({
   active,
@@ -694,11 +688,14 @@ function AtlasCursor({
 
     const stops: Element[] = targets.length ? targets : [container];
 
+    // Page (document) coordinates, not viewport coordinates: adding the current
+    // scroll offset anchors the cursor to the spot *on the page* it's reading, so
+    // it scrolls together with the content instead of floating over the viewport.
     const centerOf = (el: Element) => {
       const r = el.getBoundingClientRect();
       return {
-        x: r.left + Math.min(r.width, 280) * (0.32 + Math.random() * 0.36),
-        y: r.top + r.height * (0.42 + Math.random() * 0.18),
+        x: r.left + window.scrollX + Math.min(r.width, 280) * (0.32 + Math.random() * 0.36),
+        y: r.top + window.scrollY + r.height * (0.42 + Math.random() * 0.18),
       };
     };
 
@@ -758,14 +755,27 @@ function AtlasCursor({
     if (finished && !reduce) setShown(true);
   }, [finished, reduce]);
 
-  if (reduce || !shown) return null;
+  // `shown` only flips true from a client-side effect, so SSR/hydration always
+  // render null here — the `typeof document` guard just keeps the portal target
+  // safe without needing a separate mounted flag.
+  if (reduce || !shown || typeof document === "undefined") return null;
 
-  // Clamp the finished popup so it can't render off the right/bottom edges.
-  const popLeft = Math.min(lastPos.x, (typeof window !== "undefined" ? window.innerWidth : 1200) - 280);
-  const popTop = Math.min(lastPos.y, (typeof window !== "undefined" ? window.innerHeight : 800) - 120);
+  // The finished popup sits at the page spot where Atlas stopped reading. Clamp
+  // its left edge to the document width so it can't overflow horizontally.
+  const docWidth =
+    typeof document !== "undefined"
+      ? document.documentElement.clientWidth
+      : 1200;
+  const popLeft = Math.max(8, Math.min(lastPos.x, docWidth - 296));
+  const popTop = Math.max(8, lastPos.y);
 
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[60]">
+  return createPortal(
+    // Absolutely positioned at the document origin so its page-coordinate
+    // children scroll naturally with the note body.
+    <div
+      className="pointer-events-none absolute left-0 top-0 z-[60]"
+      style={{ width: 0, height: 0 }}
+    >
       <AnimatePresence mode="wait">
         {active && !finished ? (
           <motion.div
@@ -774,7 +784,7 @@ function AtlasCursor({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.7, transition: { duration: 0.18 } }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            style={{ x: springX, y: springY, position: "fixed", top: 0, left: 0 }}
+            style={{ x: springX, y: springY, position: "absolute", top: 0, left: 0 }}
           >
             <AtlasPointer />
             {/* Small reading label, offset from the pointer hotspot. */}
@@ -793,7 +803,7 @@ function AtlasCursor({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.2 } }}
             transition={{ type: "spring", stiffness: 340, damping: 24 }}
-            style={{ position: "fixed", left: popLeft, top: popTop }}
+            style={{ position: "absolute", left: popLeft, top: popTop }}
           >
             {/* Deliberately larger than the note text so it's unmissable. */}
             <div
@@ -813,56 +823,11 @@ function AtlasCursor({
           </motion.div>
         ) : null}
       </AnimatePresence>
-    </div>
+    </div>,
+    document.body
   );
 }
 
-/** Full-screen "reading your edits" overlay for heavy edits (mirrors the
- *  recording-processing screen). Shown when edits exceed MAX_CURSOR_REGIONS. */
-function ReadingEditsOverlay({ open }: { open: boolean }) {
-  const reduce = useReducedMotion();
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={reduce ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduce ? 0 : 0.2, ease: "easeOut" }}
-          className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-background/92 px-4 backdrop-blur-sm"
-        >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 overflow-hidden [mask-image:radial-gradient(120%_90%_at_50%_50%,black,transparent_78%)]"
-          >
-            <AiGlow mode="active" blend blur={64} density="full" />
-          </div>
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduce ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
-            className="relative flex w-full max-w-xl flex-col items-center text-center"
-          >
-            <motion.div
-              animate={reduce ? undefined : { scale: [1, 1.08, 1], opacity: [0.9, 1, 0.9] }}
-              transition={reduce ? undefined : { duration: 2.6, ease: "easeInOut", repeat: Infinity }}
-              className="grid size-16 place-items-center rounded-[6px] border border-primary/30 bg-background/90 text-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),0_18px_50px_-22px_rgba(0,0,0,0.3)]"
-            >
-              <Sparkles className="size-7" />
-            </motion.div>
-            <p className="mt-6 text-3xl font-bold tracking-[-0.02em]">
-              Atlas is reading your edits…
-            </p>
-            <p className="mt-3 max-w-md text-pretty text-sm leading-6 text-muted-foreground">
-              Checking which notes still trace back to your lecture. This only
-              takes a moment.
-            </p>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
 
 /** A small "Saved" pill that fades in after a save and out ~2s later (§1). */
 function AutosaveIndicator({ status }: { status: SaveStatus }) {

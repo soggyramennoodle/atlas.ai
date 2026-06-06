@@ -1,10 +1,12 @@
 import "server-only";
 import {
+  FinishReason,
   GoogleGenAI,
   Type,
   createUserContent,
   createPartFromUri,
   createPartFromBase64,
+  type GenerateContentResponse,
   type Schema,
 } from "@google/genai";
 import type { SegmentNotes, StructuredNotes } from "./types";
@@ -33,6 +35,22 @@ function getClient() {
 }
 
 export { getClient as getGeminiClient };
+
+/**
+ * Guard against silent truncation. When the model stops because it hit the
+ * output-token ceiling (`MAX_TOKENS`), the JSON it returned is cut off and would
+ * otherwise blow up in `JSON.parse` with a cryptic error — or worse, parse into
+ * a partial note. Surfacing it as a clear, retryable error keeps notes from
+ * being quietly clipped (the same failure mode that once truncated key concepts).
+ */
+function ensureComplete(response: GenerateContentResponse, label: string) {
+  const reason = response.candidates?.[0]?.finishReason;
+  if (reason === FinishReason.MAX_TOKENS) {
+    throw new Error(
+      `Gemini ${label} response hit the output token limit before completing.`
+    );
+  }
+}
 
 /** A single note bullet: the text plus the transcript excerpt it came from. */
 const pointSchema: Schema = {
@@ -188,7 +206,7 @@ SEGMENT MODE: This audio is ONE ~5-minute slice of a longer lecture, not the who
 - A point may continue a thought from the previous slice; that is fine — capture what is said here.
 - "source_excerpt" must be a real quote from THIS audio.`;
 
-const COMPOSE_PROMPT = `You are finalizing a student's lecture notes. You are given the already-extracted, audio-grounded notes for each consecutive segment of one lecture, in order, plus the stitched transcript. Your ONLY job is to produce the lecture-level framing and light reconciliation. Do NOT invent any content, fact, figure, or quote not present in the provided segment notes/transcript.
+const COMPOSE_PROMPT = `You are finalizing a student's lecture notes. You are given the already-extracted, audio-grounded notes for each consecutive segment of one lecture, in order, plus the stitched transcript for context. Your ONLY job is to produce the lecture-level framing and light reconciliation. Do NOT invent any content, fact, figure, or quote not present in the provided segment notes/transcript.
 
 Return JSON with:
 - "title": a clean, descriptive title for the WHOLE lecture.
@@ -196,9 +214,30 @@ Return JSON with:
 - "summary": a 3-5 sentence overview of the whole lecture, written from the provided notes.
 - "sections": the provided sections, kept in order. You MAY merge two adjacent sections only when the later one is clearly a direct continuation of the previous (e.g. identical heading), preserving every point. Never drop points.
 - "keyConcepts": the provided key concepts, deduplicated.
-- "transcript": return exactly the provided stitched transcript.
 
-Insufficient-content rule (judged here, over the whole lecture): if the combined sections are empty and the transcript has no intelligible lecture words, return title "Not enough lecture content", subject "", summary "There was not enough lecture content to generate notes.", sections [], keyConcepts [], and the transcript as given.`;
+Do NOT echo the transcript back — it is reattached automatically, so spending output on it only risks truncating the notes. Use it only as context.
+
+Insufficient-content rule (judged here, over the whole lecture): if the combined sections are empty and the transcript has no intelligible lecture words, return title "Not enough lecture content", subject "", summary "There was not enough lecture content to generate notes.", sections [], keyConcepts [].`;
+
+/**
+ * Compose output schema — the whole-lecture framing only. Deliberately omits
+ * `transcript`: the stitched transcript is reattached deterministically from the
+ * segments (see composeNotes), so the model never has to echo it. Echoing a long
+ * transcript is the single biggest output-token sink and the most likely way the
+ * composed JSON would hit the token ceiling and truncate.
+ */
+const composeSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    title: notesSchema.properties!.title,
+    subject: notesSchema.properties!.subject,
+    summary: notesSchema.properties!.summary,
+    sections: notesSchema.properties!.sections,
+    keyConcepts: notesSchema.properties!.keyConcepts,
+  },
+  required: ["title", "summary", "sections", "keyConcepts"],
+  propertyOrdering: ["title", "subject", "summary", "sections", "keyConcepts"],
+};
 
 interface SegmentArgs {
   bytes: Buffer | Uint8Array;
@@ -237,6 +276,7 @@ export async function transcribeSegment({
     },
   });
 
+  ensureComplete(response, "segment");
   const text = response.text;
   if (!text) throw new Error("Gemini returned an empty segment response.");
   const parsed = JSON.parse(text) as SegmentNotes;
@@ -282,18 +322,21 @@ export async function composeNotes({
     config: {
       systemInstruction,
       responseMimeType: "application/json",
-      responseSchema: notesSchema,
+      responseSchema: composeSchema,
       temperature: 0,
     },
   });
 
+  ensureComplete(response, "compose");
   const text = response.text;
   if (!text) throw new Error("Gemini returned an empty compose response.");
   const parsed = JSON.parse(text) as StructuredNotes;
   if (!parsed.title || !Array.isArray(parsed.sections)) {
     throw new Error("Gemini returned composed notes in an unexpected format.");
   }
-  if (!parsed.transcript?.trim()) parsed.transcript = merged.transcript;
+  // The transcript is never echoed by the model (see composeSchema) — always
+  // reattach the deterministically stitched one.
+  parsed.transcript = merged.transcript;
   if (!parsed.keyConcepts?.length) parsed.keyConcepts = merged.keyConcepts;
   parsed.status = "ready";
   return parsed;
@@ -360,6 +403,7 @@ export async function generateNotesFromAudio({
       },
     });
 
+    ensureComplete(response, "notes");
     const text = response.text;
     if (!text) {
       throw new Error("Gemini returned an empty response.");

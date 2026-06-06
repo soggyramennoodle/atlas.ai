@@ -178,8 +178,9 @@ export function Uploader({ userId }: { userId: string }) {
         onStage: setStage,
       });
       if (status === "processing") {
+        // The analyzing scrim already says "Atlas is writing your notes…", so a
+        // toast with the same message would just be a duplicate — keep the scrim.
         setSafeToLeave(true);
-        toast.success("Atlas is generating your notes.");
         return;
       } else if (status === "failed") {
         toast.error("Atlas couldn't process this recording.");

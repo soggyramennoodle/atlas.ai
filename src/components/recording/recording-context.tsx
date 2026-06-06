@@ -837,10 +837,10 @@ export function RecordingProvider({
       segmentIndexRef.current = 0;
       setFailed(false);
       setProcessingIssue(null);
-      toast.success("Atlas is generating your notes.");
       setProcessingSafeToLeave(true);
       // Stay on the glowy processing scrim — the user can leave after 15 s via
-      // the glassy dashboard link, or keep waiting here.
+      // the glassy dashboard link, or keep waiting here. No toast here: the scrim
+      // already says "Atlas is writing your notes…", so a toast would duplicate it.
       setStage("analyzing");
     } catch (err) {
       setStage("idle");
@@ -1534,8 +1534,9 @@ export function RecordingProvider({
       ]);
       if (generationRunRef.current !== runId) return;
       if (result.status === "processing") {
+        // The analyzing scrim already says "Atlas is writing your notes…", so a
+        // toast saying the same thing would be redundant — just keep the scrim.
         setProcessingSafeToLeave(true);
-        toast.success("Atlas is generating your notes.");
       } else if (result.status === "failed") {
         toast.error("Atlas couldn't process this recording.");
       } else {
