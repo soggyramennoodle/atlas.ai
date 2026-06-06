@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import {
+  LOOPS_WELCOME_TRANSACTIONAL_ID,
+  sendLoopsEmail,
+} from "@/lib/loops";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -37,6 +41,20 @@ export async function POST(request: Request) {
     }
   }
 
+  const { data: existingProfile, error: existingProfileError } = await supabase
+    .from("user_profiles")
+    .select("welcome_email_sent_at")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existingProfileError) {
+    console.error("Profile lookup failed:", existingProfileError);
+    return NextResponse.json(
+      { error: "Couldn't save your profile." },
+      { status: 500 }
+    );
+  }
+
   const { error } = await supabase
     .from("user_profiles")
     .upsert(row, { onConflict: "user_id" });
@@ -47,6 +65,30 @@ export async function POST(request: Request) {
       { error: "Couldn't save your profile." },
       { status: 500 }
     );
+  }
+
+  const displayName =
+    typeof row.display_name === "string" ? row.display_name : undefined;
+
+  if (user.email && displayName && !existingProfile?.welcome_email_sent_at) {
+    try {
+      await sendLoopsEmail({
+        transactionalId: LOOPS_WELCOME_TRANSACTIONAL_ID,
+        email: user.email,
+        idempotencyKey: `welcome-${user.id}`,
+      });
+
+      const { error: markSentError } = await supabase
+        .from("user_profiles")
+        .update({ welcome_email_sent_at: new Date().toISOString() })
+        .eq("user_id", user.id);
+
+      if (markSentError) {
+        console.error("Couldn't mark welcome email as sent:", markSentError);
+      }
+    } catch (err) {
+      console.error("Welcome email send failed:", err);
+    }
   }
 
   return NextResponse.json({ ok: true });

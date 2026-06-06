@@ -132,6 +132,7 @@ export interface UserProfile {
   program: string | null;
   year: string | null;
   grad_year: string | null;
+  welcome_email_sent_at: string | null;
   created_at: string;
 }
 
