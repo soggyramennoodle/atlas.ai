@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
@@ -9,38 +9,47 @@ import { createClient } from "@/lib/supabase/client";
  * note is rendered by client components that seed their state once via useState,
  * and `router.refresh()` deliberately merges a fresh server payload *without*
  * resetting client useState — so a soft refresh alone leaves the spinner up even
- * after the note is ready. Realtime on the `notes` table also isn't guaranteed
- * to be enabled. So we poll the note's status directly and, the instant the
- * worker marks it ready (or failed), do a hard reload to render the finished
- * note from scratch — no manual reload, on any device.
+ * after the note is ready. So we poll the note's status directly and, the instant
+ * it's no longer "processing", do a hard reload to render the finished note from
+ * scratch — no manual reload, on any device.
+ *
+ * The small status line is a temporary diagnostic: it shows that the watcher is
+ * live and what status the server is returning, so we can see exactly where the
+ * processing→ready handoff is (or isn't) happening.
  */
 export function ProcessingWatcher({ noteId }: { noteId: string }) {
+  const [debug, setDebug] = useState("starting…");
+
   useEffect(() => {
     const supabase = createClient();
     let done = false;
+    let polls = 0;
 
     const check = async () => {
       if (done) return;
-      const { data } = await supabase
+      polls += 1;
+      const { data, error } = await supabase
         .from("notes")
         .select("content")
         .eq("id", noteId)
         .single();
-      const status = (data?.content as { status?: string } | null)?.status;
-      // "ready" and "failed" are terminal — the page renders the right UI for
-      // each once it reloads with the fresh server state.
-      if (status === "ready" || status === "failed") {
+      if (error) {
+        setDebug(`check #${polls}: query error — ${error.message}`);
+        return;
+      }
+      const status = (data?.content as { status?: string } | null)?.status ?? "(none)";
+      setDebug(`check #${polls}: status = ${status}`);
+      // Anything that isn't "processing" is terminal (ready / failed / legacy
+      // notes with no status) — reload to render the finished note.
+      if (data && status !== "processing") {
         done = true;
         clearInterval(poll);
+        setDebug(`status = ${status} → loading your notes…`);
         window.location.reload();
       }
     };
 
-    // Direct status poll — bypasses the router/RSC cache entirely, so it sees
-    // the worker's update even when Realtime isn't connected.
     const poll = setInterval(() => void check(), 4_000);
-    // Realtime is a free accelerator when the table is in the publication; it
-    // just triggers the same direct check sooner.
     const channel = supabase
       .channel(`note-${noteId}`)
       .on(
@@ -49,7 +58,6 @@ export function ProcessingWatcher({ noteId }: { noteId: string }) {
         () => void check()
       )
       .subscribe();
-    // Catch a note that finished before this mounted.
     void check();
 
     return () => {
@@ -68,5 +76,9 @@ export function ProcessingWatcher({ noteId }: { noteId: string }) {
     return () => clearTimeout(id);
   }, []);
 
-  return null;
+  return (
+    <div className="pointer-events-none fixed bottom-3 left-1/2 z-50 -translate-x-1/2 rounded-full border border-border bg-card/90 px-3 py-1 font-mono text-[11px] text-muted-foreground shadow-sm backdrop-blur">
+      Atlas watcher · {debug}
+    </div>
+  );
 }
