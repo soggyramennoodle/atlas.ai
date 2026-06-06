@@ -69,7 +69,12 @@ export default async function NotePage({
           </div>
         </div>
 
+        {/* Key by processing status so the client view remounts with fresh
+            content when a background refresh flips the note processing→ready
+            (its useState seeds are otherwise frozen on the initial snapshot,
+            leaving the spinner up forever even though the note is done). */}
         <NoteSession
+          key={note.content?.status ?? "ready"}
           note={{
             id: note.id,
             title: note.title,
