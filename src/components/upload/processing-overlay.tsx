@@ -39,6 +39,7 @@ export function ProcessingOverlay({
   onDiscard,
   onDownload,
   safeToLeave,
+  debug,
 }: {
   stage: CaptureStage;
   issue?: ProcessingIssue | null;
@@ -47,6 +48,7 @@ export function ProcessingOverlay({
   onDiscard?: () => void;
   onDownload?: () => void;
   safeToLeave?: boolean;
+  debug?: string;
 }) {
   const reduceMotion = useReducedMotion();
   const [showLongRunHint, setShowLongRunHint] = useState(false);
@@ -97,6 +99,14 @@ export function ProcessingOverlay({
             transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
             className="relative flex w-full max-w-xl flex-col items-center text-center"
           >
+            {/* TEMP diagnostic — sits right above the star so we can see the
+                live processing/redirect flow on the deployed app. */}
+            {debug ? (
+              <div className="mb-4 max-w-md break-words rounded-[4px] border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 font-mono text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
+                debug · {debug}
+              </div>
+            ) : null}
+
             <motion.div
               animate={
                 failed || reduceMotion
