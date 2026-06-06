@@ -141,6 +141,12 @@ interface RecordingValue {
   discard: () => void;
   generate: () => Promise<void>;
   clearProcessingIssue: () => void;
+  /**
+   * Dismiss a finished background-processing scrim so the recorder is ready for
+   * a brand new session. Safe to call once the job is on the server (the note
+   * keeps generating regardless); no-op while a recording is still in flight.
+   */
+  resetProcessing: () => void;
   /** Save the captured recording to disk (for re-upload after a failed run). */
   download: () => void;
 }
@@ -1358,6 +1364,11 @@ export function RecordingProvider({
   const stop = useCallback(() => {
     const rec = mediaRecorderRef.current;
     if (!rec || rec.state === "inactive") return;
+    // Show the processing scrim immediately. Finalizing + uploading the last
+    // segment (and enqueueing the job) happens asynchronously in `onstop`; until
+    // it does, leaving the user on the live recording UI looks like a freeze.
+    setProcessingSafeToLeave(false);
+    setStage("analyzing");
     if (tickRef.current) clearInterval(tickRef.current);
     tickRef.current = null;
     if (transcriptKickoffRef.current) clearTimeout(transcriptKickoffRef.current);
@@ -1595,6 +1606,18 @@ export function RecordingProvider({
     setProcessingIssue(null);
   }, []);
 
+  // Tear down a finished background-processing scrim so a fresh "Record lecture"
+  // visit starts clean. We only reset when the handoff is done (safe to leave)
+  // and nothing is mid-capture — a failed run keeps its clip/issue for retry.
+  const resetProcessing = useCallback(() => {
+    if (!processingSafeToLeave) return;
+    if (phase !== "idle" || clip) return;
+    setStage("idle");
+    setProcessingSafeToLeave(false);
+    setProcessingIssue(null);
+    setFailed(false);
+  }, [processingSafeToLeave, phase, clip]);
+
   const download = useCallback(() => {
     if (!clip) return;
     const safeLabel =
@@ -1639,6 +1662,7 @@ export function RecordingProvider({
     discard,
     generate,
     clearProcessingIssue,
+    resetProcessing,
     download,
   };
 

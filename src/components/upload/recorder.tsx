@@ -69,9 +69,20 @@ export function Recorder() {
     discard,
     generate,
     clearProcessingIssue,
+    resetProcessing,
     download,
   } = useRecording();
   const reduceMotion = useReducedMotion();
+
+  // Returning to the recorder after a previous take finished processing in the
+  // background should give a clean slate — otherwise the leftover (provider-
+  // level) processing scrim greets the user before they record anything.
+  useEffect(() => {
+    resetProcessing();
+    // Run once on mount; resetProcessing is a no-op unless a stale background
+    // scrim is showing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const live = phase === "recording" || phase === "paused";
 
