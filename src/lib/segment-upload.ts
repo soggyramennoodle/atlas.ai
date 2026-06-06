@@ -1,56 +1,42 @@
 "use client";
 
+async function readError(res: Response, fallback: string) {
+  try {
+    const body = (await res.json()) as { error?: string };
+    return body.error || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 /**
- * Presign + PUT a single lecture segment to R2. Returns the R2 key on success.
- * Throws on any failure so the caller can keep the segment in the local draft
- * (uploaded: false) and retry later — the basis of cross-device durability.
+ * Upload a lecture segment through the app server, which stores it in R2 and
+ * registers the lecture_segments row. Avoids brittle browser PUT + CORS to R2.
  */
 export async function uploadSegment(args: {
   blob: Blob;
   mime: string;
   jobId: string;
   segmentIndex: number;
+  durationSeconds?: number | null;
 }): Promise<string> {
-  const presignRes = await fetch("/api/upload/presign", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contentType: args.mime,
-      fileSize: args.blob.size,
-      jobId: args.jobId,
-      segmentIndex: args.segmentIndex,
-    }),
-  });
-  if (!presignRes.ok) throw new Error("Could not presign segment upload.");
-  const { presignedUrl, key } = (await presignRes.json()) as {
-    presignedUrl: string;
-    key: string;
+  const headers: Record<string, string> = {
+    "Content-Type": args.mime,
+    "x-job-id": args.jobId,
+    "x-segment-index": String(args.segmentIndex),
   };
+  if (args.durationSeconds != null) {
+    headers["x-duration-seconds"] = String(Math.round(args.durationSeconds));
+  }
 
-  const putRes = await fetch(presignedUrl, {
-    method: "PUT",
-    body: args.blob,
-    headers: { "Content-Type": args.mime },
-  });
-  if (!putRes.ok) throw new Error("Segment upload failed.");
-  return key;
-}
-
-/**
- * Register an uploaded segment as a row in lecture_segments via an
- * authenticated API route (the browser cannot write the table directly except
- * through RLS-checked inserts; this route does the insert server-side).
- */
-export async function registerSegment(args: {
-  jobId: string;
-  segmentIndex: number;
-  r2Key: string;
-  durationSeconds: number | null;
-}): Promise<void> {
-  const res = await fetch("/api/jobs/segment", {
+  const res = await fetch("/api/jobs/segment/upload", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(args),
+    headers,
+    body: args.blob,
   });
-  if (!res.ok) throw new Error("Could not register segment.");
+  if (!res.ok) {
+    throw new Error(await readError(res, "Segment upload failed."));
+  }
+  const { key } = (await res.json()) as { key: string };
+  return key;
 }

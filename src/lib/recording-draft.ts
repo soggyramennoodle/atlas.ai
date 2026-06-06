@@ -123,18 +123,25 @@ export async function createRecordingDraft(args: {
   };
 
   try {
-    const readTx = db.transaction(CHUNK_STORE, "readonly");
+    const readTx = db.transaction([CHUNK_STORE, SEGMENT_STORE], "readonly");
     const existing = await requestToPromise(
       readTx.objectStore(CHUNK_STORE).index("draftId").getAllKeys(
         IDBKeyRange.only(metadata.id)
       )
     );
+    const segKeys = await requestToPromise(
+      readTx.objectStore(SEGMENT_STORE).index("draftId").getAllKeys(
+        IDBKeyRange.only(metadata.id)
+      )
+    );
     await transactionDone(readTx);
 
-    const writeTx = db.transaction([META_STORE, CHUNK_STORE], "readwrite");
+    const writeTx = db.transaction([META_STORE, CHUNK_STORE, SEGMENT_STORE], "readwrite");
     writeTx.objectStore(META_STORE).put(metadata);
     const chunkStore = writeTx.objectStore(CHUNK_STORE);
     existing.forEach((key) => chunkStore.delete(key));
+    const segStore = writeTx.objectStore(SEGMENT_STORE);
+    segKeys.forEach((key) => segStore.delete(key));
     await transactionDone(writeTx);
   } finally {
     db.close();

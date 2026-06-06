@@ -29,7 +29,7 @@ import {
   markRecordingSegmentUploaded,
   getRecordingSegments,
 } from "@/lib/recording-draft";
-import { uploadSegment, registerSegment } from "@/lib/segment-upload";
+import { uploadSegment } from "@/lib/segment-upload";
 
 export const BARS = 32;
 const IDLE_LEVELS = () => Array(BARS).fill(0.04) as number[];
@@ -494,16 +494,11 @@ export function RecordingProvider({
         for (const seg of segs) {
           if (seg.uploaded) continue;
           try {
-            const r2Key = await uploadSegment({
+            await uploadSegment({
               blob: seg.blob,
               mime: seg.mime,
               jobId: draft.metadata.requestId,
               segmentIndex: seg.index,
-            });
-            await registerSegment({
-              jobId: draft.metadata.requestId,
-              segmentIndex: seg.index,
-              r2Key,
               durationSeconds: seg.durationSeconds,
             });
             await markRecordingSegmentUploaded(userId, seg.index);
@@ -692,10 +687,14 @@ export function RecordingProvider({
     const durationSeconds = secondsRef.current;
     // 1) Persist locally first (survives a failed upload / offline).
     await putRecordingSegment(userId, { index, blob, mime, durationSeconds, uploaded: false }).catch(() => {});
-    // 2) Upload to R2 + register. On failure, leave uploaded:false for recovery.
     try {
-      const r2Key = await uploadSegment({ blob, mime, jobId: jobIdRef.current, segmentIndex: index });
-      await registerSegment({ jobId: jobIdRef.current, segmentIndex: index, r2Key, durationSeconds });
+      await uploadSegment({
+        blob,
+        mime,
+        jobId: jobIdRef.current,
+        segmentIndex: index,
+        durationSeconds,
+      });
       await markRecordingSegmentUploaded(userId, index);
     } catch (err) {
       console.warn("Segment upload deferred (will retry on recovery):", err);
@@ -709,16 +708,11 @@ export function RecordingProvider({
     for (const segment of segments) {
       if (segment.uploaded) continue;
       try {
-        const r2Key = await uploadSegment({
+        await uploadSegment({
           blob: segment.blob,
           mime: segment.mime,
           jobId: jobIdRef.current,
           segmentIndex: segment.index,
-        });
-        await registerSegment({
-          jobId: jobIdRef.current,
-          segmentIndex: segment.index,
-          r2Key,
           durationSeconds: segment.durationSeconds,
         });
         await markRecordingSegmentUploaded(userId, segment.index);
@@ -905,50 +899,62 @@ export function RecordingProvider({
       );
     };
     rec.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: baseMimeType(mimeRef.current) });
-      if (rotatingRef.current) {
-        // Rotation boundary: finalize this segment and immediately begin the
-        // next one. Pipeline stays live; no phase change, no clip.
-        void finalizeSegment(blob);
-        chunksRef.current = [];
-        rotatingRef.current = false;
-        const nextRec = startSegmentRecorderRef.current!();
-        mediaRecorderRef.current = nextRec;
-        nextRec.start(RECORDING_DRAFT_SLICE_MS);
-        armRotationRef.current?.();
-        return;
-      }
-      // User stop / finish: this is the final segment. Finalize it, then move
-      // the UI into processing. Tear down the capture pipeline exactly as the
-      // old onstop did.
-      stopMeter();
-      void finalizeSegment(blob).then(() => completeJobAndProcess());
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-      sourceStreamsRef.current.forEach((s) => s.getTracks().forEach((t) => t.stop()));
-      sourceStreamsRef.current = [];
-      if (workletNodeRef.current) {
-        workletNodeRef.current.port.onmessage = null;
-        try {
-          workletNodeRef.current.disconnect();
-        } catch {
-          /* ignore */
+      // requestData() + stop() can fire onstop before the final chunk lands in
+      // ondataavailable (common on Safari). Defer assembly slightly so we don't
+      // finalize an empty blob and skip the whole upload pipeline.
+      const rotating = rotatingRef.current;
+      window.setTimeout(() => {
+        const blob = new Blob(chunksRef.current, { type: baseMimeType(mimeRef.current) });
+        if (blob.size <= 0) {
+          if (!rotating) {
+            stopMeter();
+            setStage("idle");
+            setPhase("idle");
+            toast.error(
+              "Atlas didn't capture any audio from that recording. Try again and keep this tab open until processing starts."
+            );
+          }
+          return;
         }
-      }
-      workletNodeRef.current = null;
-      if (silenceSinkRef.current) {
-        try {
-          silenceSinkRef.current.disconnect();
-        } catch {
-          /* ignore */
+        if (rotating) {
+          void finalizeSegment(blob);
+          chunksRef.current = [];
+          rotatingRef.current = false;
+          const nextRec = startSegmentRecorderRef.current!();
+          mediaRecorderRef.current = nextRec;
+          nextRec.start(RECORDING_DRAFT_SLICE_MS);
+          armRotationRef.current?.();
+          return;
         }
-      }
-      silenceSinkRef.current = null;
-      workletEnergyRef.current = false;
-      audioCtxRef.current?.close().catch(() => {});
-      audioCtxRef.current = null;
-      analyserRef.current = null;
-      mediaRecorderRef.current = null;
+        stopMeter();
+        void finalizeSegment(blob).then(() => completeJobAndProcess());
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        sourceStreamsRef.current.forEach((s) => s.getTracks().forEach((t) => t.stop()));
+        sourceStreamsRef.current = [];
+        if (workletNodeRef.current) {
+          workletNodeRef.current.port.onmessage = null;
+          try {
+            workletNodeRef.current.disconnect();
+          } catch {
+            /* ignore */
+          }
+        }
+        workletNodeRef.current = null;
+        if (silenceSinkRef.current) {
+          try {
+            silenceSinkRef.current.disconnect();
+          } catch {
+            /* ignore */
+          }
+        }
+        silenceSinkRef.current = null;
+        workletEnergyRef.current = false;
+        audioCtxRef.current?.close().catch(() => {});
+        audioCtxRef.current = null;
+        analyserRef.current = null;
+        mediaRecorderRef.current = null;
+      }, 120);
     };
     return rec;
   }, [
