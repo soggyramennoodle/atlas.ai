@@ -81,8 +81,11 @@ function NavLinks({
   );
 }
 
-function Profile({ email }: { email: string }) {
-  const initials = email ? email[0]?.toUpperCase() : "?";
+function Profile({ email, name }: { email: string; name?: string }) {
+  // Prefer the display name the user set at signup/in settings; only fall back
+  // to an email-derived label when no display name exists.
+  const displayName = name?.trim() || email.split("@")[0];
+  const initials = (displayName[0] ?? email[0] ?? "?").toUpperCase();
   return (
     <div className="flex items-center gap-3 rounded-[4px] border border-border bg-background p-2.5">
       <Avatar className="size-9 rounded-[4px] border border-border">
@@ -91,7 +94,7 @@ function Profile({ email }: { email: string }) {
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{email.split("@")[0]}</p>
+        <p className="truncate text-sm font-medium">{displayName}</p>
         <p className="truncate text-xs text-muted-foreground">{email}</p>
       </div>
       <form action="/auth/signout" method="post">
@@ -108,10 +111,12 @@ function Profile({ email }: { email: string }) {
 
 function SidebarBody({
   email,
+  name,
   isAdmin,
   onNavigate,
 }: {
   email: string;
+  name?: string;
   isAdmin?: boolean;
   onNavigate?: () => void;
 }) {
@@ -136,7 +141,7 @@ function SidebarBody({
             Coming soon to turn your notes into active recall.
           </p>
         </div>
-        <Profile email={email} />
+        <Profile email={email} name={name} />
         <div className="flex items-center justify-center gap-2 text-[0.7rem] text-muted-foreground/70">
           <Link
             href="/privacy"
@@ -161,9 +166,11 @@ function SidebarBody({
 
 export function AppSidebar({
   email,
+  name,
   isAdmin,
 }: {
   email: string;
+  name?: string;
   isAdmin?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -173,7 +180,7 @@ export function AppSidebar({
     <>
       {/* Desktop fixed sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border bg-card lg:block">
-        <SidebarBody email={email} isAdmin={isAdmin} />
+        <SidebarBody email={email} name={name} isAdmin={isAdmin} />
       </aside>
 
       {/* Mobile top bar */}
@@ -222,6 +229,7 @@ export function AppSidebar({
               </button>
               <SidebarBody
                 email={email}
+                name={name}
                 isAdmin={isAdmin}
                 onNavigate={() => setOpen(false)}
               />

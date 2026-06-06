@@ -33,7 +33,11 @@ export default async function AppLayout({
       <div className="relative min-h-screen">
         {/* Clean rivo-light canvas, shared with the marketing surface. */}
         <MarketingBackground />
-        <AppSidebar email={user.email ?? ""} isAdmin={isNewsroomAdmin(user.email)} />
+        <AppSidebar
+          email={user.email ?? ""}
+          name={profile?.display_name ?? ""}
+          isAdmin={isNewsroomAdmin(user.email)}
+        />
         <div className="lg:pl-64">
           <div className="pt-16 lg:pt-0">{children}</div>
         </div>
