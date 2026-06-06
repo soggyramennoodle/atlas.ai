@@ -54,6 +54,10 @@ function confirmationUrl(payload: SupabaseSendEmailHookPayload) {
   return url.toString();
 }
 
+function idempotencyKey(payload: SupabaseSendEmailHookPayload) {
+  return `auth-${payload.email_data.email_action_type}-${payload.email_data.token_hash.slice(0, 48)}`;
+}
+
 export async function POST(request: Request) {
   const rawPayload = await request.text();
 
@@ -83,7 +87,7 @@ export async function POST(request: Request) {
       dataVariables: {
         confirmationURL: confirmationUrl(payload),
       },
-      idempotencyKey: `auth-${payload.user.id}-${payload.email_data.token_hash}`,
+      idempotencyKey: idempotencyKey(payload),
     });
   } catch (err) {
     console.error("Loops auth email failed:", err);
