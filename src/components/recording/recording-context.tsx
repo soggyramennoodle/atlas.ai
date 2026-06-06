@@ -843,13 +843,12 @@ export function RecordingProvider({
       setFailed(false);
       setProcessingIssue(null);
       setProcessingSafeToLeave(true);
-      // Remember the note so the auto-navigate effect can send the user to it
-      // the moment the server finishes, even if they wait here.
       setProcessingNoteId(completeBody.noteId);
-      // Stay on the glowy processing scrim — the user can leave after 15 s via
-      // the glassy dashboard link, or keep waiting here. No toast here: the scrim
-      // already says "Atlas is writing your notes…", so a toast would duplicate it.
       setStage("analyzing");
+      // Take the user straight to their note now (in its processing state). The
+      // note page's ProcessingWatcher flips it to the finished notes the moment
+      // the worker is done. Hard navigation so the page mounts fresh.
+      window.location.assign(`/notes/${completeBody.noteId}`);
     } catch (err) {
       setStage("idle");
       setProcessingSafeToLeave(false);
@@ -1567,12 +1566,10 @@ export function RecordingProvider({
       setProcessingIssue(null);
       setPhase("idle");
       void enqueueDraftWrite(() => clearRecordingDraft(userId));
-      if (result.status === "processing") {
-        setStage("analyzing");
-      } else {
-        setStage("idle");
-        router.push(`/notes/${result.id}`);
-      }
+      // Take the user straight to their note. If it's still processing, the note
+      // page's ProcessingWatcher flips it to the finished notes when the worker
+      // is done. Hard navigation so the page mounts fresh.
+      window.location.assign(`/notes/${result.id}`);
     } catch (err) {
       if (generationRunRef.current !== runId) return;
       setStage("idle");
@@ -1606,7 +1603,6 @@ export function RecordingProvider({
     }
   }, [
     clip,
-    router,
     seconds,
     userId,
     emitLevels,
@@ -1665,12 +1661,9 @@ export function RecordingProvider({
         .eq("id", noteId)
         .single();
       const status = (data?.content as { status?: string } | null)?.status;
-      // "ready" and "failed" are both terminal — the note page renders the right
-      // UI for each, so either way we get the user off the endless scrim. Use a
-      // hard navigation: a soft router.push can serve a stale client-cached RSC
-      // for the route, and router.refresh on the note page keeps client useState,
-      // so a full load is the only thing guaranteed to render the finished note.
-      if (status === "ready" || status === "failed") {
+      // Anything that isn't "processing" is terminal (ready / failed / legacy
+      // notes with no status). Hard navigation so the note page mounts fresh.
+      if (data && status !== "processing") {
         navigated = true;
         clearInterval(poll);
         window.location.assign(`/notes/${noteId}`);
