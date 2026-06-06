@@ -77,7 +77,7 @@ export default function PrivacyPolicyPage() {
         {
           heading: "Contact Information",
           body: [
-            "Questions about your privacy or this policy? Contact us at rahma8@mcmaster.ca and we’ll respond promptly.",
+            "Questions about your privacy or this policy? Contact us at hello@atlasai.ca and we’ll respond promptly.",
           ],
         },
       ]}

@@ -44,7 +44,7 @@ export function Faq() {
             <p className="mt-4 max-w-sm text-pretty text-muted-foreground">
               Still wondering about something? Reach us any time at{" "}
               <a
-                href="mailto:rahma8@mcmaster.ca"
+                href="mailto:hello@atlasai.ca"
                 className="text-primary hover:underline"
               >
                 our inbox

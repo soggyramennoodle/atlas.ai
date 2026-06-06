@@ -48,7 +48,7 @@ const CONTROLS = [
 export default function PrivacyPhilosophyPage() {
   return (
     <main className="relative overflow-hidden pb-28">
-      <div className="relative mx-auto max-w-3xl px-4 pt-16 lg:pt-24">
+      <div className="relative mx-auto max-w-[1080px] px-4 pt-16 sm:px-6 lg:pt-24">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:-translate-x-0.5 hover:text-foreground"
@@ -57,24 +57,33 @@ export default function PrivacyPhilosophyPage() {
           Back
         </Link>
 
-        {/* Opening statement */}
-        <section className="mt-14 text-center">
-          <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-4 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-primary">
-            <Lock className="size-3.5" />
-            Atlas Enclave
-          </span>
-          <h1 className="mx-auto mt-8 max-w-2xl text-balance text-6xl font-extrabold leading-[0.92] sm:text-7xl">
-            Your thoughts are{" "}
-            <span className="font-semibold tracking-tight text-primary">
-              yours.
+        {/* Opening statement — left-weighted asymmetric split, copy held to the
+            left with the enclave panel balancing the right. */}
+        <section className="mt-12 grid grid-cols-1 items-center gap-12 lg:mt-14 lg:grid-cols-12 lg:gap-10">
+          <div className="lg:col-span-7">
+            <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-4 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-primary">
+              <Lock className="size-3.5" />
+              Atlas Enclave
             </span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-            We built Atlas that way from the start. Your lectures, your notes,
-            your recordings, private by design, not an afterthought.
-          </p>
+            <h1 className="mt-8 max-w-[12ch] text-balance text-6xl font-extrabold leading-[0.92] sm:text-7xl">
+              Your thoughts are{" "}
+              <span className="font-semibold tracking-tight text-primary">
+                yours.
+              </span>
+            </h1>
+            <p className="mt-6 max-w-[46ch] text-pretty text-lg leading-relaxed text-muted-foreground">
+              We built Atlas that way from the start. Your lectures, your notes,
+              your recordings, private by design, not an afterthought.
+            </p>
+          </div>
+
+          <div className="lg:col-span-5">
+            <EnclavePreview />
+          </div>
         </section>
 
+        {/* Body — held to a left-weighted column for the off-center rhythm. */}
+        <div className="max-w-[760px]">
         <Divider />
 
         {/* What Atlas Enclave means */}
@@ -217,8 +226,51 @@ export default function PrivacyPhilosophyPage() {
             </div>
           </div>
         </section>
+        </div>
       </div>
     </main>
+  );
+}
+
+function EnclavePreview() {
+  const ROWS = [
+    { label: "Your notes", value: "Stored for you" },
+    { label: "Your audio", value: "Removed after processing" },
+    { label: "AI training", value: "Never, without consent" },
+    { label: "Selling data", value: "Never" },
+  ];
+  return (
+    <div className="relative mx-auto w-full max-w-[420px] lg:mx-0">
+      <div className="overflow-hidden rounded-[6px] border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
+        <div className="flex items-center gap-2.5 border-b border-border px-5 py-4">
+          <span className="grid size-8 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
+            <Lock className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              Atlas Enclave
+            </p>
+            <p className="text-sm font-semibold tracking-tight">
+              Private by design
+            </p>
+          </div>
+        </div>
+        <ul className="divide-y divide-border">
+          {ROWS.map((r) => (
+            <li
+              key={r.label}
+              className="flex items-center justify-between gap-3 px-5 py-3.5"
+            >
+              <span className="text-sm text-muted-foreground">{r.label}</span>
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium tracking-tight">
+                <Check className="size-3.5 text-primary" />
+                {r.value}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
 

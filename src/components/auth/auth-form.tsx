@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Mail } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -216,6 +216,16 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         Institutional emails (e.g. @mcmaster.ca, @mail.utoronto.ca) may be
         blocked by your school&apos;s security filters. Use a personal email for
         the best experience.
+      </p>
+
+      <p className="mt-2 text-center text-xs">
+        <Link
+          href="/sign-in-help"
+          className="group inline-flex items-center gap-1 font-medium text-primary hover:underline"
+        >
+          Learn more
+          <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+        </Link>
       </p>
 
       <p className="mt-4 text-center text-sm text-muted-foreground">

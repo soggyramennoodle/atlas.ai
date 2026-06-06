@@ -74,7 +74,7 @@ export default function TermsPage() {
         {
           heading: "Contact",
           body: [
-            "Questions about these terms? Contact us at rahma8@mcmaster.ca.",
+            "Questions about these terms? Contact us at hello@atlasai.ca.",
           ],
         },
       ]}

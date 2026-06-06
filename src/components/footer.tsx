@@ -138,7 +138,7 @@ export function Footer() {
                 <SoonSocial icon={DiscordIcon} label="Discord" />
                 <li>
                   <a
-                    href="mailto:rahma8@mcmaster.ca"
+                    href="mailto:hello@atlasai.ca"
                     className="inline-flex items-center gap-2 text-muted-foreground transition hover:text-foreground"
                   >
                     <Mail className="size-4" />
