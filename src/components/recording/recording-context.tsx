@@ -290,6 +290,10 @@ export function RecordingProvider({
   const [stage, setStage] = useState<CaptureStage>("idle");
   const [processingIssue, setProcessingIssue] = useState<ProcessingIssue | null>(null);
   const [processingSafeToLeave, setProcessingSafeToLeave] = useState(false);
+  // Id of the note generating in the background while the user waits on the
+  // processing scrim. Watched below so we can flip them straight to the note
+  // the moment the server is done (see the auto-navigate effect).
+  const [processingNoteId, setProcessingNoteId] = useState<string | null>(null);
   const [sessionLabel, setSessionLabel] = useState("Untitled Lecture");
   const [recoveredDraft, setRecoveredDraft] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
@@ -764,6 +768,7 @@ export function RecordingProvider({
   const completeJobAndProcess = useCallback(async () => {
     setStage("analyzing");
     setProcessingSafeToLeave(false);
+    setProcessingNoteId(null);
     try {
       const segmentCount = segmentIndexRef.current;
       if (segmentCount <= 0) {
@@ -838,6 +843,9 @@ export function RecordingProvider({
       setFailed(false);
       setProcessingIssue(null);
       setProcessingSafeToLeave(true);
+      // Remember the note so the auto-navigate effect can send the user to it
+      // the moment the server finishes, even if they wait here.
+      setProcessingNoteId(completeBody.noteId);
       // Stay on the glowy processing scrim — the user can leave after 15 s via
       // the glassy dashboard link, or keep waiting here. No toast here: the scrim
       // already says "Atlas is writing your notes…", so a toast would duplicate it.
@@ -1468,6 +1476,7 @@ export function RecordingProvider({
     setFailed(false);
     setProcessingIssue(null);
     setProcessingSafeToLeave(false);
+    setProcessingNoteId(null);
 
     if (clip.silent) {
       const issueRunId = generationRunRef.current + 1;
@@ -1537,6 +1546,9 @@ export function RecordingProvider({
         // The analyzing scrim already says "Atlas is writing your notes…", so a
         // toast saying the same thing would be redundant — just keep the scrim.
         setProcessingSafeToLeave(true);
+        // Remember the note so the auto-navigate effect can send the user to it
+        // the moment the server finishes, even if they wait on the scrim.
+        setProcessingNoteId(result.id);
       } else if (result.status === "failed") {
         toast.error("Atlas couldn't process this recording.");
       } else {
@@ -1616,6 +1628,7 @@ export function RecordingProvider({
     setStage("idle");
     setProcessingSafeToLeave(false);
     setProcessingIssue(null);
+    setProcessingNoteId(null);
     setFailed(false);
   }, [processingSafeToLeave, phase, clip]);
 
@@ -1632,6 +1645,55 @@ export function RecordingProvider({
     a.click();
     a.remove();
   }, [clip, sessionLabel]);
+
+  // While a recording generates server-side, the user can choose to wait on the
+  // processing scrim rather than leave. Watch that note and, the instant the
+  // worker marks it done, send them straight to it — otherwise they'd sit on
+  // "Atlas is writing your notes…" indefinitely even though the finished note is
+  // already in their dashboard. Mirrors ProcessingWatcher on the note page.
+  useEffect(() => {
+    if (!processingNoteId) return;
+    const noteId = processingNoteId;
+    const supabase = createClient();
+    let navigated = false;
+
+    const checkStatus = async () => {
+      if (navigated) return;
+      const { data } = await supabase
+        .from("notes")
+        .select("content")
+        .eq("id", noteId)
+        .single();
+      const status = (data?.content as { status?: string } | null)?.status;
+      // "ready" and "failed" are both terminal — the note page renders the right
+      // UI for each, so either way we get the user off the endless scrim.
+      if (status === "ready" || status === "failed") {
+        navigated = true;
+        setStage("idle");
+        setProcessingSafeToLeave(false);
+        setProcessingNoteId(null);
+        router.push(`/notes/${noteId}`);
+      }
+    };
+
+    const channel = supabase
+      .channel(`recording-note-${noteId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "notes", filter: `id=eq.${noteId}` },
+        () => void checkStatus()
+      )
+      .subscribe();
+    // Fallback poll in case Realtime isn't connected, plus an immediate check in
+    // case the note finished before we subscribed.
+    const poll = setInterval(() => void checkStatus(), 5_000);
+    void checkStatus();
+
+    return () => {
+      clearInterval(poll);
+      void supabase.removeChannel(channel);
+    };
+  }, [processingNoteId, router]);
 
   const value: RecordingValue = {
     phase,
