@@ -622,6 +622,56 @@
     animation-name: ai-ring-bloom-active;
   }
 
+  /* Processing glow — the AI edge-glow language (see .ai-ring) packaged as a
+     self-contained overlay element so it composes cleanly with the card's
+     .hover-glow instead of fighting over the same ::after. Drop a
+     <span class="processing-glow"> as the first child of a relative box and it
+     hugs the edges: a fluid multicolor gradient border + a soft outside bloom,
+     both driven by the seamless hue-rotate loop (one full cycle = one "loop").
+     The glow lives behind the card content (::after z-index:-1, inside the
+     card's isolated context). When processing finishes we don't cut it
+     mid-cycle — NoteCard waits for the hue loop to return home, then adds
+     .processing-glow--stopping to fade the whole thing out. */
+  .processing-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    --ai-ring-flow: 5.5s;
+  }
+  .processing-glow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.75px;
+    background: linear-gradient(120deg, #12a36b, #1ac4c0, #3b82f6, #8b5cf6, #fb6f4c, #ffb22e);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.95;
+    transition: opacity 0.7s ease;
+    animation: ai-ring-hue var(--ai-ring-flow) linear infinite;
+  }
+  .processing-glow::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(120deg, #12a36b, #1ac4c0, #3b82f6, #8b5cf6, #fb6f4c, #ffb22e);
+    opacity: 0.55;
+    transition: opacity 0.7s ease;
+    animation: ai-ring-bloom-active var(--ai-ring-flow) linear infinite;
+  }
+  /* Clean stop: fade out at a loop boundary (hue back home) — not mid-cycle. */
+  .processing-glow--stopping::before,
+  .processing-glow--stopping::after {
+    opacity: 0;
+  }
+
   /* Traveling light around a card border on hover. */
   .glow-card {
     position: relative;

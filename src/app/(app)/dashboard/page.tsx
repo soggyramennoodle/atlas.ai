@@ -1,31 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertCircle, BookOpen, Clock, Loader2, Mic } from "lucide-react";
+import { Mic } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Greeting } from "@/components/dashboard/greeting";
 import { StatCards, type Stat } from "@/components/dashboard/stat-cards";
 import { QuickRecord } from "@/components/dashboard/quick-record";
 import { Tips } from "@/components/dashboard/tips";
 import { EmptyRecordings } from "@/components/dashboard/empty-state";
 import { RealtimeRefresh } from "@/components/dashboard/realtime-refresh";
+import { NoteCard } from "@/components/dashboard/note-card";
 import type { NoteRecord } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Dashboard" };
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function formatDuration(s: number | null) {
-  if (!s) return null;
-  return `${Math.round(s / 60)} min`;
-}
 
 function displayStatus(note: Pick<NoteRecord, "content" | "created_at">) {
   return note.content?.status ?? "ready";
@@ -172,65 +160,13 @@ export default async function DashboardPage() {
               </div>
             ) : (
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                {notes.map((note) => {
-                  const status = displayStatus(note);
-                  const processing = status === "processing";
-                  const failed = status === "failed";
-                  return (
-                    <Link
-                      key={note.id}
-                      href={`/notes/${note.id}`}
-                      className="group hover-glow icon-animate flex flex-col rounded-[4px] border border-border bg-card p-5 transition-[transform,border-color,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-foreground/25 hover:bg-secondary/55 hover:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_16px_34px_-20px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/35 active:translate-y-0 motion-reduce:hover:translate-y-0"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-background text-foreground transition-[transform,border-color] duration-200 group-hover:-translate-y-0.5 group-hover:border-foreground/25 motion-reduce:group-hover:translate-y-0">
-                          {failed ? (
-                            <AlertCircle className="size-5 text-destructive" />
-                          ) : processing ? (
-                            <Loader2 className="size-5 animate-spin" />
-                          ) : (
-                            <BookOpen className="size-5" />
-                          )}
-                        </span>
-                        <span
-                          className={
-                            failed
-                              ? "inline-flex items-center gap-1.5 rounded-[4px] border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-destructive"
-                              : processing
-                                ? "inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-secondary px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground"
-                                : "inline-flex items-center gap-1.5 rounded-[4px] border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-primary"
-                          }
-                        >
-                          <span className="size-1.5 rounded-full bg-current" />
-                          {failed ? "Failed" : processing ? "Processing" : "Ready"}
-                        </span>
-                      </div>
-                      <h3 className="mt-4 line-clamp-2 text-lg font-bold leading-snug tracking-tight">
-                        {note.title}
-                      </h3>
-                      <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                        {note.content?.summary}
-                      </p>
-                      <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>{formatDate(note.created_at)}</span>
-                        {formatDuration(note.duration_seconds) && (
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="size-3" />
-                            {formatDuration(note.duration_seconds)}
-                          </span>
-                        )}
-                        {note.subject && (
-                          <Badge
-                            variant="secondary"
-                            className="ml-auto font-normal transition-colors group-hover:border-foreground/20"
-                          >
-                            {note.subject}
-                          </Badge>
-                        )}
-                      </div>
-                    </Link>
-                  );
-                })}
+                {notes.map((note) => (
+                  <NoteCard
+                    key={note.id}
+                    note={note}
+                    status={displayStatus(note)}
+                  />
+                ))}
               </div>
             )}
           </section>
