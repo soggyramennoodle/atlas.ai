@@ -27,6 +27,29 @@ export const r2 = new S3Client({
   responseChecksumValidation: "WHEN_REQUIRED",
 });
 
+// Belt-and-suspenders: strip checksum headers R2 still rejects on some SDK paths.
+r2.middlewareStack.add(
+  (next) => async (args) => {
+    const request = args.request as { headers?: Record<string, string> };
+    if (request.headers) {
+      for (const key of Object.keys(request.headers)) {
+        const lower = key.toLowerCase();
+        if (
+          lower.startsWith("x-amz-checksum-") ||
+          lower === "x-amz-sdk-checksum-algorithm"
+        ) {
+          delete request.headers[key];
+        }
+      }
+    }
+    return next(args);
+  },
+  { step: "build", name: "stripR2ChecksumHeaders" }
+);
+
 export function getR2Bucket() {
   return requiredR2Env("CLOUDFLARE_R2_BUCKET_NAME");
 }
+
+/** R2 multipart minimum part size (all parts except the last). */
+export const R2_MULTIPART_PART_BYTES = 5 * 1024 * 1024;

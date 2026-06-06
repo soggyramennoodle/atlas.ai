@@ -4,6 +4,8 @@ import { uploadSegment } from "@/lib/segment-upload";
 
 /** Vercel Hobby request-body cap is ~4.5 MB; direct upload stays under it. */
 export const DIRECT_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
+/** Must match R2 minimum multipart part size in src/lib/r2.ts. */
+export const MULTIPART_PART_BYTES = 5 * 1024 * 1024;
 
 async function readError(res: Response, fallback: string) {
   try {
@@ -15,11 +17,11 @@ async function readError(res: Response, fallback: string) {
 }
 
 /**
- * Large files go straight to R2 via a presigned PUT. Server-side multipart
- * can't work here: R2 requires ≥5 MB parts but Vercel caps request bodies at
- * ~4.5 MB. The checksum fix in src/lib/r2.ts keeps presigned PUTs from 403ing.
+ * Large files upload in ≥5 MB parts via presigned UploadPart URLs straight to
+ * R2. The app server never buffers the bytes (Vercel's 4.5 MB cap) and we avoid
+ * single PutObject presigned PUT quirks in Safari.
  */
-async function uploadLargeViaPresign(args: {
+async function uploadLargeViaPresignedMultipart(args: {
   blob: Blob;
   mime: string;
   jobId: string;
@@ -27,48 +29,70 @@ async function uploadLargeViaPresign(args: {
   durationSeconds?: number | null;
   signal?: AbortSignal;
 }): Promise<string> {
-  const presignRes = await fetch("/api/upload/presign", {
+  const planRes = await fetch("/api/upload/multipart/plan", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     signal: args.signal,
     body: JSON.stringify({
+      jobId: args.jobId,
+      segmentIndex: args.segmentIndex,
       contentType: args.mime,
       fileSize: args.blob.size,
-      jobId: args.jobId,
-      segmentIndex: args.segmentIndex,
     }),
   });
-  if (!presignRes.ok) {
-    throw new Error(await readError(presignRes, "Could not prepare the upload."));
+  if (!planRes.ok) {
+    throw new Error(await readError(planRes, "Could not prepare the upload."));
   }
-  const { presignedUrl, key } = (await presignRes.json()) as {
-    presignedUrl: string;
+
+  const { uploadId, key, partSize, parts } = (await planRes.json()) as {
+    uploadId: string;
     key: string;
+    partSize: number;
+    parts: { partNumber: number; presignedUrl: string }[];
   };
 
-  const uploadRes = await fetch(presignedUrl, {
-    method: "PUT",
-    body: args.blob,
-    headers: { "Content-Type": args.mime },
-    signal: args.signal,
-  });
-  if (!uploadRes.ok) {
-    throw new Error("Upload failed. Please try again.");
+  const uploadedParts: { partNumber: number; etag: string }[] = [];
+
+  for (const { partNumber, presignedUrl } of parts) {
+    const start = (partNumber - 1) * partSize;
+    const end = Math.min(start + partSize, args.blob.size);
+    const chunk = args.blob.slice(start, end);
+
+    const partRes = await fetch(presignedUrl, {
+      method: "PUT",
+      body: chunk,
+      signal: args.signal,
+    });
+    if (!partRes.ok) {
+      throw new Error(
+        `Upload failed (part ${partNumber}, HTTP ${partRes.status}). Please try again.`
+      );
+    }
+
+    const etag = partRes.headers.get("ETag") ?? partRes.headers.get("etag");
+    if (!etag) {
+      throw new Error(
+        "Upload failed because the storage response did not include a part tag. Check R2 CORS exposes ETag."
+      );
+    }
+    uploadedParts.push({ partNumber, etag });
   }
 
-  const registerRes = await fetch("/api/jobs/segment", {
+  const completeRes = await fetch("/api/upload/multipart/complete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     signal: args.signal,
     body: JSON.stringify({
       jobId: args.jobId,
       segmentIndex: args.segmentIndex,
-      r2Key: key,
+      contentType: args.mime,
+      uploadId,
+      parts: uploadedParts,
       durationSeconds: args.durationSeconds ?? null,
     }),
   });
-  if (!registerRes.ok) {
-    throw new Error(await readError(registerRes, "Could not register the uploaded audio."));
+  if (!completeRes.ok) {
+    throw new Error(await readError(completeRes, "Could not finish the upload."));
   }
 
   return key;
@@ -76,7 +100,7 @@ async function uploadLargeViaPresign(args: {
 
 /**
  * Upload audio into R2. Small files go through the app server (no CORS). Larger
- * files use a presigned PUT to R2 (checksum-safe; see src/lib/r2.ts).
+ * files use presigned multipart PUTs to R2 (5 MB parts).
  */
 export async function uploadAudioViaServer(args: {
   blob: Blob;
@@ -89,5 +113,5 @@ export async function uploadAudioViaServer(args: {
   if (args.blob.size <= DIRECT_UPLOAD_MAX_BYTES) {
     return uploadSegment(args);
   }
-  return uploadLargeViaPresign(args);
+  return uploadLargeViaPresignedMultipart(args);
 }
