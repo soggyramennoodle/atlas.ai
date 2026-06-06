@@ -135,7 +135,7 @@ export function ProcessingOverlay({
                 <TriangleAlert className="size-4 shrink-0" />
                 <span>
                   <span className="font-semibold">Keep this tab open</span> until
-                  the upload finishes — it runs in your browser.
+                  the upload finishes.
                 </span>
               </div>
             )}

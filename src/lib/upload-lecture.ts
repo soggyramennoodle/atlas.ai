@@ -1,4 +1,5 @@
 import type { createClient } from "@/lib/supabase/client";
+import { uploadAudioViaServer } from "@/lib/server-audio-upload";
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
@@ -142,52 +143,17 @@ export async function uploadLectureAndGenerate({
     signal
   );
 
-  const presignRes = await fetch("/api/upload/presign", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  const r2Key = await uploadAudioViaServer({
+    blob: data,
+    mime: mimeType,
+    jobId: stableId,
+    segmentIndex: 0,
+    durationSeconds: durationSeconds ? Math.round(durationSeconds) : null,
     signal,
-    body: JSON.stringify({
-      contentType: mimeType,
-      fileSize: data.size,
-      jobId: stableId,
-      segmentIndex: 0,
-    }),
   });
-  const presign = await parseJsonResponse(
-    presignRes,
-    "Could not prepare the upload —"
-  );
-  if (!presignRes.ok) {
-    throw new Error((presign.error as string) || "Could not prepare the upload.");
-  }
-
-  const r2Key = presign.key as string;
   if (!r2Key.startsWith(`${userId}/`)) {
     throw new Error("Upload was rejected because it was scoped incorrectly.");
   }
-
-  const uploadRes = await fetch(presign.presignedUrl as string, {
-    method: "PUT",
-    body: data,
-    headers: { "Content-Type": mimeType },
-    signal,
-  });
-
-  if (!uploadRes.ok) {
-    throw new Error("Upload failed. Please try again.");
-  }
-
-  await postJson(
-    "/api/jobs/segment",
-    {
-      jobId: stableId,
-      segmentIndex: 0,
-      r2Key,
-      durationSeconds: durationSeconds ? Math.round(durationSeconds) : null,
-    },
-    "Could not register the uploaded audio —",
-    signal
-  );
 
   onStage("analyzing");
   const result = await postJson(
