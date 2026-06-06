@@ -29,7 +29,9 @@ try {
  * - blob: in script-src/worker-src is required by the recorder's AudioWorklet,
  *   which is loaded from a Blob URL.
  * - style-src needs 'unsafe-inline' for Tailwind + framer-motion inline styles.
- * - connect-src is locked to self + the Supabase project (https + wss).
+ * - connect-src is locked to self + the Supabase project (https + wss) + R2.
+ *   ffmpeg.wasm core is self-hosted under /ffmpeg (see scripts/copy-ffmpeg-core.mjs)
+ *   so we don't need an external CDN in connect-src.
  * - everything else is locked down: object-src none, base-uri self,
  *   frame-ancestors none, form-action self.
  */

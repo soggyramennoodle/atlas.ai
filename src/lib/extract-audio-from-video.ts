@@ -57,12 +57,20 @@ async function getFfmpeg(): Promise<FFmpeg> {
 
   ffmpegLoading = (async () => {
     const ffmpeg = new FFmpeg();
-    const coreVersion = "0.12.10";
-    const baseURL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${coreVersion}/dist/umd`;
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-    });
+    // Self-hosted so CSP connect-src 'self' allows the fetch (jsdelivr is blocked).
+    const baseURL = `${window.location.origin}/ffmpeg`;
+    try {
+      await ffmpeg.load({
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      });
+    } catch (err) {
+      ffmpegLoading = null;
+      const detail = err instanceof Error ? err.message : String(err);
+      throw new Error(
+        `Could not load audio extraction tools (${detail}). Refresh and try again.`
+      );
+    }
     ffmpegInstance = ffmpeg;
     return ffmpeg;
   })();
@@ -110,19 +118,35 @@ export async function extractAudioFromVideo(
 
   await ffmpeg.writeFile(inputName, await fetchFile(file));
 
-  // AAC @ 128 kbps — reliable in ffmpeg.wasm and plenty for lecture speech.
-  await ffmpeg.exec([
-    "-i",
-    inputName,
-    "-vn",
-    "-acodec",
-    "aac",
-    "-b:a",
-    "128k",
-    outputName,
-  ]);
+  try {
+    // AAC @ 128 kbps — reliable in ffmpeg.wasm and plenty for lecture speech.
+    await ffmpeg.exec([
+      "-i",
+      inputName,
+      "-vn",
+      "-acodec",
+      "aac",
+      "-b:a",
+      "128k",
+      outputName,
+    ]);
+  } catch (err) {
+    await ffmpeg.deleteFile(inputName).catch(() => {});
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `Could not extract audio from this video (${detail}). Try exporting audio as M4A or MP3 first.`
+    );
+  }
 
-  const data = await ffmpeg.readFile(outputName);
+  let data: Uint8Array | string;
+  try {
+    data = await ffmpeg.readFile(outputName);
+  } catch {
+    await ffmpeg.deleteFile(inputName).catch(() => {});
+    throw new Error(
+      "This video has no audio track we could extract. Try a file that includes lecture audio."
+    );
+  }
   await ffmpeg.deleteFile(inputName).catch(() => {});
   await ffmpeg.deleteFile(outputName).catch(() => {});
 
