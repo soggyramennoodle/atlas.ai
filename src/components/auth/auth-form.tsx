@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { firstNameFrom } from "@/lib/name";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const next = params.get("next") || "/dashboard";
 
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [sending, setSending] = useState(false);
   const [redirecting, setRedirecting] = useState<OAuthProvider | null>(null);
   const [sent, setSent] = useState(false);
@@ -51,9 +53,17 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   async function deliverLink(): Promise<boolean> {
     const supabase = createClient();
+    const signupFirstName = firstNameFrom(firstName);
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: redirectTo(), shouldCreateUser: true },
+      options: {
+        emailRedirectTo: redirectTo(),
+        shouldCreateUser: true,
+        data:
+          isSignup && signupFirstName
+            ? { first_name: signupFirstName }
+            : undefined,
+      },
     });
     if (error) {
       toast.error(error.message || "Couldn't send the link. Try again.");
@@ -183,6 +193,20 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       </div>
 
       <form onSubmit={sendMagicLink} className="space-y-4">
+        {isSignup && (
+          <div className="space-y-2">
+            <Label htmlFor="first_name">First name</Label>
+            <Input
+              id="first_name"
+              type="text"
+              autoComplete="given-name"
+              required
+              placeholder="Maya"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input

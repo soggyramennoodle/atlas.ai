@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { firstNameFrom } from "@/lib/name";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 
@@ -19,5 +20,14 @@ export default async function OnboardingPage() {
     .maybeSingle();
   if (profile?.display_name) redirect("/dashboard");
 
-  return <OnboardingFlow />;
+  const metadataFirstName =
+    typeof user.user_metadata?.first_name === "string"
+      ? firstNameFrom(user.user_metadata.first_name)
+      : "";
+
+  return (
+    <OnboardingFlow
+      initialValues={metadataFirstName ? { display_name: metadataFirstName } : undefined}
+    />
+  );
 }

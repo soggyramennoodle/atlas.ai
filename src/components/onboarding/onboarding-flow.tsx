@@ -52,11 +52,15 @@ const STEPS: Field[] = [
   },
 ];
 
-export function OnboardingFlow() {
+export function OnboardingFlow({
+  initialValues = {},
+}: {
+  initialValues?: Partial<Record<Field["key"], string>>;
+}) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(initialValues);
   const [saving, setSaving] = useState(false);
 
   const field = STEPS[step];
