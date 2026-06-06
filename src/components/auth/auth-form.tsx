@@ -126,6 +126,9 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           We sent a magic link to <strong>{email}</strong>. Click it to sign in,
           no password needed.
         </p>
+        <p className="mt-1 text-xs text-muted-foreground text-pretty">
+          Nothing in your inbox? Check your junk or spam folder.
+        </p>
 
         <div className="mt-6 flex flex-col items-center gap-3">
           <Button
@@ -207,6 +210,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
       <p className="mt-5 text-center text-xs text-muted-foreground text-pretty">
         We&apos;ll email you a secure link to sign in. No password to remember.
+      </p>
+
+      <p className="mt-3 text-center text-xs text-muted-foreground text-pretty">
+        Institutional emails (e.g. @mcmaster.ca, @mail.utoronto.ca) may be
+        blocked by your school&apos;s security filters. Use a personal email for
+        the best experience.
       </p>
 
       <p className="mt-4 text-center text-sm text-muted-foreground">
