@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { AlertCircle, ArrowLeft, Clock, Download, Mic, RefreshCcw, Sparkles, Trash2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, Clock, Download, Mic, RefreshCcw, Sparkles, Trash2, TriangleAlert } from "lucide-react";
 import { AiGlow } from "@/components/ui/ai-glow";
 import { ThinkingStatus } from "@/components/upload/thinking-status";
 import { Button } from "@/components/ui/button";
@@ -125,6 +125,19 @@ export function ProcessingOverlay({
               <p className="mt-3 max-w-md text-pretty text-sm leading-6 text-muted-foreground">
                 {detail}
               </p>
+            )}
+
+            {/* Extraction + upload run in this tab; closing it mid-flight loses
+                the work. Stays until the audio is on the server (safeToLeave),
+                after which the server keeps going and the leave hints take over. */}
+            {!failed && !safeToLeave && stage !== "idle" && (
+              <div className="mt-5 inline-flex items-center gap-2 rounded-[6px] border border-amber-500/40 bg-amber-500/10 px-3.5 py-2 text-sm text-amber-700 dark:text-amber-300">
+                <TriangleAlert className="size-4 shrink-0" />
+                <span>
+                  <span className="font-semibold">Keep this tab open</span> until
+                  the upload finishes — it runs in your browser.
+                </span>
+              </div>
             )}
 
             {failed && onDiscard && onDownload && (

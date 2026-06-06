@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -98,6 +98,19 @@ export function Uploader({ userId }: { userId: string }) {
   const [safeToLeave, setSafeToLeave] = useState(false);
 
   const busy = stage !== "idle";
+
+  // While audio is being extracted or uploaded, the work lives in this tab —
+  // closing or navigating away aborts it. Warn before unload until the audio is
+  // safely on the server (safeToLeave), after which processing continues there.
+  useEffect(() => {
+    if (!busy || safeToLeave) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [busy, safeToLeave]);
 
   const selectFile = useCallback((f: File) => {
     const okType =
