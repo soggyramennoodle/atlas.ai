@@ -12,7 +12,7 @@
 --   2. In the Supabase SQL Editor, run the `create extension` lines below
 --      (or enable pg_cron + pg_net via Database → Extensions).
 --   3. Replace YOUR-APP.vercel.app with your deployed domain and
---      YOUR_SHARED_SECRET with your JOBS_TICK_SECRET, then run the
+--      YOUR_SHARED_SECRET with your JOBS_TICK_SECRET (or CRON_SECRET), then run the
 --      cron.schedule block.
 --   4. Verify with:  select * from cron.job;
 --
@@ -30,7 +30,7 @@ select cron.schedule(
     url     := 'https://atlasai.ca/api/jobs/tick',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'x-jobs-secret', 'YOUR_SHARED_SECRET' -- must equal JOBS_TICK_SECRET
+      'x-jobs-secret', 'YOUR_SHARED_SECRET' -- must equal JOBS_TICK_SECRET or CRON_SECRET
     ),
     body    := '{}'::jsonb
   );

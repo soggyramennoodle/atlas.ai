@@ -13,6 +13,48 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+export function DownloadAudioButton({ id }: { id: string }) {
+  const [busy, setBusy] = useState(false);
+
+  async function downloadAudio() {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/notes/${id}/audio`);
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") ?? "";
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      const filename = match?.[1] ?? "lecture-audio.zip";
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Couldn't download the recording.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="gap-1.5 text-muted-foreground"
+      onClick={downloadAudio}
+      disabled={busy}
+    >
+      {busy ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+      Audio
+    </Button>
+  );
+}
+
 /** Export dropdown — downloads the note as a PDF or DOCX (§4). */
 export function ExportMenu({ id }: { id: string }) {
   const [busy, setBusy] = useState<"pdf" | "docx" | null>(null);

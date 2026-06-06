@@ -95,6 +95,8 @@ interface RecordingValue {
   stage: CaptureStage;
   busy: boolean;
   processingIssue: ProcessingIssue | null;
+  /** True once the server has the recording and it is safe to leave the glow screen. */
+  processingSafeToLeave: boolean;
   /** True when the current recorded clip was restored from this device. */
   recoveredDraft: boolean;
   /** Last successful local draft save time, if available. */
@@ -281,6 +283,7 @@ export function RecordingProvider({
   const [clip, setClip] = useState<Clip | null>(null);
   const [stage, setStage] = useState<CaptureStage>("idle");
   const [processingIssue, setProcessingIssue] = useState<ProcessingIssue | null>(null);
+  const [processingSafeToLeave, setProcessingSafeToLeave] = useState(false);
   const [sessionLabel, setSessionLabel] = useState("Untitled Lecture");
   const [recoveredDraft, setRecoveredDraft] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
@@ -699,12 +702,85 @@ export function RecordingProvider({
     }
   }, [userId]);
 
-  // Mark the job complete server-side and move the UI into processing, then
-  // navigate to the placeholder note (which flips to "ready" via Realtime).
+  const retryPendingSegmentUploads = useCallback(async () => {
+    const segments = await getRecordingSegments(userId);
+    let failedUpload = false;
+
+    for (const segment of segments) {
+      if (segment.uploaded) continue;
+      try {
+        const r2Key = await uploadSegment({
+          blob: segment.blob,
+          mime: segment.mime,
+          jobId: jobIdRef.current,
+          segmentIndex: segment.index,
+        });
+        await registerSegment({
+          jobId: jobIdRef.current,
+          segmentIndex: segment.index,
+          r2Key,
+          durationSeconds: segment.durationSeconds,
+        });
+        await markRecordingSegmentUploaded(userId, segment.index);
+      } catch (err) {
+        failedUpload = true;
+        console.warn("Segment upload still pending:", err);
+      }
+    }
+
+    const refreshed = await getRecordingSegments(userId);
+    return (
+      !failedUpload &&
+      refreshed.filter((segment) => segment.uploaded).length >= segmentIndexRef.current
+    );
+  }, [userId]);
+
+  const restoreClipFromDraft = useCallback(async () => {
+    const draft = await getRecordingDraft(userId).catch(() => null);
+    if (!draft || draft.chunks.length === 0) return;
+
+    const blob = new Blob(draft.chunks, { type: draft.metadata.mime });
+    if (blob.size <= 0) return;
+
+    const url = URL.createObjectURL(blob);
+    setClip({
+      requestId: draft.metadata.requestId,
+      url,
+      blob,
+      mime: draft.metadata.mime,
+      silent:
+        draft.metadata.seconds >= SILENCE_MIN_DURATION_SECONDS &&
+        draft.metadata.audioPeak < SILENCE_PEAK_THRESHOLD &&
+        draft.metadata.activeAudioMs < SILENCE_MIN_ACTIVE_MS &&
+        !draft.metadata.liveTranscript.trim(),
+    });
+    setSeconds(draft.metadata.seconds);
+    secondsRef.current = draft.metadata.seconds;
+    setPhase("recorded");
+  }, [userId]);
+
+  // Mark the job complete server-side and move the UI into the background
+  // processing handoff once every local segment is safely uploaded.
   const completeJobAndProcess = useCallback(async () => {
     setStage("analyzing"); // shows the ProcessingOverlay
+    setProcessingSafeToLeave(false);
     let noteId: string | null = null;
     try {
+      const allSegmentsUploaded = await retryPendingSegmentUploads();
+      if (!allSegmentsUploaded) {
+        await restoreClipFromDraft();
+        setStage("idle");
+        setFailed(true);
+        setProcessingIssue({
+          kind: "failed",
+          title: "Atlas couldn't upload everything",
+          message:
+            "Some audio is still saved on this device but couldn't reach Atlas. Download the recording or try again when your connection is steadier.",
+        });
+        toast.error("Atlas couldn't upload the full recording.");
+        return;
+      }
+
       // Completing the job creates the placeholder note and flips the job to
       // recording_complete so the worker picks it up. It returns the note id.
       const res = await fetch("/api/jobs/complete", {
@@ -727,8 +803,17 @@ export function RecordingProvider({
     setSessionLabel("Untitled Lecture");
     enqueuedRef.current = false; segmentIndexRef.current = 0;
     toast.success("Atlas is generating your notes.");
-    if (noteId) router.push(`/notes/${noteId}`); else router.push("/dashboard");
-  }, [userId, enqueueDraftWrite, emitLevels, emitTranscript, router]);
+    setProcessingSafeToLeave(true);
+    if (!noteId) router.push("/dashboard");
+  }, [
+    userId,
+    enqueueDraftWrite,
+    emitLevels,
+    emitTranscript,
+    restoreClipFromDraft,
+    retryPendingSegmentUploads,
+    router,
+  ]);
 
   // (Re)arm the rotation timer while recording. On fire it stops the current
   // MediaRecorder (with rotatingRef set), whose onstop finalizes the segment,
@@ -1077,6 +1162,7 @@ export function RecordingProvider({
       );
     }
     setProcessingIssue(null);
+    setProcessingSafeToLeave(false);
     generationRunRef.current += 1;
     currentSourceRef.current = nextSource;
     setSource(nextSource);
@@ -1277,6 +1363,7 @@ export function RecordingProvider({
     setRecoveredDraft(false);
     setLastSavedAt(null);
     setPhase("idle");
+    setStage("idle");
     teardown();
     void enqueueDraftWrite(() => clearRecordingDraft(userId));
   }, [
@@ -1293,6 +1380,7 @@ export function RecordingProvider({
     if (!clip) return;
     setFailed(false);
     setProcessingIssue(null);
+    setProcessingSafeToLeave(false);
 
     if (clip.silent) {
       const issueRunId = generationRunRef.current + 1;
@@ -1347,7 +1435,8 @@ export function RecordingProvider({
       ]);
       if (generationRunRef.current !== runId) return;
       if (result.status === "processing") {
-        toast.message("Atlas is still processing this recording.");
+        setProcessingSafeToLeave(true);
+        toast.success("Atlas is generating your notes.");
       } else if (result.status === "failed") {
         toast.error("Atlas couldn't process this recording.");
       } else {
@@ -1365,12 +1454,17 @@ export function RecordingProvider({
       setLastSavedAt(null);
       setProcessingIssue(null);
       setPhase("idle");
-      setStage("idle");
       void enqueueDraftWrite(() => clearRecordingDraft(userId));
-      router.push(`/notes/${result.id}`);
+      if (result.status === "processing") {
+        setStage("analyzing");
+      } else {
+        setStage("idle");
+        router.push(`/notes/${result.id}`);
+      }
     } catch (err) {
       if (generationRunRef.current !== runId) return;
       setStage("idle");
+      setProcessingSafeToLeave(false);
       // Keep the clip around (phase stays "recorded") and offer a download so
       // the student can save the audio and re-upload it later.
       setFailed(true);
@@ -1429,6 +1523,7 @@ export function RecordingProvider({
     stage,
     busy,
     processingIssue,
+    processingSafeToLeave,
     recoveredDraft,
     lastSavedAt,
     failed,

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getR2Bucket, r2 } from "@/lib/r2";
 import { composeNotes, transcribeSegment } from "@/lib/gemini";
+import { mimeFromKey } from "@/lib/upload-lecture";
 import { buildMemoryContext } from "@/lib/memory";
 import {
   JOBS_SLICE_BUDGET_MS,
@@ -35,20 +36,37 @@ function failedContent(message: string): StructuredNotes {
   };
 }
 
+function configuredSecrets() {
+  return [process.env.JOBS_TICK_SECRET, process.env.CRON_SECRET]
+    .map((s) => s?.trim())
+    .filter((s): s is string => !!s);
+}
+
+function isAuthorizedTick(request: Request) {
+  const secrets = configuredSecrets();
+  if (secrets.length === 0) return process.env.NODE_ENV !== "production";
+
+  const headerSecret = request.headers.get("x-jobs-secret")?.trim();
+  const auth = request.headers.get("authorization")?.trim() ?? "";
+  const bearer = auth.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+
+  return secrets.some((secret) => secret === headerSecret || secret === bearer);
+}
+
 async function selfChain(request: Request) {
+  const secret = configuredSecrets()[0];
+  if (!secret) return;
+
   const url = new URL("/api/jobs/tick", request.url).toString();
   fetch(url, {
     method: "POST",
-    headers: { "x-jobs-secret": process.env.JOBS_TICK_SECRET ?? "" },
+    headers: { "x-jobs-secret": secret },
   }).catch(() => {});
 }
 
-export async function POST(request: Request) {
+async function runWorker(request: Request) {
   const start = Date.now();
-  if (
-    (request.headers.get("x-jobs-secret") ?? "") !==
-    (process.env.JOBS_TICK_SECRET ?? "__unset__")
-  ) {
+  if (!isAuthorizedTick(request)) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
   const db = createAdminClient();
@@ -133,7 +151,7 @@ export async function POST(request: Request) {
         );
         if (!Body) throw new Error("Empty R2 body.");
         const bytes = Buffer.from(await Body.transformToByteArray());
-        const mime = next.r2_key.endsWith(".webm") ? "audio/webm" : "audio/mp4";
+        const mime = mimeFromKey(next.r2_key);
 
         const partial: SegmentNotes = await transcribeSegment({
           bytes,
@@ -150,9 +168,6 @@ export async function POST(request: Request) {
             updated_at: new Date().toISOString(),
           })
           .eq("id", next.id);
-        await r2
-          .send(new DeleteObjectCommand({ Bucket: getR2Bucket(), Key: next.r2_key }))
-          .catch(() => {});
       } catch (err) {
         const attempts = next.attempts + 1;
         await db
@@ -193,6 +208,13 @@ export async function POST(request: Request) {
           .from("lecture_jobs")
           .update({ status: "ready", heartbeat_at: null, updated_at: new Date().toISOString() })
           .eq("id", job.id);
+        await Promise.all(
+          segments.map((segment) =>
+            r2
+              .send(new DeleteObjectCommand({ Bucket: getR2Bucket(), Key: segment.r2_key }))
+              .catch(() => {})
+          )
+        );
         return NextResponse.json({ claimed: true, composed: true });
       } catch (err) {
         console.error("Compose failed:", err);
@@ -222,4 +244,12 @@ export async function POST(request: Request) {
       .eq("id", job.id);
     return NextResponse.json({ claimed: true, waiting: true });
   }
+}
+
+export async function GET(request: Request) {
+  return runWorker(request);
+}
+
+export async function POST(request: Request) {
+  return runWorker(request);
 }

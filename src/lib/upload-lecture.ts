@@ -4,7 +4,7 @@ type SupabaseClient = ReturnType<typeof createClient>;
 
 export const MAX_BYTES = 2 * 1024 * 1024 * 1024; // R2 presign endpoint enforces the same 2 GB app-level limit.
 
-export type CaptureStage = "idle" | "uploading" | "analyzing";
+export type CaptureStage = "idle" | "preparing" | "uploading" | "analyzing";
 export type GenerationStatus = "ready" | "processing" | "failed";
 
 /**
@@ -34,6 +34,22 @@ export function extForMime(mime: string): string {
     "audio/x-flac": "flac",
   };
   return map[base] ?? "audio";
+}
+
+/** Infer Gemini/R2 MIME from a storage key extension. */
+export function mimeFromKey(key: string): string {
+  const ext = key.split(".").pop()?.toLowerCase();
+  const map: Record<string, string> = {
+    webm: "audio/webm",
+    ogg: "audio/ogg",
+    m4a: "audio/mp4",
+    mp4: "audio/mp4",
+    mp3: "audio/mpeg",
+    wav: "audio/wav",
+    aac: "audio/aac",
+    flac: "audio/flac",
+  };
+  return map[ext ?? ""] ?? "audio/mp4";
 }
 
 /**
@@ -78,6 +94,25 @@ interface UploadArgs {
   onStage: (stage: Exclude<CaptureStage, "idle">) => void;
 }
 
+async function postJson(
+  url: string,
+  body: Record<string, unknown>,
+  context: string,
+  signal?: AbortSignal
+) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    signal,
+    body: JSON.stringify(body),
+  });
+  const result = await parseJsonResponse(res, context);
+  if (!res.ok) {
+    throw new Error((result.error as string) || "Something went wrong.");
+  }
+  return result;
+}
+
 /**
  * Uploads a lecture recording directly to R2, then asks the server to turn it
  * into notes. Shared by the in-browser recorder and the file uploader.
@@ -88,7 +123,6 @@ export async function uploadLectureAndGenerate({
   data,
   requestId,
   mimeType,
-  ext,
   durationSeconds,
   liveTranscript,
   signal,
@@ -96,18 +130,27 @@ export async function uploadLectureAndGenerate({
 }: UploadArgs): Promise<{ id: string; status: GenerationStatus }> {
   onStage("uploading");
   const stableId = requestId ?? crypto.randomUUID();
-  const filename =
-    data instanceof File && data.name.trim() ? data.name : `${stableId}.${ext}`;
+  const sessionLabel =
+    data instanceof File && data.name.trim()
+      ? data.name.replace(/\.[^.]+$/, "")
+      : "Uploaded lecture";
+
+  await postJson(
+    "/api/jobs/enqueue",
+    { jobId: stableId, sessionLabel, source: "microphone" },
+    "Could not create the processing job —",
+    signal
+  );
 
   const presignRes = await fetch("/api/upload/presign", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     signal,
     body: JSON.stringify({
-      filename,
       contentType: mimeType,
       fileSize: data.size,
-      requestId: stableId,
+      jobId: stableId,
+      segmentIndex: 0,
     }),
   });
   const presign = await parseJsonResponse(
@@ -134,26 +177,32 @@ export async function uploadLectureAndGenerate({
     throw new Error("Upload failed. Please try again.");
   }
 
-  onStage("analyzing");
-  const res = await fetch("/api/notes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    signal,
-    body: JSON.stringify({
+  await postJson(
+    "/api/jobs/segment",
+    {
+      jobId: stableId,
+      segmentIndex: 0,
       r2Key,
-      mimeType,
+      durationSeconds: durationSeconds ? Math.round(durationSeconds) : null,
+    },
+    "Could not register the uploaded audio —",
+    signal
+  );
+
+  onStage("analyzing");
+  const result = await postJson(
+    "/api/jobs/complete",
+    {
+      jobId: stableId,
+      segmentCount: 1,
       durationSeconds: durationSeconds ? Math.round(durationSeconds) : null,
       liveTranscript: liveTranscript || null,
-    }),
-  });
-
-  const result = await parseJsonResponse(res, "Atlas couldn't process this —");
-  if (!res.ok) throw new Error((result.error as string) || "Something went wrong.");
+    },
+    "Could not start note generation —",
+    signal,
+  );
   return {
-    id: result.id as string,
-    status:
-      result.status === "processing" || result.status === "failed"
-        ? (result.status as GenerationStatus)
-        : "ready",
+    id: result.noteId as string,
+    status: "processing",
   };
 }

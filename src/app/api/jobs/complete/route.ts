@@ -24,6 +24,22 @@ interface CompleteBody {
   liveTranscript?: string | null;
 }
 
+function workerSecret() {
+  return (process.env.JOBS_TICK_SECRET || process.env.CRON_SECRET || "").trim();
+}
+
+function kickWorker(request: Request) {
+  const secret = workerSecret();
+  if (!secret) return;
+
+  const url = new URL("/api/jobs/tick", request.url).toString();
+  fetch(url, {
+    method: "POST",
+    headers: { "x-jobs-secret": secret },
+    body: "{}",
+  }).catch(() => {});
+}
+
 /**
  * Called when recording STOPS. Now that there is something to process, this
  * creates the placeholder "processing" note (so it appears on the dashboard on
@@ -84,6 +100,8 @@ export async function POST(request: Request) {
     .eq("id", body.jobId)
     .eq("user_id", user.id);
   if (error) return NextResponse.json({ error: "Could not complete job." }, { status: 500 });
+
+  kickWorker(request);
 
   return NextResponse.json({ ok: true, noteId, status: "recording_complete" });
 }

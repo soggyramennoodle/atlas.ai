@@ -34,9 +34,24 @@ export async function deleteNote(id: string): Promise<DeleteResult> {
     .single();
 
   if (note?.audio_path) {
-    await r2
-      .send(new DeleteObjectCommand({ Bucket: getR2Bucket(), Key: note.audio_path }))
-      .catch(() => {});
+    if (note.audio_path.includes("/")) {
+      await r2
+        .send(new DeleteObjectCommand({ Bucket: getR2Bucket(), Key: note.audio_path }))
+        .catch(() => {});
+    } else {
+      const { data: segments } = await supabase
+        .from("lecture_segments")
+        .select("r2_key")
+        .eq("job_id", note.audio_path);
+
+      await Promise.all(
+        ((segments as { r2_key: string }[] | null) ?? []).map((segment) =>
+          r2
+            .send(new DeleteObjectCommand({ Bucket: getR2Bucket(), Key: segment.r2_key }))
+            .catch(() => {})
+        )
+      );
+    }
   }
 
   const { error } = await supabase.from("notes").delete().eq("id", id);

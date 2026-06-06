@@ -22,6 +22,11 @@ import {
   MAX_BYTES,
   type CaptureStage,
 } from "@/lib/upload-lecture";
+import {
+  extractAudioFromVideo,
+  fileHasVideoTrack,
+  isLikelyVideoFile,
+} from "@/lib/extract-audio-from-video";
 
 const ACCEPTED = [
   "audio/mpeg",
@@ -36,6 +41,10 @@ const ACCEPTED = [
   "audio/webm",
   "audio/flac",
   "audio/x-flac",
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+  "video/x-matroska",
 ];
 
 /** Audio MIME by file extension — recovers a usable type when the browser
@@ -46,15 +55,20 @@ const EXT_TO_AUDIO_MIME: Record<string, string> = {
   ogg: "audio/ogg",
   m4a: "audio/mp4",
   mp4: "audio/mp4",
+  mov: "audio/mp4",
   mp3: "audio/mpeg",
   wav: "audio/wav",
   aac: "audio/aac",
   flac: "audio/flac",
 };
 
+const UPLOADABLE_EXT =
+  /\.(mp3|m4a|mp4|mov|wav|aac|ogg|flac|webm|mkv|m4v)$/i;
+
 function audioMimeForFile(f: File): string | null {
   const t = baseMimeType(f.type || "");
   if (t.startsWith("audio/")) return t;
+  if (t.startsWith("video/")) return "audio/mp4";
   const ext = f.name.split(".").pop()?.toLowerCase();
   return (ext && EXT_TO_AUDIO_MIME[ext]) || null;
 }
@@ -76,10 +90,12 @@ export function Uploader({ userId }: { userId: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
+  const [hasVideo, setHasVideo] = useState(false);
   const [duration, setDuration] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [stage, setStage] = useState<CaptureStage>("idle");
+  const [safeToLeave, setSafeToLeave] = useState(false);
 
   const busy = stage !== "idle";
 
@@ -87,9 +103,9 @@ export function Uploader({ userId }: { userId: string }) {
     const okType =
       ACCEPTED.includes(f.type) ||
       audioMimeForFile(f) !== null ||
-      /\.(mp3|m4a|wav|aac|ogg|flac|webm)$/i.test(f.name);
+      UPLOADABLE_EXT.test(f.name);
     if (!okType) {
-      toast.error("Please choose an audio file (MP3, M4A, WAV, AAC, OGG…).");
+      toast.error("Please choose an audio or video file (MP3, MP4, M4A, WAV…).");
       return;
     }
     if (f.size > MAX_BYTES) {
@@ -99,16 +115,21 @@ export function Uploader({ userId }: { userId: string }) {
 
     const url = URL.createObjectURL(f);
     setFile(f);
+    setHasVideo(isLikelyVideoFile(f));
     setPreviewUrl(url);
     setDuration(null);
+    setSafeToLeave(false);
 
-    // Read duration without blocking.
-    const audio = new Audio();
-    audio.preload = "metadata";
-    audio.onloadedmetadata = () => {
-      if (Number.isFinite(audio.duration)) setDuration(audio.duration);
+    void fileHasVideoTrack(f).then(setHasVideo);
+
+    const media = isLikelyVideoFile(f)
+      ? document.createElement("video")
+      : new Audio();
+    media.preload = "metadata";
+    media.onloadedmetadata = () => {
+      if (Number.isFinite(media.duration)) setDuration(media.duration);
     };
-    audio.src = url;
+    media.src = url;
   }, []);
 
   function onDrop(e: React.DragEvent) {
@@ -122,31 +143,44 @@ export function Uploader({ userId }: { userId: string }) {
   function reset() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(null);
+    setHasVideo(false);
     setPreviewUrl(null);
     setDuration(null);
+    setSafeToLeave(false);
   }
 
   async function generate() {
     if (!file) return;
     const supabase = createClient();
-    // Coerce to a proper audio/* type. A downloaded recording is often a .webm
-    // the OS reports as "video/webm" (or with no type), which the presign route
-    // rejects — map it back to audio/* by extension so webm uploads work.
-    const mimeType = audioMimeForFile(file) ?? baseMimeType(file.type || "audio/mpeg");
-    const ext = file.name.split(".").pop()?.toLowerCase() || extForMime(mimeType);
+    let uploadData: Blob | File = file;
+    let mimeType = audioMimeForFile(file) ?? baseMimeType(file.type || "audio/mpeg");
+    let durationSeconds = duration;
 
     try {
+      if (await fileHasVideoTrack(file)) {
+        setStage("preparing");
+        const extracted = await extractAudioFromVideo(file);
+        uploadData = extracted.blob;
+        mimeType = extracted.mimeType;
+        if (extracted.duration > 0) {
+          durationSeconds = extracted.duration;
+          setDuration(extracted.duration);
+        }
+      }
+
       const { id, status } = await uploadLectureAndGenerate({
         supabase,
         userId,
-        data: file,
+        data: uploadData,
         mimeType,
-        ext,
-        durationSeconds: duration,
+        ext: extForMime(mimeType),
+        durationSeconds,
         onStage: setStage,
       });
       if (status === "processing") {
-        toast.message("Atlas is still processing this recording.");
+        setSafeToLeave(true);
+        toast.success("Atlas is generating your notes.");
+        return;
       } else if (status === "failed") {
         toast.error("Atlas couldn't process this recording.");
       } else {
@@ -156,6 +190,7 @@ export function Uploader({ userId }: { userId: string }) {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
       setStage("idle");
+      setSafeToLeave(false);
     }
   }
 
@@ -164,7 +199,7 @@ export function Uploader({ userId }: { userId: string }) {
       <input
         ref={inputRef}
         type="file"
-        accept="audio/*,video/webm,.webm,.ogg,.m4a,.mp3,.wav,.aac,.flac"
+        accept="audio/*,video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4a,.mp3,.wav,.aac,.flac,.webm,.mkv"
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
@@ -204,7 +239,7 @@ export function Uploader({ userId }: { userId: string }) {
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             or <span className="text-primary">browse your files</span> · MP3,
-            M4A, WAV, AAC, OGG, WebM up to {formatBytes(MAX_BYTES)}
+            MP4, M4A, WAV, AAC, OGG, WebM up to {formatBytes(MAX_BYTES)}
           </p>
         </div>
       )}
@@ -225,6 +260,7 @@ export function Uploader({ userId }: { userId: string }) {
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {formatBytes(file.size)}
                 {duration ? ` · ${formatDuration(duration)}` : ""}
+                {hasVideo ? " · video (audio only will be used)" : ""}
               </p>
             </div>
             {!busy && (
@@ -239,12 +275,21 @@ export function Uploader({ userId }: { userId: string }) {
           </div>
 
           {previewUrl && !busy && (
-            <audio
-              controls
-              src={previewUrl}
-              className="mt-4 w-full"
-              preload="metadata"
-            />
+            hasVideo ? (
+              <video
+                controls
+                src={previewUrl}
+                className="mt-4 w-full rounded-[4px]"
+                preload="metadata"
+              />
+            ) : (
+              <audio
+                controls
+                src={previewUrl}
+                className="mt-4 w-full"
+                preload="metadata"
+              />
+            )
           )}
 
           <div className="mt-5">
@@ -265,7 +310,7 @@ export function Uploader({ userId }: { userId: string }) {
       )}
 
       {/* Shared lightweight processing overlay. */}
-      <ProcessingOverlay stage={stage} />
+      <ProcessingOverlay stage={stage} safeToLeave={safeToLeave} />
     </div>
   );
 }

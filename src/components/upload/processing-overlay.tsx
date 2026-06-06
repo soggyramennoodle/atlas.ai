@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { AlertCircle, Clock, Download, Mic, RefreshCcw, Sparkles, Trash2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, Clock, Download, Mic, RefreshCcw, Sparkles, Trash2 } from "lucide-react";
 import { AiGlow } from "@/components/ui/ai-glow";
 import { ThinkingStatus } from "@/components/upload/thinking-status";
 import { Button } from "@/components/ui/button";
@@ -10,11 +11,14 @@ import { cn } from "@/lib/utils";
 import type { CaptureStage } from "@/lib/upload-lecture";
 
 const STAGE_COPY: Record<Exclude<CaptureStage, "idle">, string> = {
+  preparing: "Extracting audio...",
   uploading: "Saving your recording...",
   analyzing: "Atlas is writing your notes...",
 };
 
 const STAGE_DETAIL: Record<Exclude<CaptureStage, "idle">, string> = {
+  preparing:
+    "Stripping the video track so only audio is sent for note generation.",
   uploading: "Sending the audio into your private Atlas workspace.",
   analyzing: "Keep this tab open while Atlas listens for the important parts.",
 };
@@ -34,6 +38,7 @@ export function ProcessingOverlay({
   onClear,
   onDiscard,
   onDownload,
+  safeToLeave,
 }: {
   stage: CaptureStage;
   issue?: ProcessingIssue | null;
@@ -41,6 +46,7 @@ export function ProcessingOverlay({
   onClear?: () => void;
   onDiscard?: () => void;
   onDownload?: () => void;
+  safeToLeave?: boolean;
 }) {
   const reduceMotion = useReducedMotion();
   const [showLongRunHint, setShowLongRunHint] = useState(false);
@@ -158,6 +164,16 @@ export function ProcessingOverlay({
                   Discard
                 </Button>
               </div>
+            )}
+
+            {!failed && safeToLeave && (
+              <Link
+                href="/dashboard"
+                className="mt-7 inline-flex h-12 items-center gap-2 rounded-[6px] border border-white/25 bg-white/15 px-5 text-sm font-medium text-foreground shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur-md transition hover:border-foreground/25 hover:bg-background/80"
+              >
+                <ArrowLeft className="size-4" />
+                Back to dashboard
+              </Link>
             )}
           </motion.div>
 

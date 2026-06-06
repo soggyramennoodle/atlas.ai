@@ -55,6 +55,7 @@ export function Recorder() {
     stage,
     busy,
     processingIssue,
+    processingSafeToLeave,
     failed,
     recoveredDraft,
     lastSavedAt,
@@ -298,6 +299,7 @@ export function Recorder() {
         onClear={clearProcessingIssue}
         onDiscard={discard}
         onDownload={download}
+        safeToLeave={processingSafeToLeave}
       />
     </div>
   );

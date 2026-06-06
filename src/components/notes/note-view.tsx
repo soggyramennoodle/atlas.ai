@@ -52,7 +52,6 @@ const clone = <T,>(v: T): T =>
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 type SaveStatus = "idle" | "saving" | "saved";
-const PROCESSING_STALE_MS = 6 * 60_000;
 
 /** Beyond this many edited regions, switch from the cursor to a full overlay. */
 const MAX_CURSOR_REGIONS = 6;
@@ -105,7 +104,6 @@ export function NoteView({
   const [editMode, setEditMode] = useState(false);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [editorSeed, setEditorSeed] = useState("");
-  const [staleProcessing, setStaleProcessing] = useState(false);
   const [doneInProgress, setDoneInProgress] = useState(false);
   const [readingActive, setReadingActive] = useState(false);
   const [readingFinished, setReadingFinished] = useState(false);
@@ -126,18 +124,6 @@ export function NoteView({
   useEffect(() => {
     savedRef.current = saved;
   }, [saved]);
-
-  useEffect(() => {
-    if (saved.status !== "processing" || !note.createdAt) return;
-
-    const createdAtMs = new Date(note.createdAt).getTime();
-    const remaining = PROCESSING_STALE_MS - (Date.now() - createdAtMs);
-    const timer = window.setTimeout(
-      () => setStaleProcessing(true),
-      Math.max(0, remaining + 1000)
-    );
-    return () => window.clearTimeout(timer);
-  }, [note.createdAt, saved.status]);
 
   const update = (fn: (d: StructuredNotes) => void) =>
     setDraft((prev) => {
@@ -317,18 +303,13 @@ export function NoteView({
   const shown = editMode
     ? { ...draft, title: note.title }
     : { ...saved, title: note.title };
-  const displayStatus =
-    staleProcessing && saved.status === "processing" ? "failed" : saved.status;
+  const displayStatus = saved.status;
 
   if (displayStatus === "processing" || displayStatus === "failed") {
     return (
       <ProcessingNoteState
         failed={displayStatus === "failed"}
-        message={
-          staleProcessing
-            ? "Atlas couldn't finish processing this recording. Try recording again or upload a shorter, clearer file."
-            : saved.summary
-        }
+        message={saved.summary}
       />
     );
   }
