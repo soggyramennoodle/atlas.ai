@@ -95,3 +95,19 @@ create policy "Users insert own segments"
       where j.id = lecture_segments.job_id and j.user_id = auth.uid()
     )
   );
+
+drop policy if exists "Users update own segments" on public.lecture_segments;
+create policy "Users update own segments"
+  on public.lecture_segments for update
+  using (
+    exists (
+      select 1 from public.lecture_jobs j
+      where j.id = lecture_segments.job_id and j.user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.lecture_jobs j
+      where j.id = lecture_segments.job_id and j.user_id = auth.uid()
+    )
+  );

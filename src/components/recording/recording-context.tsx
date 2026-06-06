@@ -762,14 +762,21 @@ export function RecordingProvider({
   // Mark the job complete server-side and move the UI into the background
   // processing handoff once every local segment is safely uploaded.
   const completeJobAndProcess = useCallback(async () => {
-    setStage("analyzing"); // shows the ProcessingOverlay
+    setStage("analyzing");
     setProcessingSafeToLeave(false);
-    let noteId: string | null = null;
     try {
+      const segmentCount = segmentIndexRef.current;
+      if (segmentCount <= 0) {
+        throw new Error(
+          "Recording was too short — Atlas needs at least a few seconds of audio."
+        );
+      }
+
       const allSegmentsUploaded = await retryPendingSegmentUploads();
       if (!allSegmentsUploaded) {
         await restoreClipFromDraft();
         setStage("idle");
+        setPhase("recorded");
         setFailed(true);
         setProcessingIssue({
           kind: "failed",
@@ -781,32 +788,75 @@ export function RecordingProvider({
         return;
       }
 
-      // Completing the job creates the placeholder note and flips the job to
-      // recording_complete so the worker picks it up. It returns the note id.
-      const res = await fetch("/api/jobs/complete", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+      const enqueueRes = await fetch("/api/jobs/enqueue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          jobId: jobIdRef.current, segmentCount: segmentIndexRef.current,
+          jobId: jobIdRef.current,
+          sessionLabel,
+          source: currentSourceRef.current,
+        }),
+      });
+      if (!enqueueRes.ok) {
+        throw new Error("Could not register this recording for processing.");
+      }
+      enqueuedRef.current = true;
+
+      const completeRes = await fetch("/api/jobs/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobId: jobIdRef.current,
+          segmentCount,
           durationSeconds: Math.round(secondsRef.current) || null,
           liveTranscript: liveTranscriptRef.current || null,
         }),
-      }).then((r) => r.json()).catch(() => null);
-      noteId = res?.noteId ?? null;
-    } catch {}
-    // Clear local draft now that all segments are server-side.
-    void enqueueDraftWrite(() => clearRecordingDraft(userId));
-    // Reset session + navigate. The note shows "processing" and flips via Realtime.
-    setStage("idle");
-    setPhase("idle");
-    setSeconds(0); secondsRef.current = 0;
-    emitLevels(IDLE_LEVELS()); emitTranscript("");
-    setSessionLabel("Untitled Lecture");
-    enqueuedRef.current = false; segmentIndexRef.current = 0;
-    toast.success("Atlas is generating your notes.");
-    setProcessingSafeToLeave(true);
-    if (!noteId) router.push("/dashboard");
+      });
+      const completeBody = (await completeRes.json().catch(() => ({}))) as {
+        noteId?: string;
+        error?: string;
+      };
+      if (!completeRes.ok || !completeBody.noteId) {
+        throw new Error(
+          completeBody.error || "Could not start note generation."
+        );
+      }
+
+      void enqueueDraftWrite(() => clearRecordingDraft(userId));
+      setClip((current) => {
+        if (current) URL.revokeObjectURL(current.url);
+        return null;
+      });
+      setStage("idle");
+      setPhase("idle");
+      setSeconds(0);
+      secondsRef.current = 0;
+      emitLevels(IDLE_LEVELS());
+      emitTranscript("");
+      setSessionLabel("Untitled Lecture");
+      enqueuedRef.current = false;
+      segmentIndexRef.current = 0;
+      setFailed(false);
+      setProcessingIssue(null);
+      toast.success("Atlas is generating your notes.");
+      setProcessingSafeToLeave(true);
+      router.push(`/notes/${completeBody.noteId}`);
+    } catch (err) {
+      setStage("idle");
+      setProcessingSafeToLeave(false);
+      setFailed(true);
+      const message =
+        err instanceof Error ? err.message : "Something went wrong.";
+      setProcessingIssue({
+        kind: "failed",
+        title: "Atlas couldn't process this",
+        message,
+      });
+      toast.error(message);
+    }
   }, [
     userId,
+    sessionLabel,
     enqueueDraftWrite,
     emitLevels,
     emitTranscript,
@@ -1172,6 +1222,34 @@ export function RecordingProvider({
     audioCtxRef.current = ctx;
     analyserRef.current = analyser;
 
+    // Enqueue the durable job before the first byte is recorded so segment
+    // registration never races an missing lecture_jobs row.
+    if (!appendToDraft && !enqueuedRef.current) {
+      try {
+        const enqueueRes = await fetch("/api/jobs/enqueue", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jobId: jobIdRef.current,
+            sessionLabel,
+            source: nextSource,
+          }),
+        });
+        if (!enqueueRes.ok) {
+          abortSetup();
+          toast.error("Could not start the processing session. Try again.");
+          return;
+        }
+        enqueuedRef.current = true;
+      } catch {
+        abortSetup();
+        toast.error(
+          "Could not start the processing session. Check your connection."
+        );
+        return;
+      }
+    }
+
     // streamRef.current and mimeRef.current are already set above; the segment
     // recorder reads them. Build + start the first segment recorder.
     mimeRef.current = mime;
@@ -1181,15 +1259,6 @@ export function RecordingProvider({
 
     if (!appendToDraft) setSeconds(0);
     setPhase("recording");
-    // Enqueue the durable job exactly once per fresh session. Resumed/append
-    // takes keep the same jobId so their segments join the existing job.
-    if (!appendToDraft && !enqueuedRef.current) {
-      enqueuedRef.current = true;
-      void fetch("/api/jobs/enqueue", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId: jobIdRef.current, sessionLabel, source: nextSource }),
-      }).catch(() => {});
-    }
     armRotation();
     runMeter();
     tickRef.current = setInterval(() => {
@@ -1408,6 +1477,18 @@ export function RecordingProvider({
 
     const supabase = createClient();
     try {
+      const durableSegments = await getRecordingSegments(userId);
+      if (durableSegments.length > 0) {
+        jobIdRef.current = clip.requestId;
+        segmentIndexRef.current = Math.max(
+          segmentIndexRef.current,
+          durableSegments[durableSegments.length - 1]!.index + 1
+        );
+        if (generationRunRef.current !== runId) return;
+        await completeJobAndProcess();
+        return;
+      }
+
       const result = await Promise.race([
         uploadLectureAndGenerate({
           supabase,
@@ -1492,7 +1573,16 @@ export function RecordingProvider({
     } finally {
       if (timeoutId) window.clearTimeout(timeoutId);
     }
-  }, [clip, router, seconds, userId, emitLevels, emitTranscript, enqueueDraftWrite]);
+  }, [
+    clip,
+    router,
+    seconds,
+    userId,
+    emitLevels,
+    emitTranscript,
+    enqueueDraftWrite,
+    completeJobAndProcess,
+  ]);
 
   const clearProcessingIssue = useCallback(() => {
     setProcessingIssue(null);

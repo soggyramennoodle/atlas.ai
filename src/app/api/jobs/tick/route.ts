@@ -190,6 +190,23 @@ async function runWorker(request: Request) {
         .sort((a, b) => a.index - b.index)
         .map((s) => s.partial_notes as SegmentNotes);
 
+      if (ordered.length === 0) {
+        await db
+          .from("notes")
+          .update({
+            title: "Processing failed",
+            content: failedContent(
+              "Atlas couldn't transcribe this recording. Please try again or upload the audio as a file."
+            ),
+          })
+          .eq("id", job.note_id);
+        await db
+          .from("lecture_jobs")
+          .update({ status: "failed", error: "transcribe", heartbeat_at: null })
+          .eq("id", job.id);
+        return NextResponse.json({ claimed: true, composed: false, transcribeFailed: true });
+      }
+
       try {
         const notes = await composeNotes({ segments: ordered, memoryContext });
         if (!notes.transcript?.trim() && job.live_transcript?.trim()) {

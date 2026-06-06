@@ -54,8 +54,12 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
 
   const body = (await request.json().catch(() => ({}))) as CompleteBody;
-  if (!body.jobId || !Number.isInteger(body.segmentCount)) {
+  if (!body.jobId || body.segmentCount == null || !Number.isInteger(body.segmentCount)) {
     return NextResponse.json({ error: "Missing fields." }, { status: 400 });
+  }
+  const segmentCount = body.segmentCount;
+  if (segmentCount < 1) {
+    return NextResponse.json({ error: "No audio segments to process." }, { status: 400 });
   }
 
   const { data: job } = await supabase
@@ -65,6 +69,17 @@ export async function POST(request: Request) {
     .eq("user_id", user.id)
     .maybeSingle();
   if (!job) return NextResponse.json({ error: "Unknown job." }, { status: 404 });
+
+  const { count: segmentRows } = await supabase
+    .from("lecture_segments")
+    .select("*", { count: "exact", head: true })
+    .eq("job_id", body.jobId);
+  if ((segmentRows ?? 0) < segmentCount) {
+    return NextResponse.json(
+      { error: "Not all audio segments have finished uploading yet." },
+      { status: 409 }
+    );
+  }
 
   // Create the placeholder note once (idempotent on re-complete).
   let noteId = job.note_id as string | null;
@@ -92,7 +107,7 @@ export async function POST(request: Request) {
     .update({
       status: "recording_complete",
       note_id: noteId,
-      segment_count: body.segmentCount,
+      segment_count: segmentCount,
       total_seconds: body.durationSeconds ?? null,
       live_transcript: body.liveTranscript ?? null,
       updated_at: new Date().toISOString(),
