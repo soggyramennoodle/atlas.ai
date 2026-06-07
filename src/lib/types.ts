@@ -131,6 +131,19 @@ export interface MemoryCorrection {
   summary: string;
 }
 
+export type FeedbackCategory = "inaccurate" | "wrong" | "other";
+
+/** A row in the `user_feedback` table. */
+export interface UserFeedback {
+  id: string;
+  user_id: string;
+  note_id: string | null;
+  category: FeedbackCategory;
+  message: string | null;
+  page_path: string | null;
+  created_at: string;
+}
+
 /** A row in the `user_profiles` table. */
 export interface UserProfile {
   user_id: string;

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { ReportButton } from "@/components/feedback/report-dialog";
 import { DeleteNoteButton, DownloadAudioButton, ExportMenu } from "@/components/notes/note-actions";
 import { NoteSession } from "@/components/notes/note-session";
 import { ProcessingWatcher } from "@/components/notes/processing-watcher";
@@ -62,7 +63,12 @@ export default async function NotePage({
             <ArrowLeft className="size-4" />
             Library
           </Link>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center justify-end gap-1">
+            <ReportButton
+              context="note"
+              noteId={note.id}
+              noteTitle={note.title}
+            />
             {failed && <DownloadAudioButton id={note.id} />}
             <ExportMenu id={note.id} />
             <DeleteNoteButton id={note.id} />

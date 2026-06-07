@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ReportButton } from "@/components/feedback/report-dialog";
 import { ThemeSelector } from "@/components/theme-selector";
 import { cn } from "@/lib/utils";
 
@@ -149,7 +150,7 @@ function SidebarBody({
   return (
     <div className="flex h-full flex-col gap-6 p-4">
       <Link
-        href="/dashboard"
+        href="/"
         onClick={onNavigate}
         className="flex items-center px-2 pt-2 transition hover:opacity-90"
       >
@@ -159,6 +160,7 @@ function SidebarBody({
       <NavLinks isAdmin={isAdmin} onNavigate={onNavigate} />
 
       <div className="mt-auto space-y-4">
+        <ReportButton context="general" size="default" fullWidth />
         <ThemeSelector />
         <div className="hover-glow icon-animate rounded-[4px] border border-border bg-secondary p-4">
           <Sparkles className="size-5 text-primary" />
@@ -222,7 +224,7 @@ export function AppSidebar({
       </aside>
 
       <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-border bg-card/85 px-4 py-3 backdrop-blur-sm lg:hidden">
-        <Link href="/dashboard">
+        <Link href="/">
           <Logo beta />
         </Link>
         <button
@@ -256,21 +258,23 @@ export function AppSidebar({
                   ? { duration: 0 }
                   : { type: "spring", stiffness: 340, damping: 34 }
               }
-              className="fixed inset-y-0 left-0 z-50 w-72 border-r border-border bg-card lg:hidden"
+              className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-card lg:hidden"
             >
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
-                className="absolute right-3 top-3 grid size-8 place-items-center rounded-[4px] text-muted-foreground hover:bg-secondary"
+                className="absolute right-3 top-3 z-10 grid size-9 place-items-center rounded-[4px] text-muted-foreground hover:bg-secondary"
               >
                 <X className="size-4" />
               </button>
-              <SidebarBody
-                email={email}
-                name={name}
-                isAdmin={isAdmin}
-                onNavigate={() => setOpen(false)}
-              />
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-12">
+                <SidebarBody
+                  email={email}
+                  name={name}
+                  isAdmin={isAdmin}
+                  onNavigate={() => setOpen(false)}
+                />
+              </div>
             </motion.aside>
           </>
         )}

@@ -5,6 +5,19 @@ import { usePathname, useRouter } from "next/navigation";
 import { UI_TOUR_STEPS } from "@/lib/ui-tour-steps";
 import { SpotlightOverlay } from "@/components/onboarding/spotlight-overlay";
 
+const MOBILE_MAX = 1023;
+
+function isNarrowViewport() {
+  return window.matchMedia(`(max-width: ${MOBILE_MAX}px)`).matches;
+}
+
+function stepDelay(step: (typeof UI_TOUR_STEPS)[number]) {
+  const narrow = isNarrowViewport();
+  if (step.sidebar) return narrow ? 560 : 420;
+  if (step.route) return narrow ? 360 : 280;
+  return narrow ? 320 : 240;
+}
+
 export function UiTour({
   active,
   onMobileSidebarOpen,
@@ -28,6 +41,8 @@ export function UiTour({
 
     if (current.sidebar) {
       onMobileSidebarOpen?.(true);
+    } else {
+      onMobileSidebarOpen?.(false);
     }
 
     if (current.route && pathname !== current.route) {
@@ -37,8 +52,7 @@ export function UiTour({
     }
 
     setReady(false);
-    const delay = current.sidebar ? 420 : 280;
-    const t = window.setTimeout(() => setReady(true), delay);
+    const t = window.setTimeout(() => setReady(true), stepDelay(current));
     return () => window.clearTimeout(t);
   }, [active, finishing, stepIndex, pathname, router, onMobileSidebarOpen]);
 
