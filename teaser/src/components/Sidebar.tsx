@@ -113,7 +113,7 @@ export const Sidebar: React.FC<{ width?: number; height?: number }> = ({
           </span>
           <div style={{ lineHeight: 1.3 }}>
             <p style={{ margin: 0, fontFamily: fontSans, fontSize: 13.5, fontWeight: 500, color: atlas.ink }}>
-              Abeeb
+              User
             </p>
             <p style={{ margin: 0, fontFamily: fontSans, fontSize: 12, color: atlas.muted }}>
               you@university.ca
