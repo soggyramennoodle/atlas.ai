@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Self-contained Remotion teaser project — has its own toolchain/deps and
+    // must not be type-checked or linted by the Next.js app build.
+    "teaser/**",
   ]),
 ]);
 

@@ -2,3 +2,8 @@ node_modules/
 out/
 .remotion/
 src/generated-fonts.ts
+# Rendered video artifacts — keep them out of git (they bloated the repo and the
+# deploy upload). Render locally with `npm run render`.
+atlas-teaser.mp4
+poster.png
+*.mp4
