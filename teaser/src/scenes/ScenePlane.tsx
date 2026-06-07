@@ -9,7 +9,6 @@ import { Backdrop, Grain } from "../components/Backdrop";
 import { AtlasMark } from "../components/AtlasMark";
 import {
   GlowSummary,
-  NavFragment,
   NoteHeader,
   StatFragment,
   ConceptList,
@@ -18,43 +17,38 @@ import {
 import { atlas } from "../theme";
 import { settleSpring } from "../anim";
 
-export const PLANE_DURATION = 280;
+export const PLANE_DURATION = 124;
 
 /**
- * The teasing centerpiece. UI fragments stand on a receding 3D floor and, one
- * by one, hinge down from upright to flat as the camera slowly travels forward
- * across the plane. You only ever catch cropped pieces — the glowing summary
- * edge, a stat number, the active nav pill — never the whole product.
+ * The teasing opener. UI fragments hinge down flat onto a receding 3D floor in
+ * a quick cascade from back to front — and the shot ends the instant the last
+ * one, the live-recording box, seats fully visible at the bottom of the frame.
  */
 export const ScenePlane: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Slow forward travel across the floor.
-  const panY = interpolate(frame, [0, PLANE_DURATION], [520, -1820]);
+  // A restrained push so the plane breathes without scrolling away.
+  const panY = interpolate(frame, [0, PLANE_DURATION], [70, -60]);
 
-  // Fragments placed along the floor's depth (top) with a horizontal offset
-  // (left) so several bleed past the frame edges. start = when they hinge down.
   const items: {
     top: number;
     left: number;
     start: number;
     el: React.ReactNode;
   }[] = [
-    { top: 1820, left: 300, start: 4, el: <WaveTile width={420} /> },
-    { top: 1520, left: 250, start: 14, el: <GlowSummary width={640} /> },
-    { top: 1140, left: 360, start: 30, el: <NoteHeader width={680} /> },
-    { top: 860, left: 250, start: 44, el: <StatFragment value="94" suffix="hrs" label="Hours saved" width={340} /> },
-    { top: 600, left: 470, start: 56, el: <ConceptList width={420} /> },
-    { top: 300, left: 230, start: 72, el: <NavFragment width={420} /> },
-    { top: 20, left: 430, start: 88, el: <GlowSummary width={620} /> },
-    { top: -300, left: 250, start: 104, el: <StatFragment value="1.2" suffix="k" label="Notes written" width={360} /> },
+    { top: -300, left: 360, start: 2, el: <ConceptList width={520} /> },
+    { top: -20, left: 150, start: 12, el: <StatFragment value="94" suffix="hrs" label="Hours saved" width={460} /> },
+    { top: 320, left: 360, start: 24, el: <GlowSummary width={780} /> },
+    { top: 680, left: 150, start: 40, el: <NoteHeader width={820} /> },
+    // Last + nearest — the recording box, seating at the bottom of the frame.
+    { top: 1360, left: 230, start: 58, el: <WaveTile width={680} /> },
   ];
 
   return (
     <AbsoluteFill>
       <Backdrop mode="light" />
-      <AbsoluteFill style={{ perspective: 1300, perspectiveOrigin: "50% 26%" }}>
+      <AbsoluteFill style={{ perspective: 1250, perspectiveOrigin: "50% 20%" }}>
         <div
           style={{
             position: "absolute",
@@ -64,38 +58,36 @@ export const ScenePlane: React.FC = () => {
             height: 1920,
             transformStyle: "preserve-3d",
             transformOrigin: "50% 50%",
-            transform: `rotateX(62deg) rotateZ(-2deg) translateY(${panY}px)`,
+            transform: `rotateX(58deg) rotateZ(-1.5deg) translateY(${panY}px)`,
           }}
         >
-          {/* Floor guide lines + brand watermark, so the plane reads as a plane. */}
+          {/* Floor guides + brand watermark so the plane reads as a plane. */}
           <div
             style={{
               position: "absolute",
-              left: -800,
-              top: -800,
-              width: 2680,
-              height: 3600,
+              left: -900,
+              top: -900,
+              width: 2880,
+              height: 3800,
               backgroundImage: `linear-gradient(to right, ${atlas.ink}0f 1px, transparent 1px), linear-gradient(to bottom, ${atlas.ink}0f 1px, transparent 1px)`,
-              backgroundSize: "120px 120px",
-              WebkitMaskImage: "radial-gradient(ellipse 60% 50% at 50% 40%, black, transparent 75%)",
-              maskImage: "radial-gradient(ellipse 60% 50% at 50% 40%, black, transparent 75%)",
+              backgroundSize: "130px 130px",
+              WebkitMaskImage: "radial-gradient(ellipse 60% 50% at 50% 42%, black, transparent 75%)",
+              maskImage: "radial-gradient(ellipse 60% 50% at 50% 42%, black, transparent 75%)",
             }}
           />
-          <div style={{ position: "absolute", left: 250, top: 60, opacity: 0.05 }}>
+          <div style={{ position: "absolute", left: 320, top: 120, opacity: 0.05 }}>
             <AtlasMark size={620} color={atlas.ink} />
           </div>
 
           {items.map((it, i) => {
             const p = settleSpring(frame, it.start, fps, {
-              damping: 20,
-              mass: 1.1,
-              stiffness: 70,
+              damping: 19,
+              mass: 1,
+              stiffness: 85,
             });
-            // Hinge from upright (counter the floor tilt so it faces camera) to
-            // flat on the floor; a little lift that settles to zero.
-            const layRot = interpolate(p, [0, 1], [-62, 0]);
-            const lift = interpolate(p, [0, 1], [190, 0]);
-            const opacity = interpolate(p, [0, 0.25], [0, 1], {
+            const layRot = interpolate(p, [0, 1], [-58, 0]);
+            const lift = interpolate(p, [0, 1], [200, 0]);
+            const opacity = interpolate(p, [0, 0.22], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             });
@@ -110,7 +102,7 @@ export const ScenePlane: React.FC = () => {
                   transformOrigin: "50% 100%",
                   transform: `translateZ(${lift}px) rotateX(${layRot}deg)`,
                   opacity,
-                  filter: "drop-shadow(0 30px 40px rgba(0,0,0,0.16))",
+                  filter: "drop-shadow(0 36px 46px rgba(0,0,0,0.18))",
                 }}
               >
                 {it.el}

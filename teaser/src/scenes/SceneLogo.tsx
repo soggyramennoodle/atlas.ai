@@ -10,7 +10,8 @@ import { Backdrop } from "../components/Backdrop";
 import { AtlasMark } from "../components/AtlasMark";
 import { atlas } from "../theme";
 import { fontSans, fontMono } from "../fonts";
-import { slowFade, EASE_OUT } from "../anim";
+import { MaskWipe, TrackingIn } from "../components/KineticText";
+import { slowFade } from "../anim";
 
 /**
  * Cold open. On the near-black canvas, geometric shards drift in 3D and
@@ -29,15 +30,6 @@ export const SceneLogo: React.FC = () => {
   const markZ = interpolate(markP, [0, 1], [-700, 0]);
   const markScale = interpolate(markP, [0, 1], [0.6, 1]);
 
-  // Wordmark resolves a beat after the mark seats.
-  const wordOpacity = slowFade(frame, 40, 26);
-  const wordY = interpolate(frame, [40, 70], [18, 0], {
-    extrapolateRight: "clamp",
-    easing: EASE_OUT,
-  });
-
-  // Eyebrow.
-  const eyebrowOpacity = slowFade(frame, 58, 22);
 
   // Converging shards (decorative facets of the brand palette).
   const shards = [
@@ -90,40 +82,34 @@ export const SceneLogo: React.FC = () => {
             <AtlasMark size={150} color="#ffffff" />
           </div>
 
-          {/* Wordmark + eyebrow */}
-          <div
-            style={{
-              marginTop: 34,
-              textAlign: "center",
-              opacity: wordOpacity,
-              transform: `translateY(${wordY}px)`,
-            }}
-          >
-            <div
-              style={{
-                fontFamily: fontSans,
-                fontWeight: 600,
-                fontSize: 64,
-                letterSpacing: "-0.03em",
-                color: "#ffffff",
-                lineHeight: 1,
-              }}
-            >
-              Atlas
-            </div>
+          {/* Wordmark wipes open from behind a mask a beat after the mark seats. */}
+          <div style={{ marginTop: 40 }}>
+            <MaskWipe delay={40} duration={22} from="bottom">
+              <div
+                style={{
+                  fontFamily: fontSans,
+                  fontWeight: 600,
+                  fontSize: 86,
+                  letterSpacing: "-0.03em",
+                  color: "#ffffff",
+                  lineHeight: 1,
+                }}
+              >
+                Atlas
+              </div>
+            </MaskWipe>
           </div>
-          <div
-            style={{
-              marginTop: 18,
-              fontFamily: fontMono,
-              fontSize: 14,
-              textTransform: "uppercase",
-              letterSpacing: "0.34em",
-              color: "rgba(255,255,255,0.55)",
-              opacity: eyebrowOpacity,
-            }}
-          >
-            A note taker, made for you
+          <div style={{ marginTop: 22 }}>
+            <TrackingIn
+              text="A NOTE TAKER, MADE FOR YOU"
+              delay={58}
+              duration={26}
+              fontFamily={fontMono}
+              fontSize={17}
+              weight={500}
+              letterSpacing="0.3em"
+              color="rgba(255,255,255,0.55)"
+            />
           </div>
         </AbsoluteFill>
       </AbsoluteFill>

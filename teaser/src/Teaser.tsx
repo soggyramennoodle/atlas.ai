@@ -7,7 +7,7 @@ import {
 } from "remotion";
 import { SceneLogo } from "./scenes/SceneLogo";
 import { ScenePlane, PLANE_DURATION } from "./scenes/ScenePlane";
-import { SceneDetails, DETAILS_DURATION } from "./scenes/SceneDetails";
+import { SceneMontage, MONTAGE_DURATION } from "./scenes/SceneMontage";
 import { SceneTagline } from "./scenes/SceneTagline";
 import { SceneUrlDrop } from "./scenes/SceneUrlDrop";
 import { FontFaces } from "./fonts";
@@ -31,21 +31,23 @@ const Fade: React.FC<{ durationInFrames: number; children: React.ReactNode }> = 
 
 // Scene durations (30fps). Sequences overlap by CF so the fades cross.
 const D = {
-  logo: 80,
-  plane: PLANE_DURATION, // 280 — the slow tease
-  details: DETAILS_DURATION, // 130 — the fast flashes
-  tagline: 56,
-  url: 100,
+  logo: 90,
+  plane: PLANE_DURATION, // short — ends on the recording box at the bottom
+  montage: MONTAGE_DURATION, // the busy, dark, kinetic middle
+  tagline: 64,
+  url: 104,
 };
 
-// Start frames, each beginning CF before the previous one ends.
-const S = {
-  logo: 0,
-  plane: D.logo - CF,
-  details: D.logo - CF + D.plane - CF,
-  tagline: D.logo - CF + D.plane - CF + D.details - CF,
-  url: D.logo - CF + D.plane - CF + D.details - CF + D.tagline - CF,
-};
+const order = ["logo", "plane", "montage", "tagline", "url"] as const;
+const S = (() => {
+  let acc = 0;
+  const out = {} as Record<(typeof order)[number], number>;
+  order.forEach((k, i) => {
+    out[k] = acc;
+    acc += D[k] - (i < order.length - 1 ? CF : 0);
+  });
+  return out;
+})();
 
 export const TEASER_DURATION = S.url + D.url;
 
@@ -66,9 +68,9 @@ export const AtlasTeaser: React.FC = () => {
         </Fade>
       </Sequence>
 
-      <Sequence from={S.details} durationInFrames={D.details}>
-        <Fade durationInFrames={D.details}>
-          <SceneDetails />
+      <Sequence from={S.montage} durationInFrames={D.montage}>
+        <Fade durationInFrames={D.montage}>
+          <SceneMontage />
         </Fade>
       </Sequence>
 

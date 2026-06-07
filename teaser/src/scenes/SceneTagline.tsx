@@ -1,46 +1,41 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, interpolate } from "remotion";
 import { Backdrop } from "../components/Backdrop";
-import { atlas } from "../theme";
+import { KineticWords } from "../components/KineticText";
+import { atlas, aiGradientCss } from "../theme";
 import { fontSans } from "../fonts";
-import { EASE_OUT, snapFade } from "../anim";
+import { EASE_OUT } from "../anim";
 
 /**
- * The product promise. Two snappy lines — "Sit back" / "and listen." — the
- * second in the Atlas green, exactly like the landing hero headline.
+ * The promise, as the kinetic climax. "Sit back" unfolds in 3D, "and listen."
+ * unfolds in the AI gradient a beat later, over a gradient seam that wipes
+ * across the screen.
  */
 export const SceneTagline: React.FC = () => {
   const frame = useCurrentFrame();
-
-  const line = (start: number) => {
-    const o = snapFade(frame, start, 9);
-    const y = interpolate(frame, [start, start + 16], [26, 0], {
-      extrapolateRight: "clamp",
-      easing: EASE_OUT,
-    });
-    const blur = interpolate(frame, [start, start + 12], [10, 0], {
-      extrapolateRight: "clamp",
-    });
-    return { opacity: o, transform: `translateY(${y}px)`, filter: `blur(${blur}px)` };
-  };
+  const seam = interpolate(frame, [10, 34], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE_OUT,
+  });
 
   return (
     <AbsoluteFill>
       <Backdrop mode="dark" drift />
-      <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
+      <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", gap: 18 }}>
+        <KineticWords text="Sit back" fontFamily={fontSans} fontSize={150} weight={800} color="#fff" />
+        {/* Gradient seam sweeping between the two lines. */}
         <div
           style={{
-            fontFamily: fontSans,
-            fontWeight: 700,
-            fontSize: 116,
-            lineHeight: 0.95,
-            letterSpacing: "-0.03em",
-            textAlign: "center",
+            height: 3,
+            width: `${seam * 70}%`,
+            maxWidth: 760,
+            background: aiGradientCss(90),
+            boxShadow: `0 0 26px 1px ${atlas.aiGradient[1]}`,
+            borderRadius: 999,
           }}
-        >
-          <div style={{ ...line(2), color: "#ffffff" }}>Sit back</div>
-          <div style={{ ...line(12), color: atlas.primaryDark }}>and listen.</div>
-        </div>
+        />
+        <KineticWords text="and listen." fontFamily={fontSans} fontSize={150} weight={800} gradient delay={12} />
       </AbsoluteFill>
     </AbsoluteFill>
   );
