@@ -75,6 +75,17 @@ export function isJobStaleForCleanup(
   return now - lastActivityMs >= ttlMs;
 }
 
+/**
+ * Spend-cap-held jobs must survive stale cleanup while the incident is open —
+ * otherwise a multi-hour cap would purge work that is about to auto-resume.
+ */
+export function isStaleCleanupExempt(
+  job: { error: string | null },
+  spendCapIncidentActive: boolean
+): boolean {
+  return spendCapIncidentActive && job.error === "gemini_spend_cap";
+}
+
 /** Human-readable countdown for the admin job list. */
 export function formatAutoDeleteCountdown(
   autoDeleteAtMs: number,
