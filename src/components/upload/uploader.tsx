@@ -95,9 +95,6 @@ export function Uploader({ userId }: { userId: string }) {
   const [stage, setStage] = useState<CaptureStage>("idle");
   const [safeToLeave, setSafeToLeave] = useState(false);
   const [processingNoteId, setProcessingNoteId] = useState<string | null>(null);
-  // TEMP diagnostic: live breadcrumb of the upload→process→redirect flow,
-  // shown on the scrim above the star (mirrors the recording pipeline).
-  const [debug, setDebug] = useState("");
 
   const busy = stage !== "idle";
 
@@ -174,7 +171,6 @@ export function Uploader({ userId }: { userId: string }) {
     try {
       if (await fileHasVideoTrack(file)) {
         setStage("preparing");
-        setDebug("upload: extracting audio from video…");
         const extracted = await extractAudioFromVideo(file);
         uploadData = extracted.blob;
         mimeType = extracted.mimeType;
@@ -184,7 +180,6 @@ export function Uploader({ userId }: { userId: string }) {
         }
       }
 
-      setDebug("upload: uploading + registering job…");
       const { id, status } = await uploadLectureAndGenerate({
         supabase,
         userId,
@@ -199,7 +194,6 @@ export function Uploader({ userId }: { userId: string }) {
         // the worker marks it ready.
         setSafeToLeave(true);
         setProcessingNoteId(id);
-        setDebug(`note ${id} created — watching for ready…`);
         return;
       } else if (status === "failed") {
         toast.error("Atlas couldn't process this recording.");
@@ -211,7 +205,6 @@ export function Uploader({ userId }: { userId: string }) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
       setStage("idle");
       setSafeToLeave(false);
-      setDebug(`upload error: ${err instanceof Error ? err.message : "unknown"}`);
     }
   }
 
@@ -224,27 +217,19 @@ export function Uploader({ userId }: { userId: string }) {
     const noteId = processingNoteId;
     const supabase = createClient();
     let navigated = false;
-    let polls = 0;
 
     const check = async () => {
       if (navigated) return;
-      polls += 1;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("notes")
         .select("content")
         .eq("id", noteId)
         .single();
-      if (error) {
-        setDebug(`watch #${polls}: query error — ${error.message}`);
-        return;
-      }
-      const status = (data?.content as { status?: string } | null)?.status ?? "(none)";
-      setDebug(`watch #${polls}: status = ${status}`);
+      const status = (data?.content as { status?: string } | null)?.status;
       // Anything that isn't "processing" is terminal (ready / failed / legacy).
       if (data && status !== "processing") {
         navigated = true;
         clearInterval(poll);
-        setDebug(`status = ${status} → redirecting to /notes/${noteId}…`);
         window.location.assign(`/notes/${noteId}`);
       }
     };
@@ -382,7 +367,7 @@ export function Uploader({ userId }: { userId: string }) {
       )}
 
       {/* Shared lightweight processing overlay. */}
-      <ProcessingOverlay stage={stage} safeToLeave={safeToLeave} debug={debug} />
+      <ProcessingOverlay stage={stage} safeToLeave={safeToLeave} />
     </div>
   );
 }
