@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   FileAudio,
@@ -85,7 +84,6 @@ function formatDuration(s: number) {
 }
 
 export function Uploader({ userId }: { userId: string }) {
-  const router = useRouter();
   const reduceMotion = useReducedMotion();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -96,6 +94,10 @@ export function Uploader({ userId }: { userId: string }) {
   const [dragging, setDragging] = useState(false);
   const [stage, setStage] = useState<CaptureStage>("idle");
   const [safeToLeave, setSafeToLeave] = useState(false);
+  const [processingNoteId, setProcessingNoteId] = useState<string | null>(null);
+  // TEMP diagnostic: live breadcrumb of the upload→process→redirect flow,
+  // shown on the scrim above the star (mirrors the recording pipeline).
+  const [debug, setDebug] = useState("");
 
   const busy = stage !== "idle";
 
@@ -172,6 +174,7 @@ export function Uploader({ userId }: { userId: string }) {
     try {
       if (await fileHasVideoTrack(file)) {
         setStage("preparing");
+        setDebug("upload: extracting audio from video…");
         const extracted = await extractAudioFromVideo(file);
         uploadData = extracted.blob;
         mimeType = extracted.mimeType;
@@ -181,6 +184,7 @@ export function Uploader({ userId }: { userId: string }) {
         }
       }
 
+      setDebug("upload: uploading + registering job…");
       const { id, status } = await uploadLectureAndGenerate({
         supabase,
         userId,
@@ -191,22 +195,76 @@ export function Uploader({ userId }: { userId: string }) {
         onStage: setStage,
       });
       if (status === "processing") {
-        // The analyzing scrim already says "Atlas is writing your notes…", so a
-        // toast with the same message would just be a duplicate — keep the scrim.
+        // Stay on the scrim; the watcher below redirects to the note the moment
+        // the worker marks it ready.
         setSafeToLeave(true);
+        setProcessingNoteId(id);
+        setDebug(`note ${id} created — watching for ready…`);
         return;
       } else if (status === "failed") {
         toast.error("Atlas couldn't process this recording.");
       } else {
         toast.success("Your notes are ready!");
       }
-      router.push(`/notes/${id}`);
+      window.location.assign(`/notes/${id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
       setStage("idle");
       setSafeToLeave(false);
+      setDebug(`upload error: ${err instanceof Error ? err.message : "unknown"}`);
     }
   }
+
+  // Mirror of the recording pipeline's watcher: once the uploaded lecture's note
+  // exists, poll its status (Realtime as a bonus) and hard-redirect to the note
+  // the instant it's no longer "processing". Without this the upload scrim sat
+  // forever — there was no navigation at all after a successful upload.
+  useEffect(() => {
+    if (!processingNoteId) return;
+    const noteId = processingNoteId;
+    const supabase = createClient();
+    let navigated = false;
+    let polls = 0;
+
+    const check = async () => {
+      if (navigated) return;
+      polls += 1;
+      const { data, error } = await supabase
+        .from("notes")
+        .select("content")
+        .eq("id", noteId)
+        .single();
+      if (error) {
+        setDebug(`watch #${polls}: query error — ${error.message}`);
+        return;
+      }
+      const status = (data?.content as { status?: string } | null)?.status ?? "(none)";
+      setDebug(`watch #${polls}: status = ${status}`);
+      // Anything that isn't "processing" is terminal (ready / failed / legacy).
+      if (data && status !== "processing") {
+        navigated = true;
+        clearInterval(poll);
+        setDebug(`status = ${status} → redirecting to /notes/${noteId}…`);
+        window.location.assign(`/notes/${noteId}`);
+      }
+    };
+
+    const channel = supabase
+      .channel(`upload-note-${noteId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "notes", filter: `id=eq.${noteId}` },
+        () => void check()
+      )
+      .subscribe();
+    const poll = setInterval(() => void check(), 5_000);
+    void check();
+
+    return () => {
+      clearInterval(poll);
+      void supabase.removeChannel(channel);
+    };
+  }, [processingNoteId]);
 
   return (
     <div className="space-y-5">
@@ -324,7 +382,7 @@ export function Uploader({ userId }: { userId: string }) {
       )}
 
       {/* Shared lightweight processing overlay. */}
-      <ProcessingOverlay stage={stage} safeToLeave={safeToLeave} />
+      <ProcessingOverlay stage={stage} safeToLeave={safeToLeave} debug={debug} />
     </div>
   );
 }
