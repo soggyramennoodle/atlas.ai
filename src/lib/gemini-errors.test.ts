@@ -13,11 +13,11 @@ describe("classifyGeminiError", () => {
     expect(classifyGeminiError(err)).toBe("spend_cap");
   });
 
-  it("flags a bare 429 rate limit as rate_limit, not spend_cap", () => {
-    const err = { status: "RESOURCE_EXHAUSTED", message: "Resource has been exhausted (e.g. check quota)." };
+  it("flags a bare 429 / quota-exhaustion message as rate_limit, not spend_cap", () => {
+    const quotaExhausted = { status: "RESOURCE_EXHAUSTED", message: "Resource has been exhausted (e.g. check quota)." };
     const rate = { code: 429, message: "Too many requests, please retry." };
+    expect(classifyGeminiError(quotaExhausted)).toBe("rate_limit");
     expect(classifyGeminiError(rate)).toBe("rate_limit");
-    expect(classifyGeminiError(err)).toBe("spend_cap"); // 'quota' → cap
   });
 
   it("reads nested SDK error shapes and plain Error messages", () => {

@@ -21,7 +21,7 @@ function readError(err: unknown): { code?: number; status?: string; message: str
   const nested = (anyErr.error as Record<string, unknown> | undefined) ?? anyErr;
   const code = Number(nested.code ?? anyErr.code);
   const status = String(nested.status ?? anyErr.status ?? "");
-  const message = String(nested.message ?? anyErr.message ?? (err as Error)?.message ?? "");
+  const message = String(nested.message ?? anyErr.message ?? "");
   return {
     code: Number.isFinite(code) ? code : undefined,
     status: status || undefined,
@@ -29,7 +29,7 @@ function readError(err: unknown): { code?: number; status?: string; message: str
   };
 }
 
-const CAP_SIGNAL = /spend|billing|quota|cap/i;
+const CAP_SIGNAL = /spend(?:ing)? cap|monthly cap|billing/i;
 
 export function classifyGeminiError(err: unknown): GeminiErrorKind {
   const { code, status, message } = readError(err);
