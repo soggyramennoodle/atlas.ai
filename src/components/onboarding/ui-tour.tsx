@@ -47,6 +47,7 @@ export function UiTour({
     onMobileSidebarOpen?.(false);
     try {
       await fetch("/api/profile/ui-tour", { method: "POST" });
+      router.refresh();
     } catch {
       // Dismiss locally even if persistence fails.
     }
