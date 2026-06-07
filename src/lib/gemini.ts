@@ -11,6 +11,7 @@ import {
 } from "@google/genai";
 import type { SegmentNotes, StructuredNotes } from "./types";
 import { mergeSegmentNotes } from "./notes-compose";
+import { GeminiSpendCapError, classifyGeminiError } from "./gemini-errors";
 
 /**
  * The model used for note generation. Defaults to Gemini 2.5 Pro, which
@@ -239,6 +240,20 @@ const composeSchema: Schema = {
   propertyOrdering: ["title", "subject", "summary", "sections", "keyConcepts"],
 };
 
+/** Run a Gemini call, re-throwing a typed error when it is the spend cap. */
+async function callGemini<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    if (classifyGeminiError(err) === "spend_cap") {
+      throw new GeminiSpendCapError(
+        err instanceof Error ? err.message : "Gemini monthly spending cap reached."
+      );
+    }
+    throw err;
+  }
+}
+
 interface SegmentArgs {
   bytes: Buffer | Uint8Array;
   mimeType: string;
@@ -262,19 +277,21 @@ export async function transcribeSegment({
     ? `${SEGMENT_PROMPT}\n\n--- About this student (personalization context) ---\n${memoryContext}\nUse this context to tailor terminology, depth, and emphasis. Never fabricate details to fit it.`
     : SEGMENT_PROMPT;
 
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: createUserContent([
-      createPartFromBase64(base64, mimeType),
-      "Transcribe and take exhaustive, audio-grounded notes on THIS lecture segment, following SEGMENT MODE.",
-    ]),
-    config: {
-      systemInstruction,
-      responseMimeType: "application/json",
-      responseSchema: segmentSchema,
-      temperature: 0,
-    },
-  });
+  const response = await callGemini(() =>
+    ai.models.generateContent({
+      model: MODEL,
+      contents: createUserContent([
+        createPartFromBase64(base64, mimeType),
+        "Transcribe and take exhaustive, audio-grounded notes on THIS lecture segment, following SEGMENT MODE.",
+      ]),
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: segmentSchema,
+        temperature: 0,
+      },
+    })
+  );
 
   ensureComplete(response, "segment");
   const text = response.text;
@@ -310,22 +327,24 @@ export async function composeNotes({
     ? `${COMPOSE_PROMPT}\n\n--- About this student ---\n${memoryContext}`
     : COMPOSE_PROMPT;
 
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: createUserContent([
-      JSON.stringify({
-        sections: merged.sections,
-        keyConcepts: merged.keyConcepts,
-        transcript: merged.transcript,
-      }),
-    ]),
-    config: {
-      systemInstruction,
-      responseMimeType: "application/json",
-      responseSchema: composeSchema,
-      temperature: 0,
-    },
-  });
+  const response = await callGemini(() =>
+    ai.models.generateContent({
+      model: MODEL,
+      contents: createUserContent([
+        JSON.stringify({
+          sections: merged.sections,
+          keyConcepts: merged.keyConcepts,
+          transcript: merged.transcript,
+        }),
+      ]),
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: composeSchema,
+        temperature: 0,
+      },
+    })
+  );
 
   ensureComplete(response, "compose");
   const text = response.text;
@@ -365,10 +384,12 @@ export async function generateNotesFromAudio({
 
   // Copy into a fresh ArrayBuffer-backed view so it satisfies BlobPart.
   const blob = new Blob([new Uint8Array(bytes)], { type: mimeType });
-  let uploaded = await ai.files.upload({
-    file: blob,
-    config: { mimeType },
-  });
+  let uploaded = await callGemini(() =>
+    ai.files.upload({
+      file: blob,
+      config: { mimeType },
+    })
+  );
 
   try {
     // Audio is processed asynchronously; wait until it is ACTIVE.
@@ -378,7 +399,7 @@ export async function generateNotesFromAudio({
         throw new Error("Timed out waiting for Gemini to process the audio.");
       }
       await new Promise((r) => setTimeout(r, 2000));
-      uploaded = await ai.files.get({ name: uploaded.name! });
+      uploaded = await callGemini(() => ai.files.get({ name: uploaded.name! }));
     }
 
     if (uploaded.state === "FAILED") {
@@ -389,19 +410,21 @@ export async function generateNotesFromAudio({
       ? `${SYSTEM_PROMPT}\n\n--- About this student (personalization context) ---\n${memoryContext}\nUse this context to tailor terminology, depth, and emphasis. Never fabricate details to fit it.`
       : SYSTEM_PROMPT;
 
-    const response = await ai.models.generateContent({
-      model: MODEL,
-      contents: createUserContent([
-        createPartFromUri(uploaded.uri!, uploaded.mimeType!),
-        "Take complete, exhaustively detailed, structured notes on this lecture following your instructions. If the audio is very short but contains intelligible academic content, generate sparse notes from only what was heard and say that comprehensive notes cannot be made from the limited audio. Return the insufficient-content JSON only for silence, unintelligible audio, or non-academic mic checks/greetings with no note-worthy content.",
-      ]),
-      config: {
-        systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: notesSchema,
-        temperature: 0,
-      },
-    });
+    const response = await callGemini(() =>
+      ai.models.generateContent({
+        model: MODEL,
+        contents: createUserContent([
+          createPartFromUri(uploaded.uri!, uploaded.mimeType!),
+          "Take complete, exhaustively detailed, structured notes on this lecture following your instructions. If the audio is very short but contains intelligible academic content, generate sparse notes from only what was heard and say that comprehensive notes cannot be made from the limited audio. Return the insufficient-content JSON only for silence, unintelligible audio, or non-academic mic checks/greetings with no note-worthy content.",
+        ]),
+        config: {
+          systemInstruction,
+          responseMimeType: "application/json",
+          responseSchema: notesSchema,
+          temperature: 0,
+        },
+      })
+    );
 
     ensureComplete(response, "notes");
     const text = response.text;
