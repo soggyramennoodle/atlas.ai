@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   FileAudio,
@@ -19,14 +18,23 @@ import {
   baseMimeType,
   extForMime,
   uploadLectureAndGenerate,
+  uploadLectureChunks,
   MAX_BYTES,
   type CaptureStage,
 } from "@/lib/upload-lecture";
 import {
+  extractAudioChunks,
   extractAudioFromVideo,
   fileHasVideoTrack,
   isLikelyVideoFile,
 } from "@/lib/extract-audio-from-video";
+
+/**
+ * Lectures longer than this are split into ~5-min segments and run through the
+ * durable splice pipeline. Shorter ones take the simpler single-file path —
+ * chunking re-encodes the whole file, which isn't worth it for a short clip.
+ */
+const CHUNK_ABOVE_SECONDS = 8 * 60;
 
 const ACCEPTED = [
   "audio/mpeg",
@@ -85,7 +93,6 @@ function formatDuration(s: number) {
 }
 
 export function Uploader({ userId }: { userId: string }) {
-  const router = useRouter();
   const reduceMotion = useReducedMotion();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -96,6 +103,8 @@ export function Uploader({ userId }: { userId: string }) {
   const [dragging, setDragging] = useState(false);
   const [stage, setStage] = useState<CaptureStage>("idle");
   const [safeToLeave, setSafeToLeave] = useState(false);
+  const [processingNoteId, setProcessingNoteId] = useState<string | null>(null);
+  const [prepareHint, setPrepareHint] = useState("");
 
   const busy = stage !== "idle";
 
@@ -170,6 +179,40 @@ export function Uploader({ userId }: { userId: string }) {
     let durationSeconds = duration;
 
     try {
+      // Long lectures: split into ~5-min segments so each stays within Gemini's
+      // limits and is transcribed + spliced by the same worker the live recorder
+      // uses. Short ones keep the simple single-file path. On any chunking error
+      // we fall back to single-file (no worse than before).
+      if ((duration ?? 0) > CHUNK_ABOVE_SECONDS) {
+        try {
+          setStage("preparing");
+          setPrepareHint("Splitting your lecture into segments…");
+          const { chunks, mimeType: chunkMime } = await extractAudioChunks(file);
+          setPrepareHint("");
+          setStage("uploading");
+          const sessionLabel =
+            file.name.replace(/\.[^.]+$/, "").trim() || "Uploaded lecture";
+          const { id } = await uploadLectureChunks({
+            userId,
+            chunks,
+            mimeType: chunkMime,
+            durationSeconds,
+            sessionLabel,
+          });
+          setStage("analyzing");
+          setSafeToLeave(true);
+          setProcessingNoteId(id);
+          return;
+        } catch (chunkErr) {
+          // Fall through to the single-file path below.
+          setPrepareHint("");
+          console.error(
+            "Chunked upload failed; falling back to single-file upload:",
+            chunkErr
+          );
+        }
+      }
+
       if (await fileHasVideoTrack(file)) {
         setStage("preparing");
         const extracted = await extractAudioFromVideo(file);
@@ -191,22 +234,67 @@ export function Uploader({ userId }: { userId: string }) {
         onStage: setStage,
       });
       if (status === "processing") {
-        // The analyzing scrim already says "Atlas is writing your notes…", so a
-        // toast with the same message would just be a duplicate — keep the scrim.
+        // Stay on the scrim; the watcher below redirects to the note the moment
+        // the worker marks it ready.
         setSafeToLeave(true);
+        setProcessingNoteId(id);
         return;
       } else if (status === "failed") {
         toast.error("Atlas couldn't process this recording.");
       } else {
         toast.success("Your notes are ready!");
       }
-      router.push(`/notes/${id}`);
+      window.location.assign(`/notes/${id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
       setStage("idle");
       setSafeToLeave(false);
+      setPrepareHint("");
     }
   }
+
+  // Mirror of the recording pipeline's watcher: once the uploaded lecture's note
+  // exists, poll its status (Realtime as a bonus) and hard-redirect to the note
+  // the instant it's no longer "processing". Without this the upload scrim sat
+  // forever — there was no navigation at all after a successful upload.
+  useEffect(() => {
+    if (!processingNoteId) return;
+    const noteId = processingNoteId;
+    const supabase = createClient();
+    let navigated = false;
+
+    const check = async () => {
+      if (navigated) return;
+      const { data } = await supabase
+        .from("notes")
+        .select("content")
+        .eq("id", noteId)
+        .single();
+      const status = (data?.content as { status?: string } | null)?.status;
+      // Anything that isn't "processing" is terminal (ready / failed / legacy).
+      if (data && status !== "processing") {
+        navigated = true;
+        clearInterval(poll);
+        window.location.assign(`/notes/${noteId}`);
+      }
+    };
+
+    const channel = supabase
+      .channel(`upload-note-${noteId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "notes", filter: `id=eq.${noteId}` },
+        () => void check()
+      )
+      .subscribe();
+    const poll = setInterval(() => void check(), 5_000);
+    void check();
+
+    return () => {
+      clearInterval(poll);
+      void supabase.removeChannel(channel);
+    };
+  }, [processingNoteId]);
 
   return (
     <div className="space-y-5">
@@ -324,7 +412,7 @@ export function Uploader({ userId }: { userId: string }) {
       )}
 
       {/* Shared lightweight processing overlay. */}
-      <ProcessingOverlay stage={stage} safeToLeave={safeToLeave} />
+      <ProcessingOverlay stage={stage} safeToLeave={safeToLeave} subLabel={prepareHint} />
     </div>
   );
 }

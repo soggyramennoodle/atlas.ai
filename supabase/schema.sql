@@ -52,6 +52,22 @@ create policy "Users delete own notes"
   on public.notes for delete
   using (auth.uid() = user_id);
 
+-- Realtime: broadcast row changes on notes so the app reacts the instant a
+-- lecture finishes processing (status processing -> ready/failed) instead of
+-- relying on polling. RLS still applies — clients only receive changes for rows
+-- they're allowed to select. Idempotent: skip if the table is already published.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'notes'
+  ) then
+    alter publication supabase_realtime add table public.notes;
+  end if;
+end $$;
+
 -- ---------------------------------------------------------------------------
 -- user_profiles: one row per user, captured during onboarding and editable in
 -- Settings. Drives the dashboard greeting and personalizes note generation.
