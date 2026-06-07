@@ -682,11 +682,13 @@
     opacity: 0;
   }
 
-  /* Spend-cap hold — single-hue orange border that breathes instead of the
-     multicolor processing loop. Signals "saved but paused", not active work. */
+  /* Spend-cap hold — orange border ring that breathes on the edge only. Uses
+     drop-shadow (not an inset blur) so the card interior stays the normal
+     bg-card colour with no orange wash. */
   .capacity-glow {
     position: absolute;
     inset: 0;
+    z-index: 0;
     border-radius: inherit;
     pointer-events: none;
   }
@@ -709,26 +711,13 @@
       linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    animation: capacity-glow-breathe 2.8s ease-in-out infinite;
-  }
-  .capacity-glow::after {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    z-index: -1;
-    border-radius: inherit;
-    padding: 2px;
-    background: linear-gradient(135deg, #fb923c, #f97316, #ea580c);
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: exclude;
-    filter: blur(8px);
+    filter:
+      drop-shadow(0 0 6px rgba(249, 115, 22, 0.45))
+      drop-shadow(0 0 14px rgba(249, 115, 22, 0.22));
     animation: capacity-glow-breathe 2.8s ease-in-out infinite;
   }
   @media (prefers-reduced-motion: reduce) {
-    .capacity-glow::before,
-    .capacity-glow::after {
+    .capacity-glow::before {
       animation: none;
       opacity: 0.9;
     }

@@ -123,6 +123,7 @@ export function NoteCard({
           }
         />
       )}
+      <div className="relative z-[1] flex flex-col">
       <div className="flex items-center justify-between">
         <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-background text-foreground transition-[transform,border-color] duration-200 group-hover:-translate-y-0.5 group-hover:border-foreground/25 motion-reduce:group-hover:translate-y-0">
           {failed ? (
@@ -172,6 +173,7 @@ export function NoteCard({
             {note.subject}
           </Badge>
         )}
+      </div>
       </div>
     </Link>
   );
