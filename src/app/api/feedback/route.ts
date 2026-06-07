@@ -63,6 +63,8 @@ export async function POST(request: Request) {
     category,
     message,
     page_path: pagePath,
+    reporter_email: user.email ?? null,
+    status: "unread",
   });
 
   if (error) {

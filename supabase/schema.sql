@@ -112,13 +112,18 @@ create policy "Users update own profile"
 -- user_feedback: reports about note quality or general product feedback.
 -- ---------------------------------------------------------------------------
 create table if not exists public.user_feedback (
-  id         uuid primary key default gen_random_uuid(),
-  user_id    uuid not null references auth.users (id) on delete cascade,
-  note_id    uuid references public.notes (id) on delete set null,
-  category   text not null check (category in ('inaccurate', 'wrong', 'other')),
-  message    text,
-  page_path  text,
-  created_at timestamptz not null default now()
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references auth.users (id) on delete cascade,
+  note_id         uuid references public.notes (id) on delete set null,
+  category        text not null check (category in ('inaccurate', 'wrong', 'other')),
+  message         text,
+  page_path       text,
+  status          text not null default 'unread'
+    check (status in ('unread', 'read', 'resolved', 'dismissed')),
+  reporter_email  text,
+  admin_notes     text,
+  reviewed_at     timestamptz,
+  created_at      timestamptz not null default now()
 );
 
 create index if not exists user_feedback_user_id_created_at_idx
@@ -127,6 +132,9 @@ create index if not exists user_feedback_user_id_created_at_idx
 create index if not exists user_feedback_note_id_idx
   on public.user_feedback (note_id)
   where note_id is not null;
+
+create index if not exists user_feedback_status_created_at_idx
+  on public.user_feedback (status, created_at desc);
 
 alter table public.user_feedback enable row level security;
 

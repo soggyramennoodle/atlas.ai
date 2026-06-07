@@ -133,6 +133,8 @@ export interface MemoryCorrection {
 
 export type FeedbackCategory = "inaccurate" | "wrong" | "other";
 
+export type FeedbackStatus = "unread" | "read" | "resolved" | "dismissed";
+
 /** A row in the `user_feedback` table. */
 export interface UserFeedback {
   id: string;
@@ -141,7 +143,16 @@ export interface UserFeedback {
   category: FeedbackCategory;
   message: string | null;
   page_path: string | null;
+  status: FeedbackStatus;
+  reporter_email: string | null;
+  admin_notes: string | null;
+  reviewed_at: string | null;
   created_at: string;
+}
+
+/** Feedback row enriched for the admin inbox. */
+export interface AdminFeedbackRow extends UserFeedback {
+  note_title: string | null;
 }
 
 /** A row in the `user_profiles` table. */
