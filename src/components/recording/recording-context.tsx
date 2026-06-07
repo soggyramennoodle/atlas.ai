@@ -64,7 +64,7 @@ export type RecordingPhase = "idle" | "recording" | "paused" | "recorded";
  */
 export type RecordingSource = "microphone" | "device";
 
-export type ProcessingIssueKind = "silent" | "timeout" | "failed";
+export type ProcessingIssueKind = "silent" | "timeout" | "failed" | "capacity";
 
 export interface ProcessingIssue {
   kind: ProcessingIssueKind;

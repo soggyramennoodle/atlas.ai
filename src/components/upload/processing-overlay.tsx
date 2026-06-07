@@ -24,7 +24,7 @@ const STAGE_DETAIL: Record<Exclude<CaptureStage, "idle">, string> = {
 };
 
 export interface ProcessingIssue {
-  kind: "silent" | "timeout" | "failed";
+  kind: "silent" | "timeout" | "failed" | "capacity";
   title: string;
   message: string;
 }
@@ -55,6 +55,7 @@ export function ProcessingOverlay({
   const [showLongRunHint, setShowLongRunHint] = useState(false);
   const visible = stage !== "idle" || !!issue;
   const failed = !!issue;
+  const capacity = issue?.kind === "capacity";
 
   useEffect(() => {
     if (stage === "idle" || failed) {
@@ -77,7 +78,12 @@ export function ProcessingOverlay({
           transition={{ duration: reduceMotion ? 0 : 0.18, ease: "easeOut" }}
           className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-background/92 px-4 backdrop-blur-sm"
         >
-          {failed ? (
+          {capacity ? (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-1/2 size-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-500/35 opacity-70 blur-3xl dark:bg-rose-500/30"
+            />
+          ) : failed ? (
             <div
               aria-hidden
               className="pointer-events-none absolute left-1/2 top-1/2 size-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-destructive/20 opacity-35 blur-3xl"
@@ -102,21 +108,25 @@ export function ProcessingOverlay({
           >
             <motion.div
               animate={
-                failed || reduceMotion
+                failed || capacity || reduceMotion
                   ? undefined
                   : { scale: [1, 1.08, 1], opacity: [0.9, 1, 0.9] }
               }
               transition={
-                failed || reduceMotion
+                failed || capacity || reduceMotion
                   ? undefined
                   : { duration: 2.6, ease: "easeInOut", repeat: Infinity }
               }
               className={cn(
                 "grid size-16 place-items-center rounded-[6px] border bg-background/90 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_18px_50px_-22px_rgba(0,0,0,0.3)]",
-                failed ? "border-destructive/30 text-destructive" : "border-primary/30 text-primary"
+                capacity
+                  ? "border-rose-500/40 text-rose-600 dark:text-rose-400"
+                  : failed
+                  ? "border-destructive/30 text-destructive"
+                  : "border-primary/30 text-primary"
               )}
             >
-              {failed ? <AlertCircle className="size-7" /> : <Sparkles className="size-7" />}
+              {failed || capacity ? <AlertCircle className="size-7" /> : <Sparkles className="size-7" />}
             </motion.div>
 
             <p className="mt-6 text-3xl font-bold tracking-[-0.02em]">
@@ -137,7 +147,7 @@ export function ProcessingOverlay({
                 the work. Keep this up until the long-run hint appears — by then
                 the job is fully server-side, so the green "safe to leave" hint
                 and the dashboard button take over. */}
-            {!failed && stage !== "idle" && !(safeToLeave && showLongRunHint) && (
+            {!failed && !capacity && stage !== "idle" && !(safeToLeave && showLongRunHint) && (
               <div className="mt-5 inline-flex items-center gap-2 rounded-[6px] border border-amber-500/40 bg-amber-500/10 px-3.5 py-2 text-sm text-amber-700 dark:text-amber-300">
                 <TriangleAlert className="size-4 shrink-0" />
                 <span>
@@ -183,6 +193,24 @@ export function ProcessingOverlay({
                   Discard
                 </Button>
               </div>
+            )}
+
+            {capacity && (
+              <>
+                <div className="mt-5 inline-flex items-center gap-2 rounded-[6px] border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-700 dark:text-emerald-300">
+                  <Clock className="size-4 shrink-0" />
+                  <span>
+                    <span className="font-semibold">You can safely close this tab</span> — we&apos;ll finish your notes and email you when they&apos;re ready.
+                  </span>
+                </div>
+                <Link
+                  href="/dashboard"
+                  className="mt-7 inline-flex h-12 items-center gap-2 rounded-[6px] border border-border bg-card px-5 text-sm font-medium text-foreground shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition hover:bg-secondary"
+                >
+                  <ArrowLeft className="size-4" />
+                  Back to dashboard
+                </Link>
+              </>
             )}
 
             {!failed && safeToLeave && showLongRunHint && (
