@@ -97,8 +97,6 @@ interface RecordingValue {
   processingIssue: ProcessingIssue | null;
   /** True once the server has the recording and it is safe to leave the glow screen. */
   processingSafeToLeave: boolean;
-  /** TEMP diagnostic breadcrumb of the processing/redirect flow (shown on the scrim). */
-  processingDebug: string;
   /** True when the current recorded clip was restored from this device. */
   recoveredDraft: boolean;
   /** Last successful local draft save time, if available. */
@@ -296,9 +294,6 @@ export function RecordingProvider({
   // processing scrim. Watched below so we can flip them straight to the note
   // the moment the server is done (see the auto-navigate effect).
   const [processingNoteId, setProcessingNoteId] = useState<string | null>(null);
-  // TEMP diagnostic: live breadcrumb of the processing/redirect flow, shown on
-  // the scrim above the star so we can see exactly where the handoff stalls.
-  const [processingDebug, setProcessingDebug] = useState("");
   const [sessionLabel, setSessionLabel] = useState("Untitled Lecture");
   const [recoveredDraft, setRecoveredDraft] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
@@ -774,7 +769,6 @@ export function RecordingProvider({
     setStage("analyzing");
     setProcessingSafeToLeave(false);
     setProcessingNoteId(null);
-    setProcessingDebug("complete: starting…");
     try {
       const segmentCount = segmentIndexRef.current;
       if (segmentCount <= 0) {
@@ -798,8 +792,6 @@ export function RecordingProvider({
         toast.error("Atlas couldn't upload the full recording.");
         return;
       }
-
-      setProcessingDebug("complete: enqueuing job…");
       const enqueueRes = await fetch("/api/jobs/enqueue", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -813,8 +805,6 @@ export function RecordingProvider({
         throw new Error("Could not register this recording for processing.");
       }
       enqueuedRef.current = true;
-
-      setProcessingDebug("complete: finalizing job…");
       const completeRes = await fetch("/api/jobs/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -852,7 +842,6 @@ export function RecordingProvider({
       setProcessingIssue(null);
       setProcessingSafeToLeave(true);
       setProcessingNoteId(completeBody.noteId);
-      setProcessingDebug(`note ${completeBody.noteId} created — watching for ready…`);
       setStage("analyzing");
     } catch (err) {
       setStage("idle");
@@ -860,7 +849,6 @@ export function RecordingProvider({
       setFailed(true);
       const message =
         err instanceof Error ? err.message : "Something went wrong.";
-      setProcessingDebug(`complete error: ${message}`);
       setProcessingIssue({
         kind: "failed",
         title: "Atlas couldn't process this",
@@ -1550,7 +1538,6 @@ export function RecordingProvider({
       if (result.status === "processing") {
         setProcessingSafeToLeave(true);
         setProcessingNoteId(result.id);
-        setProcessingDebug(`note ${result.id} created — watching for ready…`);
       } else if (result.status === "failed") {
         toast.error("Atlas couldn't process this recording.");
       } else {
@@ -1658,28 +1645,20 @@ export function RecordingProvider({
     const noteId = processingNoteId;
     const supabase = createClient();
     let navigated = false;
-    let polls = 0;
 
     const checkStatus = async () => {
       if (navigated) return;
-      polls += 1;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("notes")
         .select("content")
         .eq("id", noteId)
         .single();
-      if (error) {
-        setProcessingDebug(`watch #${polls}: query error — ${error.message}`);
-        return;
-      }
-      const status = (data?.content as { status?: string } | null)?.status ?? "(none)";
-      setProcessingDebug(`watch #${polls}: status = ${status}`);
+      const status = (data?.content as { status?: string } | null)?.status;
       // Anything that isn't "processing" is terminal (ready / failed / legacy
       // notes with no status). Hard navigation so the note page mounts fresh.
       if (data && status !== "processing") {
         navigated = true;
         clearInterval(poll);
-        setProcessingDebug(`status = ${status} → redirecting to /notes/${noteId}…`);
         window.location.assign(`/notes/${noteId}`);
       }
     };
@@ -1715,7 +1694,6 @@ export function RecordingProvider({
     busy,
     processingIssue,
     processingSafeToLeave,
-    processingDebug,
     recoveredDraft,
     lastSavedAt,
     failed,

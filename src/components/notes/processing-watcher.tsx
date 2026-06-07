@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
@@ -12,39 +12,25 @@ import { createClient } from "@/lib/supabase/client";
  * after the note is ready. So we poll the note's status directly and, the instant
  * it's no longer "processing", do a hard reload to render the finished note from
  * scratch — no manual reload, on any device.
- *
- * The small status line is a temporary diagnostic: it shows that the watcher is
- * live and what status the server is returning, so we can see exactly where the
- * processing→ready handoff is (or isn't) happening.
  */
 export function ProcessingWatcher({ noteId }: { noteId: string }) {
-  const [debug, setDebug] = useState("starting…");
-
   useEffect(() => {
     const supabase = createClient();
     let done = false;
-    let polls = 0;
 
     const check = async () => {
       if (done) return;
-      polls += 1;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("notes")
         .select("content")
         .eq("id", noteId)
         .single();
-      if (error) {
-        setDebug(`check #${polls}: query error — ${error.message}`);
-        return;
-      }
-      const status = (data?.content as { status?: string } | null)?.status ?? "(none)";
-      setDebug(`check #${polls}: status = ${status}`);
+      const status = (data?.content as { status?: string } | null)?.status;
       // Anything that isn't "processing" is terminal (ready / failed / legacy
       // notes with no status) — reload to render the finished note.
       if (data && status !== "processing") {
         done = true;
         clearInterval(poll);
-        setDebug(`status = ${status} → loading your notes…`);
         window.location.reload();
       }
     };
@@ -76,9 +62,5 @@ export function ProcessingWatcher({ noteId }: { noteId: string }) {
     return () => clearTimeout(id);
   }, []);
 
-  return (
-    <div className="pointer-events-none fixed bottom-3 left-1/2 z-50 -translate-x-1/2 rounded-full border border-border bg-card/90 px-3 py-1 font-mono text-[11px] text-muted-foreground shadow-sm backdrop-blur">
-      Atlas watcher · {debug}
-    </div>
-  );
+  return null;
 }

@@ -39,7 +39,6 @@ export function ProcessingOverlay({
   onDiscard,
   onDownload,
   safeToLeave,
-  debug,
 }: {
   stage: CaptureStage;
   issue?: ProcessingIssue | null;
@@ -48,7 +47,6 @@ export function ProcessingOverlay({
   onDiscard?: () => void;
   onDownload?: () => void;
   safeToLeave?: boolean;
-  debug?: string;
 }) {
   const reduceMotion = useReducedMotion();
   const [showLongRunHint, setShowLongRunHint] = useState(false);
@@ -99,14 +97,6 @@ export function ProcessingOverlay({
             transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
             className="relative flex w-full max-w-xl flex-col items-center text-center"
           >
-            {/* TEMP diagnostic — sits right above the star so we can see the
-                live processing/redirect flow on the deployed app. */}
-            {debug ? (
-              <div className="mb-4 max-w-md break-words rounded-[4px] border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 font-mono text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
-                debug · {debug}
-              </div>
-            ) : null}
-
             <motion.div
               animate={
                 failed || reduceMotion
@@ -138,14 +128,14 @@ export function ProcessingOverlay({
             )}
 
             {/* Extraction + upload run in this tab; closing it mid-flight loses
-                the work. Stays until the audio is on the server (safeToLeave),
-                after which the server keeps going and the leave hints take over. */}
-            {!failed && !safeToLeave && stage !== "idle" && (
+                the work. Keep this up until the long-run hint appears — by then
+                the job is fully server-side, so the green "safe to leave" hint
+                and the dashboard button take over. */}
+            {!failed && stage !== "idle" && !(safeToLeave && showLongRunHint) && (
               <div className="mt-5 inline-flex items-center gap-2 rounded-[6px] border border-amber-500/40 bg-amber-500/10 px-3.5 py-2 text-sm text-amber-700 dark:text-amber-300">
                 <TriangleAlert className="size-4 shrink-0" />
                 <span>
-                  <span className="font-semibold">Keep this tab open</span> until
-                  the upload finishes.
+                  <span className="font-semibold">Keep this tab open</span> for now.
                 </span>
               </div>
             )}
@@ -215,7 +205,9 @@ export function ProcessingOverlay({
                   <Clock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     Longer lectures can take a few minutes to process.{" "}
-                    <span className="text-foreground">Hang tight.</span>
+                    <span className="font-medium text-green-600 dark:text-green-400">
+                      It&apos;s safe to close this tab or return to the dashboard.
+                    </span>
                   </p>
                 </div>
               </motion.div>
