@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import {
   JOB_STATUS_LABELS,
   JOB_STATUS_TONES,
+  formatAdminId,
   type AdminJobRow,
 } from "@/lib/admin-jobs";
 import { formatAutoDeleteCountdown } from "@/lib/jobs-retention";
@@ -62,15 +63,24 @@ export function AdminJobList({ jobs }: { jobs: AdminJobRow[] }) {
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-1.5 max-w-md truncate font-medium">{job.sessionLabel}</p>
-                <p className="mt-0.5 font-mono text-[0.65rem] text-muted-foreground">
-                  {job.id}
-                </p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-xs">
+                  <span className="text-foreground" title={`job ${job.id}`}>
+                    job {formatAdminId(job.id)}
+                  </span>
+                  <span
+                    className="text-muted-foreground"
+                    title={job.noteId ? `note ${job.noteId}` : "note —"}
+                  >
+                    note {job.noteId ? formatAdminId(job.noteId) : "—"}
+                  </span>
+                </div>
               </td>
               <td className="px-4 py-3.5">
-                <p className="max-w-[12rem] truncate">{job.userEmail ?? "Unknown user"}</p>
-                <p className="mt-0.5 font-mono text-[0.65rem] text-muted-foreground">
-                  {job.userId.slice(0, 8)}…
+                <p
+                  className="font-mono text-xs text-muted-foreground"
+                  title={`user ${job.userId}`}
+                >
+                  {formatAdminId(job.userId)}
                 </p>
               </td>
               <td className="px-4 py-3.5 text-muted-foreground">
@@ -86,18 +96,17 @@ export function AdminJobList({ jobs }: { jobs: AdminJobRow[] }) {
                 {formatTimestamp(job.lastActivityAt)}
               </td>
               <td className="px-4 py-3.5">
-                {job.autoDeleteAt ? (
-                  <>
-                    <p className="font-medium">
-                      {formatAutoDeleteCountdown(Date.parse(job.autoDeleteAt))}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {formatTimestamp(job.autoDeleteAt)}
-                    </p>
-                  </>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
+                <p className="font-medium">
+                  {formatAutoDeleteCountdown(Date.parse(job.autoDeleteAt))}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {formatTimestamp(job.autoDeleteAt)}
+                </p>
+                <p className="mt-0.5 text-[0.65rem] text-muted-foreground">
+                  {job.autoDeleteKind === "stale"
+                    ? "Abandoned job cleanup"
+                    : "Job record retention"}
+                </p>
               </td>
             </tr>
           ))}

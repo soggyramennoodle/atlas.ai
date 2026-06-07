@@ -8,6 +8,12 @@ export const STALE_JOB_TTL_MS =
 export const JOBS_CLEANUP_INTERVAL_HOURS =
   Number(process.env.JOBS_CLEANUP_INTERVAL_HOURS) || 4;
 
+/** How long finished job rows stay in `lecture_jobs` before record cleanup. */
+export const TERMINAL_JOB_RETENTION_MS =
+  Number(process.env.TERMINAL_JOB_RETENTION_MS) || 30 * 24 * 60 * 60 * 1000;
+
+export type JobAutoDeleteKind = "stale" | "record";
+
 export function isIncompleteJobStatus(status: LectureJobStatus): boolean {
   return (
     status === "recording" ||
@@ -45,6 +51,20 @@ export function getJobAutoDeleteAtMs(
   ttlMs: number = STALE_JOB_TTL_MS
 ): number {
   return lastActivityMs + ttlMs;
+}
+
+/** When this job row will be removed and why. */
+export function resolveJobAutoDelete(
+  status: LectureJobStatus,
+  lastActivityMs: number,
+  updatedAtMs: number,
+  ttlMs: number = STALE_JOB_TTL_MS,
+  terminalRetentionMs: number = TERMINAL_JOB_RETENTION_MS
+): { atMs: number; kind: JobAutoDeleteKind } {
+  if (isIncompleteJobStatus(status)) {
+    return { atMs: lastActivityMs + ttlMs, kind: "stale" };
+  }
+  return { atMs: updatedAtMs + terminalRetentionMs, kind: "record" };
 }
 
 export function isJobStaleForCleanup(

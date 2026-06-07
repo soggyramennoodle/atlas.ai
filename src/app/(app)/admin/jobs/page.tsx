@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ListOrdered } from "lucide-react";
+import { AdminBackLink } from "@/components/admin/admin-back-link";
 import { AdminJobList } from "@/components/admin/job-list";
 import type { AdminJobRow } from "@/lib/admin-jobs";
 import {
   JOBS_CLEANUP_INTERVAL_HOURS,
   STALE_JOB_TTL_MS,
-  getJobAutoDeleteAtMs,
+  TERMINAL_JOB_RETENTION_MS,
   getJobLastActivityMs,
   isIncompleteJobStatus,
+  resolveJobAutoDelete,
 } from "@/lib/jobs-retention";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -21,25 +23,22 @@ function formatHours(ms: number) {
   return Math.round(ms / 3_600_000);
 }
 
+function formatDays(ms: number) {
+  return Math.round(ms / (24 * 3_600_000));
+}
+
 export default async function AdminJobsPage() {
   const admin = await getNewsroomAdmin();
   if (!admin) notFound();
 
   const db = createAdminClient();
-  const [{ data: jobs }, { data: users }] = await Promise.all([
-    db
-      .from("lecture_jobs")
-      .select(
-        "id, user_id, note_id, status, session_label, segment_count, attempts, heartbeat_at, error, created_at, updated_at"
-      )
-      .order("updated_at", { ascending: false })
-      .limit(200),
-    db.auth.admin.listUsers({ perPage: 1000 }),
-  ]);
-
-  const emailByUserId = new Map(
-    (users?.users ?? []).map((user) => [user.id, user.email ?? null])
-  );
+  const { data: jobs } = await db
+    .from("lecture_jobs")
+    .select(
+      "id, user_id, note_id, status, segment_count, attempts, heartbeat_at, error, created_at, updated_at"
+    )
+    .order("updated_at", { ascending: false })
+    .limit(200);
 
   const jobRows = (jobs ?? []) as LectureJobRecord[];
   const jobIds = jobRows.map((job) => job.id);
@@ -66,16 +65,13 @@ export default async function AdminJobsPage() {
       return latest;
     }, null);
     const lastActivityMs = getJobLastActivityMs(job, latestSegmentUpdatedAt, now);
-    const autoDeleteAt = isIncompleteJobStatus(job.status)
-      ? new Date(getJobAutoDeleteAtMs(lastActivityMs)).toISOString()
-      : null;
+    const updatedAtMs = new Date(job.updated_at).getTime();
+    const autoDelete = resolveJobAutoDelete(job.status, lastActivityMs, updatedAtMs);
 
     return {
       id: job.id,
       status: job.status,
-      sessionLabel: job.session_label,
       userId: job.user_id,
-      userEmail: emailByUserId.get(job.user_id) ?? null,
       noteId: job.note_id,
       segmentCount: job.segment_count,
       segmentRows: segments.length,
@@ -86,28 +82,32 @@ export default async function AdminJobsPage() {
       updatedAt: job.updated_at,
       heartbeatAt: job.heartbeat_at,
       lastActivityAt: new Date(lastActivityMs).toISOString(),
-      autoDeleteAt,
+      autoDeleteAt: new Date(autoDelete.atMs).toISOString(),
+      autoDeleteKind: autoDelete.kind,
     };
   });
 
   const incompleteCount = rows.filter((row) => isIncompleteJobStatus(row.status)).length;
   const pendingCleanupCount = rows.filter(
-    (row) => row.autoDeleteAt && Date.parse(row.autoDeleteAt) <= now
+    (row) => Date.parse(row.autoDeleteAt) <= now
   ).length;
 
   return (
     <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
       <div className="mx-auto max-w-6xl">
-        <div>
+        <AdminBackLink fallbackHref="/admin" label="Back" />
+
+        <div className="mt-4">
           <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
             <ListOrdered className="size-3.5" />
             Admin
           </span>
           <h1 className="mt-4 text-2xl font-semibold tracking-tight">Lecture jobs</h1>
           <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
-            Incomplete jobs that stop making progress are removed automatically after{" "}
-            {formatHours(STALE_JOB_TTL_MS)} hours of inactivity. Cleanup runs every{" "}
-            {JOBS_CLEANUP_INTERVAL_HOURS} hours.
+            Job and note IDs only — no lecture titles or filenames. Stuck jobs are
+            removed after {formatHours(STALE_JOB_TTL_MS)} hours of inactivity; finished
+            job records are purged after {formatDays(TERMINAL_JOB_RETENTION_MS)} days.
+            Cleanup runs every {JOBS_CLEANUP_INTERVAL_HOURS} hours.
             {incompleteCount > 0
               ? ` ${incompleteCount} open job${incompleteCount === 1 ? "" : "s"} right now`
               : ""}

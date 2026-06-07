@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runStaleJobCleanup } from "@/lib/jobs-cleanup";
+import { runJobCleanup } from "@/lib/jobs-cleanup";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -26,7 +26,7 @@ async function runCleanup(request: Request) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
-  const result = await runStaleJobCleanup();
+  const result = await runJobCleanup();
   return NextResponse.json(result);
 }
 

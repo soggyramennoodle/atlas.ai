@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Activity, ArrowLeft } from "lucide-react";
+import { Activity } from "lucide-react";
+import { AdminBackLink } from "@/components/admin/admin-back-link";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
 import { getProcessingSnapshot } from "@/lib/processing-server";
 import { ProcessingMonitor } from "@/components/admin/processing-monitor";
@@ -19,12 +19,7 @@ export default async function AdminProcessingPage() {
   return (
     <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
       <div className="mx-auto max-w-4xl">
-        <Link
-          href="/admin"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" /> Admin
-        </Link>
+        <AdminBackLink fallbackHref="/admin" label="Back" />
 
         <div className="mt-4">
           <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">

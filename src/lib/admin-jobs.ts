@@ -1,11 +1,14 @@
+import type { JobAutoDeleteKind } from "@/lib/jobs-retention";
 import type { LectureJobStatus } from "@/lib/types";
+
+export function formatAdminId(id: string): string {
+  return id.length > 12 ? `${id.slice(0, 8)}…${id.slice(-4)}` : id;
+}
 
 export type AdminJobRow = {
   id: string;
   status: LectureJobStatus;
-  sessionLabel: string;
   userId: string;
-  userEmail: string | null;
   noteId: string | null;
   segmentCount: number | null;
   segmentRows: number;
@@ -16,7 +19,8 @@ export type AdminJobRow = {
   updatedAt: string;
   heartbeatAt: string | null;
   lastActivityAt: string;
-  autoDeleteAt: string | null;
+  autoDeleteAt: string;
+  autoDeleteKind: JobAutoDeleteKind;
 };
 
 export const JOB_STATUS_LABELS: Record<LectureJobStatus, string> = {

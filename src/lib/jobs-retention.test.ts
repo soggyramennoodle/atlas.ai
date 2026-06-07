@@ -6,7 +6,9 @@ import {
   getJobLastActivityMs,
   isIncompleteJobStatus,
   isJobStaleForCleanup,
+  resolveJobAutoDelete,
 } from "./jobs-retention";
+import type { LectureJobStatus } from "./types";
 
 describe("isIncompleteJobStatus", () => {
   it("treats open pipeline states as incomplete", () => {
@@ -55,6 +57,25 @@ describe("getJobAutoDeleteAtMs", () => {
   it("adds the TTL to the last activity timestamp", () => {
     const lastActivity = Date.parse("2026-06-07T10:00:00.000Z");
     expect(getJobAutoDeleteAtMs(lastActivity)).toBe(lastActivity + STALE_JOB_TTL_MS);
+  });
+});
+
+describe("resolveJobAutoDelete", () => {
+  it("uses stale cleanup timing for incomplete jobs", () => {
+    const lastActivity = Date.parse("2026-06-07T10:00:00.000Z");
+    const updatedAt = Date.parse("2026-06-07T10:30:00.000Z");
+    expect(resolveJobAutoDelete("recording", lastActivity, updatedAt)).toEqual({
+      atMs: lastActivity + STALE_JOB_TTL_MS,
+      kind: "stale",
+    });
+  });
+
+  it("uses record retention timing for finished jobs", () => {
+    const lastActivity = Date.parse("2026-06-07T10:00:00.000Z");
+    const updatedAt = Date.parse("2026-06-07T10:30:00.000Z");
+    const result = resolveJobAutoDelete("ready" as LectureJobStatus, lastActivity, updatedAt);
+    expect(result.kind).toBe("record");
+    expect(result.atMs).toBeGreaterThan(updatedAt);
   });
 });
 
