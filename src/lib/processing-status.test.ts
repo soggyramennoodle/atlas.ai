@@ -99,6 +99,21 @@ describe("deriveStage", () => {
     expect(s.key).toBe("composing");
   });
 
+  it("marks a spend-cap held job as held, not stalled", () => {
+    const s = deriveStage(
+      job({
+        status: "processing",
+        error: "gemini_spend_cap",
+        heartbeatAt: null,
+        segmentCount: 3,
+        segments: { total: 3, uploaded: 3 },
+      }),
+      { now: NOW }
+    );
+    expect(s.key).toBe("held");
+    expect(s.label).toContain("capacity");
+  });
+
   it("marks a job stalled when its lease is stale", () => {
     const s = deriveStage(
       job({

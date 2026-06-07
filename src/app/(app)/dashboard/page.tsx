@@ -171,6 +171,7 @@ export default async function DashboardPage() {
                     key={note.id}
                     note={note}
                     status={displayStatus(note)}
+                    held={note.content?.hold === "gemini_spend_cap"}
                   />
                 ))}
               </div>

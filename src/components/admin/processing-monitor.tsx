@@ -29,6 +29,8 @@ const STAGE_TONE: Record<ProcessingStageKey, string> = {
     "border-violet-500/30 bg-violet-500/10 text-violet-600 dark:text-violet-400",
   stalled:
     "border-orange-500/40 bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  held:
+    "border-orange-500/45 bg-orange-500/12 text-orange-600 dark:text-orange-400",
   ready:
     "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   failed:
@@ -135,7 +137,7 @@ function JobCard({ row, now }: { row: ProcessingJobRow; now: number }) {
         <SegmentBar tally={row.segments} />
       </div>
 
-      <div className="shrink-0 text-right text-xs text-muted-foreground sm:w-32">
+      <div className="shrink-0 text-right text-xs text-muted-foreground sm:w-36">
         <p title={new Date(row.createdAt).toLocaleString()}>
           started {relativeTime(row.createdAt, now)}
         </p>
@@ -144,6 +146,20 @@ function JobCard({ row, now }: { row: ProcessingJobRow; now: number }) {
           title={new Date(row.updatedAt).toLocaleString()}
         >
           updated {relativeTime(row.updatedAt, now)}
+        </p>
+        <p
+          className={cn(
+            "text-[0.7rem]",
+            !row.heartbeatAt && "text-orange-600 dark:text-orange-400"
+          )}
+          title={
+            row.heartbeatAt
+              ? new Date(row.heartbeatAt).toLocaleString()
+              : "Worker heartbeat cleared while held"
+          }
+        >
+          heartbeat{" "}
+          {row.heartbeatAt ? relativeTime(row.heartbeatAt, now) : "— none"}
         </p>
       </div>
     </li>

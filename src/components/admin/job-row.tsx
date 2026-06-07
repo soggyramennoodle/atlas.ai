@@ -14,7 +14,7 @@ import { formatAutoDeleteCountdown } from "@/lib/jobs-retention";
 import type { JobHealthKey } from "@/lib/job-health";
 
 const HEALTH_DOT: Record<JobHealthKey, string> = {
-  held: "bg-rose-500",
+  held: "bg-orange-500",
   running: "bg-emerald-500",
   stuck: "bg-amber-500",
   failed: "bg-rose-500",
@@ -120,7 +120,22 @@ export function JobRow({ job }: { job: AdminJobRow }) {
 
       {/* Last activity column */}
       <td className="px-4 py-3.5 text-muted-foreground">
-        {formatTimestamp(job.lastActivityAt)}
+        <p>{formatTimestamp(job.lastActivityAt)}</p>
+        <p
+          className={cn(
+            "mt-0.5 font-mono text-[0.65rem]",
+            !job.heartbeatAt && job.health === "held"
+              ? "text-orange-600 dark:text-orange-400"
+              : "text-muted-foreground"
+          )}
+          title={
+            job.heartbeatAt
+              ? new Date(job.heartbeatAt).toLocaleString()
+              : "No worker heartbeat"
+          }
+        >
+          heartbeat {job.heartbeatAt ? formatTimestamp(job.heartbeatAt) : "—"}
+        </p>
       </td>
 
       {/* Auto-delete column */}

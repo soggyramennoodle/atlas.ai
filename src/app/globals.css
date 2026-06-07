@@ -682,6 +682,58 @@
     opacity: 0;
   }
 
+  /* Spend-cap hold — single-hue orange border that breathes instead of the
+     multicolor processing loop. Signals "saved but paused", not active work. */
+  .capacity-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .capacity-glow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.75px;
+    background: linear-gradient(
+      135deg,
+      #fb923c,
+      #f97316,
+      #ea580c,
+      #f97316,
+      #fb923c
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: capacity-glow-breathe 2.8s ease-in-out infinite;
+  }
+  .capacity-glow::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, #fb923c, #f97316, #ea580c);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: exclude;
+    filter: blur(8px);
+    animation: capacity-glow-breathe 2.8s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .capacity-glow::before,
+    .capacity-glow::after {
+      animation: none;
+      opacity: 0.9;
+    }
+  }
+
   /* Traveling light around a card border on hover. */
   .glow-card {
     position: relative;
@@ -1006,6 +1058,10 @@
 @keyframes atlas-breathe {
   0%, 100% { transform: scale(1); opacity: 0.85; }
   50% { transform: scale(1.09); opacity: 1; }
+}
+@keyframes capacity-glow-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
 }
 @keyframes atlas-drift {
   0% { transform: translate3d(0, 0, 0) scale(1); }

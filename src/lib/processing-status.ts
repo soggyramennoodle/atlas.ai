@@ -71,6 +71,7 @@ export type ProcessingStageKey =
   | "transcribing"
   | "composing"
   | "stalled"
+  | "held"
   | "ready"
   | "failed";
 
@@ -133,6 +134,12 @@ export function deriveStage(
       return { key: "queued", label: "Queued for worker" };
 
     case "processing": {
+      if (job.error === "gemini_spend_cap") {
+        return {
+          key: "held",
+          label: "Held · at capacity",
+        };
+      }
       const fresh = !leaseIsStale(job.heartbeatAt, now, leaseMs);
       if (!fresh) {
         return {

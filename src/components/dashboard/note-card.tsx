@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, BookOpen, Clock, Loader2 } from "lucide-react";
+import { AlertCircle, BookOpen, Clock, Loader2, TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { NoteRecord } from "@/lib/types";
 
@@ -34,28 +34,28 @@ type GlowPhase = "active" | "winding-down" | "off";
 
 /**
  * A dashboard recording card. When the note is processing it wears the AI edge
- * glow; when processing finishes the glow doesn't cut out abruptly — it lets
- * the current hue loop complete, then fades out cleanly. The note's status
- * flips server-side (a durable worker → realtime refresh re-renders us with a
- * new `status` prop) and this component animates the transition.
+ * glow; spend-cap holds get a breathing orange border instead. When processing
+ * finishes the multicolor glow doesn't cut out abruptly — it lets the current
+ * hue loop complete, then fades out cleanly.
  */
 export function NoteCard({
   note,
   status,
+  held = false,
 }: {
   note: NoteCardData;
   status: "processing" | "ready" | "failed";
+  /** Gemini spend-cap hold — saved but paused, not actively processing. */
+  held?: boolean;
 }) {
-  const processing = status === "processing";
+  const processing = status === "processing" && !held;
+  const atCapacity = held;
   const failed = status === "failed";
 
   const [phase, setPhase] = useState<GlowPhase>(processing ? "active" : "off");
   const [stopping, setStopping] = useState(false);
   const glowRef = useRef<HTMLSpanElement>(null);
 
-  // React to the server flipping processing on/off. Adjusting state during
-  // render (rather than in an effect) is React's recommended pattern for
-  // responding to a prop change without an extra commit.
   const [prevProcessing, setPrevProcessing] = useState(processing);
   if (processing !== prevProcessing) {
     setPrevProcessing(processing);
@@ -63,17 +63,15 @@ export function NoteCard({
       setStopping(false);
       setPhase("active");
     } else {
-      // Only wind down if we were actively glowing; a ready card stays off.
       setPhase((prev) => (prev === "active" ? "winding-down" : prev));
     }
   }
 
-  // Wind-down: wait for the hue loop to come home, then fade out and remove.
   useEffect(() => {
     if (phase !== "winding-down") return;
 
     const finish = () => {
-      setStopping(true); // fade opacity → 0 (0.7s CSS transition)
+      setStopping(true);
       window.setTimeout(() => setPhase("off"), 750);
     };
 
@@ -81,8 +79,6 @@ export function NoteCard({
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-    // With reduced motion the hue loop doesn't run, so there's no boundary to
-    // wait for — fade immediately.
     if (reducedMotion) {
       finish();
       return;
@@ -94,8 +90,6 @@ export function NoteCard({
       return;
     }
 
-    // The hue animation lives on the overlay's ::before; its iteration event
-    // fires on this host element. One iteration === one completed loop.
     const onIteration = (e: AnimationEvent) => {
       if (e.animationName !== "ai-ring-hue") return;
       el.removeEventListener("animationiteration", onIteration);
@@ -104,7 +98,6 @@ export function NoteCard({
     };
     el.addEventListener("animationiteration", onIteration);
 
-    // Safety net: never strand the glow on if the event is missed.
     const safety = window.setTimeout(finish, 12_000);
 
     return () => {
@@ -120,6 +113,7 @@ export function NoteCard({
       href={`/notes/${note.id}`}
       className="group hover-glow icon-animate relative flex flex-col rounded-[4px] border border-border bg-card p-5 transition-[transform,border-color,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-foreground/25 hover:bg-secondary/55 hover:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_16px_34px_-20px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/35 active:translate-y-0 motion-reduce:hover:translate-y-0"
     >
+      {atCapacity ? <span aria-hidden className="capacity-glow" /> : null}
       {glowing && (
         <span
           ref={glowRef}
@@ -133,6 +127,8 @@ export function NoteCard({
         <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-background text-foreground transition-[transform,border-color] duration-200 group-hover:-translate-y-0.5 group-hover:border-foreground/25 motion-reduce:group-hover:translate-y-0">
           {failed ? (
             <AlertCircle className="size-5 text-destructive" />
+          ) : atCapacity ? (
+            <TriangleAlert className="size-5 text-orange-500" />
           ) : processing ? (
             <Loader2 className="size-5 animate-spin" />
           ) : (
@@ -143,13 +139,15 @@ export function NoteCard({
           className={
             failed
               ? "inline-flex items-center gap-1.5 rounded-[4px] border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-destructive"
-              : processing
-                ? "inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-secondary px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground"
-                : "inline-flex items-center gap-1.5 rounded-[4px] border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-primary"
+              : atCapacity
+                ? "inline-flex items-center gap-1.5 rounded-[4px] border border-orange-500/35 bg-orange-500/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-orange-600 dark:text-orange-400"
+                : processing
+                  ? "inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-secondary px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground"
+                  : "inline-flex items-center gap-1.5 rounded-[4px] border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-primary"
           }
         >
           <span className="size-1.5 rounded-full bg-current" />
-          {failed ? "Failed" : processing ? "Processing" : "Ready"}
+          {failed ? "Failed" : atCapacity ? "At capacity" : processing ? "Processing" : "Ready"}
         </span>
       </div>
       <h3 className="mt-4 line-clamp-2 text-lg font-bold leading-snug tracking-tight">
