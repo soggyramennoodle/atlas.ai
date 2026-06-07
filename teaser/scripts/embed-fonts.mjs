@@ -14,6 +14,10 @@ const files = [
   { family: "Geist", weight: "500", file: "Geist-Medium.woff2" },
   { family: "Geist", weight: "600", file: "Geist-SemiBold.woff2" },
   { family: "Geist", weight: "700", file: "Geist-Bold.woff2" },
+  // Geist Black, mapped to 800/900 so heavy display type is real Geist (not
+  // faux-bold or a fallback face).
+  { family: "Geist", weight: "800", file: "Geist-Black.woff2" },
+  { family: "Geist", weight: "900", file: "Geist-Black.woff2" },
   { family: "Geist Mono", weight: "400", file: "GeistMono-Regular.woff2" },
   { family: "Geist Mono", weight: "500", file: "GeistMono-Medium.woff2" },
 ];

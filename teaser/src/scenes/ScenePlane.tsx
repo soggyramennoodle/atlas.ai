@@ -37,12 +37,12 @@ export const ScenePlane: React.FC = () => {
     start: number;
     el: React.ReactNode;
   }[] = [
-    { top: -300, left: 360, start: 2, el: <ConceptList width={520} /> },
-    { top: -20, left: 150, start: 12, el: <StatFragment value="94" suffix="hrs" label="Hours saved" width={460} /> },
-    { top: 320, left: 360, start: 24, el: <GlowSummary width={780} /> },
-    { top: 680, left: 150, start: 40, el: <NoteHeader width={820} /> },
+    { top: -120, left: 330, start: 2, el: <ConceptList width={520} /> },
+    { top: 200, left: 150, start: 12, el: <StatFragment value="94" suffix="hrs" label="Hours saved" width={460} /> },
+    { top: 560, left: 340, start: 24, el: <GlowSummary width={800} /> },
+    { top: 940, left: 150, start: 40, el: <NoteHeader width={840} /> },
     // Last + nearest — the recording box, seating at the bottom of the frame.
-    { top: 1360, left: 230, start: 58, el: <WaveTile width={680} /> },
+    { top: 1380, left: 230, start: 58, el: <WaveTile width={700} /> },
   ];
 
   return (

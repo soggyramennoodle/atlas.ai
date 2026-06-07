@@ -25,7 +25,7 @@ export const FontFaces: React.FC = () => {
     const families = [fontSans, fontMono];
     Promise.all(
       families.flatMap((fam) =>
-        ["400", "500", "600", "700"].map((w) =>
+        ["400", "500", "600", "700", "800", "900"].map((w) =>
           document.fonts.load(`${w} 16px "${fam}"`).catch(() => undefined)
         )
       )

@@ -8,7 +8,7 @@ import {
 } from "remotion";
 import { Backdrop } from "../components/Backdrop";
 import { AtlasMark } from "../components/AtlasMark";
-import { ScrambleText, MaskWipe, TrackingIn } from "../components/KineticText";
+import { CharReveal, MaskWipe, TrackingIn } from "../components/KineticText";
 import { atlas, aiGradientCss } from "../theme";
 import { fontSans, fontMono } from "../fonts";
 import { EASE_OUT } from "../anim";
@@ -22,10 +22,10 @@ export const SceneUrlDrop: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const markP = spring({ frame: frame - 2, fps, config: { damping: 14, mass: 0.8, stiffness: 140 } });
-  const markScale = interpolate(markP, [0, 1], [0.55, 1]);
-  const markRot = interpolate(markP, [0, 1], [-40, 0]);
-  const logoY = interpolate(frame, [44, 78], [0, -12], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE_OUT });
+  const markP = spring({ frame: frame - 2, fps, config: { damping: 16, mass: 0.8, stiffness: 140 } });
+  const markScale = interpolate(markP, [0, 1], [0.62, 1]);
+  const markRot = interpolate(markP, [0, 1], [-22, 0]);
+  const logoY = interpolate(frame, [44, 78], [0, -8], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE_OUT });
 
   const urlStart = 30;
   const urlPop = spring({ frame: frame - urlStart, fps, config: { damping: 16, mass: 0.7, stiffness: 150 } });
@@ -58,28 +58,26 @@ export const SceneUrlDrop: React.FC = () => {
           </MaskWipe>
         </div>
 
-        {/* URL — decodes into place. */}
-        <div style={{ marginTop: 76, position: "relative", transform: `scale(${urlScale})` }}>
-          <ScrambleText
+        {/* URL — characters rise cleanly into place. */}
+        <div style={{ marginTop: 52, position: "relative", transform: `scale(${urlScale})` }}>
+          <CharReveal
             text="atlasai.ca"
             delay={urlStart}
-            duration={22}
-            perChar={2.4}
+            perChar={2}
             fontFamily={fontMono}
-            fontSize={66}
+            fontSize={68}
             weight={500}
             color="#fff"
-            style={{ justifyContent: "center" }}
           />
           <div
             style={{
               position: "absolute",
               left: "50%",
               transform: "translateX(-50%)",
-              bottom: -24,
+              bottom: -22,
               height: 3,
               width: `${underline * 100}%`,
-              maxWidth: 440,
+              maxWidth: 430,
               background: aiGradientCss(90),
               boxShadow: `0 0 24px 1px ${atlas.aiGradient[1]}`,
               borderRadius: 999,
@@ -88,13 +86,13 @@ export const SceneUrlDrop: React.FC = () => {
         </div>
 
         {/* Closing line. */}
-        <div style={{ marginTop: 86 }}>
+        <div style={{ marginTop: 56 }}>
           <TrackingIn
             text="YOUR LECTURES, BEAUTIFULLY NOTED"
-            delay={urlStart + 22}
+            delay={urlStart + 20}
             duration={26}
             fontFamily={fontMono}
-            fontSize={19}
+            fontSize={18}
             weight={500}
             letterSpacing="0.3em"
             color="rgba(255,255,255,0.55)"
