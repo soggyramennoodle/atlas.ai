@@ -18,14 +18,23 @@ import {
   baseMimeType,
   extForMime,
   uploadLectureAndGenerate,
+  uploadLectureChunks,
   MAX_BYTES,
   type CaptureStage,
 } from "@/lib/upload-lecture";
 import {
+  extractAudioChunks,
   extractAudioFromVideo,
   fileHasVideoTrack,
   isLikelyVideoFile,
 } from "@/lib/extract-audio-from-video";
+
+/**
+ * Lectures longer than this are split into ~5-min segments and run through the
+ * durable splice pipeline. Shorter ones take the simpler single-file path —
+ * chunking re-encodes the whole file, which isn't worth it for a short clip.
+ */
+const CHUNK_ABOVE_SECONDS = 8 * 60;
 
 const ACCEPTED = [
   "audio/mpeg",
@@ -169,6 +178,37 @@ export function Uploader({ userId }: { userId: string }) {
     let durationSeconds = duration;
 
     try {
+      // Long lectures: split into ~5-min segments so each stays within Gemini's
+      // limits and is transcribed + spliced by the same worker the live recorder
+      // uses. Short ones keep the simple single-file path. On any chunking error
+      // we fall back to single-file (no worse than before).
+      if ((duration ?? 0) > CHUNK_ABOVE_SECONDS) {
+        try {
+          setStage("preparing");
+          const { chunks, mimeType: chunkMime } = await extractAudioChunks(file);
+          setStage("uploading");
+          const sessionLabel =
+            file.name.replace(/\.[^.]+$/, "").trim() || "Uploaded lecture";
+          const { id } = await uploadLectureChunks({
+            userId,
+            chunks,
+            mimeType: chunkMime,
+            durationSeconds,
+            sessionLabel,
+          });
+          setStage("analyzing");
+          setSafeToLeave(true);
+          setProcessingNoteId(id);
+          return;
+        } catch (chunkErr) {
+          // Fall through to the single-file path below.
+          console.error(
+            "Chunked upload failed; falling back to single-file upload:",
+            chunkErr
+          );
+        }
+      }
+
       if (await fileHasVideoTrack(file)) {
         setStage("preparing");
         const extracted = await extractAudioFromVideo(file);

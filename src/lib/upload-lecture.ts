@@ -172,3 +172,82 @@ export async function uploadLectureAndGenerate({
     status: "processing",
   };
 }
+
+interface UploadChunksArgs {
+  userId: string;
+  /** Ordered ~5-min audio chunks (see extractAudioChunks). */
+  chunks: Blob[];
+  /** Bare MIME type shared by all chunks (e.g. "audio/aac"). */
+  mimeType: string;
+  requestId?: string;
+  durationSeconds: number | null;
+  sessionLabel: string;
+  onProgress?: (ratio: number) => void;
+  signal?: AbortSignal;
+}
+
+/**
+ * Uploads a long lecture as multiple segments — the same durable pipeline the
+ * live recorder uses — so each chunk is transcribed independently and then
+ * spliced into one note by the worker. Registers the job, uploads every chunk
+ * as a segment, then completes the job. Returns the new note id.
+ */
+export async function uploadLectureChunks({
+  userId,
+  chunks,
+  mimeType,
+  requestId,
+  durationSeconds,
+  sessionLabel,
+  onProgress,
+  signal,
+}: UploadChunksArgs): Promise<{ id: string; status: GenerationStatus }> {
+  if (chunks.length === 0) throw new Error("No audio to upload.");
+  const jobId = requestId ?? crypto.randomUUID();
+
+  await postJson(
+    "/api/jobs/enqueue",
+    { jobId, sessionLabel, source: "microphone" },
+    "Could not create the processing job —",
+    signal
+  );
+
+  // Spread the known total duration across the chunks for a reasonable per-
+  // segment estimate (the worker only needs the total).
+  const perChunk =
+    durationSeconds && chunks.length
+      ? Math.round(durationSeconds / chunks.length)
+      : null;
+
+  for (let i = 0; i < chunks.length; i++) {
+    const key = await uploadAudioViaServer({
+      blob: chunks[i]!,
+      mime: mimeType,
+      jobId,
+      segmentIndex: i,
+      durationSeconds: perChunk,
+      signal,
+    });
+    if (!key.startsWith(`${userId}/`)) {
+      throw new Error("Upload was rejected because it was scoped incorrectly.");
+    }
+    onProgress?.((i + 1) / chunks.length);
+  }
+
+  const result = await postJson(
+    "/api/jobs/complete",
+    {
+      jobId,
+      segmentCount: chunks.length,
+      durationSeconds: durationSeconds ?? null,
+      liveTranscript: null,
+    },
+    "Could not start note generation —",
+    signal
+  );
+
+  return {
+    id: result.noteId as string,
+    status: "processing",
+  };
+}
