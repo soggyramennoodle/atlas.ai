@@ -13,7 +13,7 @@ import {
   X,
   Sparkles,
   Newspaper,
-  Megaphone,
+  ShieldCheck,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -42,10 +42,7 @@ function NavLinks({
 }) {
   const pathname = usePathname();
   const nav: NavItem[] = isAdmin
-    ? [
-        ...BASE_NAV,
-        { href: "/admin/newsroom", label: "Publish news", icon: Megaphone },
-      ]
+    ? [...BASE_NAV, { href: "/admin", label: "Admin", icon: ShieldCheck }]
     : BASE_NAV;
   return (
     <nav className="flex flex-col gap-1">
