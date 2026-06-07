@@ -25,7 +25,9 @@ export function ProcessingWatcher({ noteId }: { noteId: string }) {
         .select("content")
         .eq("id", noteId)
         .single();
-      const status = (data?.content as { status?: string } | null)?.status;
+      const content = data?.content as { status?: string; hold?: string } | null;
+      const status = content?.status;
+      if (content?.hold === "gemini_spend_cap") return; // held, not finished — stay
       // Anything that isn't "processing" is terminal (ready / failed / legacy
       // notes with no status) — reload to render the finished note.
       if (data && status !== "processing") {

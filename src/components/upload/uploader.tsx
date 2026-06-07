@@ -105,6 +105,7 @@ export function Uploader({ userId }: { userId: string }) {
   const [safeToLeave, setSafeToLeave] = useState(false);
   const [processingNoteId, setProcessingNoteId] = useState<string | null>(null);
   const [prepareHint, setPrepareHint] = useState("");
+  const [issue, setIssue] = useState<import("@/components/upload/processing-overlay").ProcessingIssue | null>(null);
 
   const busy = stage !== "idle";
 
@@ -270,7 +271,18 @@ export function Uploader({ userId }: { userId: string }) {
         .select("content")
         .eq("id", noteId)
         .single();
-      const status = (data?.content as { status?: string } | null)?.status;
+      const content = data?.content as { status?: string; hold?: string } | null;
+      const status = content?.status;
+      if (content?.hold === "gemini_spend_cap") {
+        setIssue({
+          kind: "capacity",
+          title: "Atlas is at capacity right now",
+          message:
+            "Your recording is saved. Atlas AI is temporarily unable to process new recordings, and yours will finish automatically once processing is restored — you'll get an email when it's done.",
+        });
+        return; // stay on the overlay; do not navigate
+      }
+      setIssue(null);
       // Anything that isn't "processing" is terminal (ready / failed / legacy).
       if (data && status !== "processing") {
         navigated = true;
@@ -412,7 +424,7 @@ export function Uploader({ userId }: { userId: string }) {
       )}
 
       {/* Shared lightweight processing overlay. */}
-      <ProcessingOverlay stage={stage} safeToLeave={safeToLeave} subLabel={prepareHint} />
+      <ProcessingOverlay stage={stage} issue={issue} safeToLeave={safeToLeave} subLabel={prepareHint} />
     </div>
   );
 }
