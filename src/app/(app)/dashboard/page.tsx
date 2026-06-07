@@ -16,10 +16,9 @@ import type { NoteRecord } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-// Reuse the last server render on client navigations (settings, record, etc.)
-// so the dashboard paints instantly. Realtime refresh + explicit invalidation
-// still fetch fresh data when recordings actually change.
-export const unstable_dynamicStaleTime = 120;
+// Reuse the last server render on client navigations so the dashboard paints
+// instantly; DashboardStaleRefresh always revalidates in the background.
+export const unstable_dynamicStaleTime = 300;
 
 function displayStatus(note: Pick<NoteRecord, "content" | "created_at">) {
   return note.content?.status ?? "ready";

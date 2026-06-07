@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { DashboardLink } from "@/components/dashboard/dashboard-link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AlertCircle, ArrowLeft, Clock, Download, Mic, RefreshCcw, Sparkles, Trash2, TriangleAlert } from "lucide-react";
 import { AiGlow } from "@/components/ui/ai-glow";
@@ -204,26 +203,24 @@ export function ProcessingOverlay({
                     <span className="font-semibold">You can safely close this tab</span> — we&apos;ll finish your notes and email you when they&apos;re ready.
                   </span>
                 </div>
-                <DashboardLink
+                <Link
                   href="/dashboard"
-                  refresh
                   className="mt-7 inline-flex h-12 items-center gap-2 rounded-[6px] border border-border bg-card px-5 text-sm font-medium text-foreground shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition hover:bg-secondary"
                 >
                   <ArrowLeft className="size-4" />
                   Back to dashboard
-                </DashboardLink>
+                </Link>
               </>
             )}
 
             {!failed && safeToLeave && showLongRunHint && (
-              <DashboardLink
+              <Link
                 href="/dashboard"
-                refresh
                 className="mt-7 inline-flex h-12 items-center gap-2 rounded-[6px] border border-white/25 bg-white/15 px-5 text-sm font-medium text-foreground shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur-md transition hover:border-foreground/25 hover:bg-background/80"
               >
                 <ArrowLeft className="size-4" />
                 Back to dashboard
-              </DashboardLink>
+              </Link>
             )}
           </motion.div>
 

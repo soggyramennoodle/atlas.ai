@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { consumeDashboardStale } from "@/lib/dashboard-cache";
 
 /**
- * After mutations that change the recordings list (delete, new upload), we show
- * the cached dashboard instantly then refresh in the background so the UI
- * stays snappy without going stale for long.
+ * Stale-while-revalidate for the dashboard: the client router cache paints the
+ * last visit instantly, then we always fetch a fresh server render in the
+ * background and merge it in without blocking the UI.
  */
 export function DashboardStaleRefresh() {
   const router = useRouter();
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
-    if (consumeDashboardStale()) router.refresh();
+    startTransition(() => router.refresh());
   }, [router]);
 
   return null;
