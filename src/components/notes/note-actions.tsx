@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Download, FileText, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteNote } from "@/app/(app)/notes/[id]/actions";
+import { markDashboardStale } from "@/lib/dashboard-cache";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -126,7 +127,9 @@ export function DeleteNoteButton({ id }: { id: string }) {
         return;
       }
       toast.success("Note deleted.");
+      markDashboardStale();
       router.push("/dashboard");
+      router.refresh();
     });
   }
 

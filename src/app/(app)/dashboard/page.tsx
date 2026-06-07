@@ -9,11 +9,17 @@ import { StatCards, type Stat } from "@/components/dashboard/stat-cards";
 import { QuickRecord } from "@/components/dashboard/quick-record";
 import { Tips } from "@/components/dashboard/tips";
 import { EmptyRecordings } from "@/components/dashboard/empty-state";
+import { DashboardStaleRefresh } from "@/components/dashboard/dashboard-stale-refresh";
 import { RealtimeRefresh } from "@/components/dashboard/realtime-refresh";
 import { NoteCard } from "@/components/dashboard/note-card";
 import type { NoteRecord } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Dashboard" };
+
+// Reuse the last server render on client navigations (settings, record, etc.)
+// so the dashboard paints instantly. Realtime refresh + explicit invalidation
+// still fetch fresh data when recordings actually change.
+export const unstable_dynamicStaleTime = 120;
 
 function displayStatus(note: Pick<NoteRecord, "content" | "created_at">) {
   return note.content?.status ?? "ready";
@@ -98,6 +104,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
+      <DashboardStaleRefresh />
       <RealtimeRefresh userId={user.id} hasProcessing={hasProcessing} />
       <div className="mx-auto max-w-6xl">
         {/* Header */}
