@@ -21,6 +21,8 @@ export type AdminJobRow = {
   lastActivityAt: string;
   autoDeleteAt: string;
   autoDeleteKind: JobAutoDeleteKind;
+  health: import("@/lib/job-health").JobHealthKey;
+  healthLabel: string;
 };
 
 export const JOB_STATUS_LABELS: Record<LectureJobStatus, string> = {

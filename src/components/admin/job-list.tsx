@@ -1,21 +1,7 @@
 import { cn } from "@/lib/utils";
-import {
-  JOB_STATUS_LABELS,
-  JOB_STATUS_TONES,
-  formatAdminId,
-  type AdminJobRow,
-} from "@/lib/admin-jobs";
-import { formatAutoDeleteCountdown } from "@/lib/jobs-retention";
+import { JOB_STATUS_LABELS, JOB_STATUS_TONES, type AdminJobRow } from "@/lib/admin-jobs";
+import { JobRow } from "@/components/admin/job-row";
 import type { LectureJobStatus } from "@/lib/types";
-
-function formatTimestamp(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
 
 export function JobStatusChip({
   status,
@@ -53,62 +39,7 @@ export function AdminJobList({ jobs }: { jobs: AdminJobRow[] }) {
         </thead>
         <tbody className="divide-y">
           {jobs.map((job) => (
-            <tr key={job.id} className="align-top transition hover:bg-secondary/40">
-              <td className="px-4 py-3.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <JobStatusChip status={job.status} />
-                  {job.error ? (
-                    <span className="font-mono text-[0.65rem] uppercase tracking-wider text-rose-500">
-                      {job.error}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-xs">
-                  <span className="text-foreground" title={`job ${job.id}`}>
-                    job {formatAdminId(job.id)}
-                  </span>
-                  <span
-                    className="text-muted-foreground"
-                    title={job.noteId ? `note ${job.noteId}` : "note —"}
-                  >
-                    note {job.noteId ? formatAdminId(job.noteId) : "—"}
-                  </span>
-                </div>
-              </td>
-              <td className="px-4 py-3.5">
-                <p
-                  className="font-mono text-xs text-muted-foreground"
-                  title={`user ${job.userId}`}
-                >
-                  {formatAdminId(job.userId)}
-                </p>
-              </td>
-              <td className="px-4 py-3.5 text-muted-foreground">
-                <p>
-                  {job.segmentRows}
-                  {job.segmentCount != null ? ` / ${job.segmentCount}` : ""} uploaded
-                </p>
-                {job.uploadedSegments > 0 ? (
-                  <p className="mt-0.5 text-xs">{job.uploadedSegments} awaiting transcription</p>
-                ) : null}
-              </td>
-              <td className="px-4 py-3.5 text-muted-foreground">
-                {formatTimestamp(job.lastActivityAt)}
-              </td>
-              <td className="px-4 py-3.5">
-                <p className="font-medium">
-                  {formatAutoDeleteCountdown(Date.parse(job.autoDeleteAt))}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {formatTimestamp(job.autoDeleteAt)}
-                </p>
-                <p className="mt-0.5 text-[0.65rem] text-muted-foreground">
-                  {job.autoDeleteKind === "stale"
-                    ? "Abandoned job cleanup"
-                    : "Job record retention"}
-                </p>
-              </td>
-            </tr>
+            <JobRow key={job.id} job={job} />
           ))}
         </tbody>
       </table>
