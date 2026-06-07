@@ -140,6 +140,7 @@ export interface UserProfile {
   year: string | null;
   grad_year: string | null;
   welcome_email_sent_at: string | null;
+  ui_tour_completed_at: string | null;
   created_at: string;
 }
 

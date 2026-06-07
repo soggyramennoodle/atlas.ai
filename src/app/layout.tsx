@@ -3,7 +3,6 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,7 +28,6 @@ export default function RootLayout({
       <body className="relative min-h-full flex flex-col font-sans">
         <ThemeProvider>
           {children}
-          <ThemeToggle />
           <Toaster position="top-center" richColors />
         </ThemeProvider>
       </body>

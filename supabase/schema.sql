@@ -80,11 +80,15 @@ create table if not exists public.user_profiles (
   year         text,
   grad_year    text,
   welcome_email_sent_at timestamptz,
+  ui_tour_completed_at timestamptz,
   created_at   timestamptz not null default now()
 );
 
 alter table public.user_profiles
   add column if not exists welcome_email_sent_at timestamptz;
+
+alter table public.user_profiles
+  add column if not exists ui_tour_completed_at timestamptz;
 
 alter table public.user_profiles enable row level security;
 

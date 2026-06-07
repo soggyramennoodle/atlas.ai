@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/site-header";
 import { Footer } from "@/components/footer";
 import { MarketingBackground } from "@/components/marketing-background";
+import { MarketingThemeLock } from "@/components/marketing-theme-lock";
 
 export default function MarketingLayout({
   children,
@@ -9,6 +10,7 @@ export default function MarketingLayout({
 }) {
   return (
     <>
+      <MarketingThemeLock />
       <MarketingBackground />
       <SiteHeader />
       <main className="flex-1">{children}</main>

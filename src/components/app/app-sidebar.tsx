@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -17,20 +17,42 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ThemeSelector } from "@/components/theme-selector";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
+  tourId: string;
   external?: boolean;
 };
 
 const BASE_NAV: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/upload", label: "Record a lecture", icon: Mic },
-  { href: "/newsroom", label: "What's new", icon: Newspaper },
-  { href: "/settings", label: "Settings", icon: Settings },
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    tourId: "nav-dashboard",
+  },
+  {
+    href: "/upload",
+    label: "Record a lecture",
+    icon: Mic,
+    tourId: "nav-upload",
+  },
+  {
+    href: "/newsroom",
+    label: "What's new",
+    icon: Newspaper,
+    tourId: "nav-newsroom",
+  },
+  {
+    href: "/settings",
+    label: "Settings",
+    icon: Settings,
+    tourId: "nav-settings",
+  },
 ];
 
 function NavLinks({
@@ -42,7 +64,15 @@ function NavLinks({
 }) {
   const pathname = usePathname();
   const nav: NavItem[] = isAdmin
-    ? [...BASE_NAV, { href: "/admin", label: "Admin", icon: ShieldCheck }]
+    ? [
+        ...BASE_NAV,
+        {
+          href: "/admin",
+          label: "Admin",
+          icon: ShieldCheck,
+          tourId: "nav-admin",
+        },
+      ]
     : BASE_NAV;
   return (
     <nav className="flex flex-col gap-1">
@@ -54,6 +84,7 @@ function NavLinks({
           <Link
             key={item.href}
             href={item.href}
+            data-tour={item.tourId}
             onClick={onNavigate}
             className={cn(
               "group icon-animate relative flex items-center gap-3 rounded-[4px] px-3 py-2.5 text-sm font-medium transition-colors",
@@ -79,8 +110,6 @@ function NavLinks({
 }
 
 function Profile({ email, name }: { email: string; name?: string }) {
-  // Prefer the display name the user set at signup/in settings; only fall back
-  // to an email-derived label when no display name exists.
   const displayName = name?.trim() || email.split("@")[0];
   const initials = (displayName[0] ?? email[0] ?? "?").toUpperCase();
   return (
@@ -129,8 +158,8 @@ function SidebarBody({
 
       <NavLinks isAdmin={isAdmin} onNavigate={onNavigate} />
 
-      {/* Upsell / spacer */}
       <div className="mt-auto space-y-4">
+        <ThemeSelector />
         <div className="hover-glow icon-animate rounded-[4px] border border-border bg-secondary p-4">
           <Sparkles className="size-5 text-primary" />
           <p className="mt-2 text-sm font-medium">Flashcards & quizzes</p>
@@ -165,27 +194,39 @@ export function AppSidebar({
   email,
   name,
   isAdmin,
+  mobileOpen,
+  onMobileOpenChange,
 }: {
   email: string;
   name?: string;
   isAdmin?: boolean;
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = mobileOpen ?? internalOpen;
+  const setOpen = onMobileOpenChange ?? setInternalOpen;
   const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (mobileOpen) setInternalOpen(true);
+  }, [mobileOpen]);
 
   return (
     <>
-      {/* Desktop fixed sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border bg-card lg:block">
+      <aside
+        data-tour="sidebar"
+        className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border bg-card lg:block"
+      >
         <SidebarBody email={email} name={name} isAdmin={isAdmin} />
       </aside>
 
-      {/* Mobile top bar */}
       <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-border bg-card/85 px-4 py-3 backdrop-blur-sm lg:hidden">
         <Link href="/dashboard">
           <Logo beta />
         </Link>
         <button
+          data-tour="mobile-menu"
           onClick={() => setOpen(true)}
           aria-label="Open menu"
           className="grid size-9 place-items-center rounded-[4px] border border-border bg-background"
@@ -194,7 +235,6 @@ export function AppSidebar({
         </button>
       </div>
 
-      {/* Mobile drawer */}
       <AnimatePresence>
         {open && (
           <>
@@ -207,6 +247,7 @@ export function AppSidebar({
               className="fixed inset-0 z-50 bg-foreground/20 lg:hidden"
             />
             <motion.aside
+              data-tour="sidebar-mobile"
               initial={reduceMotion ? false : { x: "-100%" }}
               animate={{ x: 0 }}
               exit={reduceMotion ? { opacity: 0 } : { x: "-100%" }}

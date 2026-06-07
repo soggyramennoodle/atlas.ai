@@ -47,7 +47,7 @@ export function Greeting({ name }: { name: string }) {
   }, []);
 
   return (
-    <div>
+    <div data-tour="dashboard-greeting">
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
         {local?.date || " "}
       </p>

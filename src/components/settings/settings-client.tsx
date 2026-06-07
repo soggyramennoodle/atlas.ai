@@ -131,7 +131,7 @@ function ProfileForm({
   }
 
   return (
-    <div className="rounded-[4px] border border-border bg-card p-6">
+    <div data-tour="settings-profile" className="rounded-[4px] border border-border bg-card p-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-semibold tracking-tight">Your profile</h2>

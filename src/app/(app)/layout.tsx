@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isNewsroomAdmin } from "@/lib/newsroom";
-import { AppSidebar } from "@/components/app/app-sidebar";
+import { AppShell } from "@/components/app/app-shell";
 import { RecordingProvider } from "@/components/recording/recording-context";
 import { RecordingDock } from "@/components/recording/recording-dock";
 import { MarketingBackground } from "@/components/marketing-background";
@@ -24,7 +24,7 @@ export default async function AppLayout({
   // and we don't want to trap the user in a redirect loop.
   const { data: profile, error: profileError } = await supabase
     .from("user_profiles")
-    .select("display_name")
+    .select("display_name, ui_tour_completed_at")
     .maybeSingle();
   if (!profileError && !profile?.display_name) redirect("/onboarding");
 
@@ -33,14 +33,14 @@ export default async function AppLayout({
       <div className="relative min-h-screen">
         {/* Clean rivo-light canvas, shared with the marketing surface. */}
         <MarketingBackground />
-        <AppSidebar
+        <AppShell
           email={user.email ?? ""}
           name={profile?.display_name ?? ""}
           isAdmin={isNewsroomAdmin(user.email)}
-        />
-        <div className="lg:pl-64">
-          <div className="pt-16 lg:pt-0">{children}</div>
-        </div>
+          showUiTour={!profileError && !profile?.ui_tour_completed_at}
+        >
+          {children}
+        </AppShell>
         {/* Persistent recording fly-out, shown off the /upload page (§8). */}
         <RecordingDock />
       </div>

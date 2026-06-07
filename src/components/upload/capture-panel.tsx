@@ -32,7 +32,10 @@ export function CapturePanel({ userId }: { userId: string }) {
             className="overflow-hidden"
           >
             {/* Segmented control — recording leads, upload is the quieter option. */}
-            <div className="mx-auto grid w-full max-w-sm grid-cols-2 gap-1 rounded-[4px] border border-border bg-card p-1">
+            <div
+              data-tour="capture-modes"
+              className="mx-auto grid w-full max-w-sm grid-cols-2 gap-1 rounded-[4px] border border-border bg-card p-1"
+            >
               {(
                 [
                   { id: "record", label: "Record now", icon: Mic },
@@ -76,6 +79,7 @@ export function CapturePanel({ userId }: { userId: string }) {
         {mode === "record" ? (
           <motion.div
             key="record"
+            data-tour="capture-recorder"
             initial={reduceMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
