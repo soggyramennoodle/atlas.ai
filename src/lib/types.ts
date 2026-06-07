@@ -48,6 +48,13 @@ export interface KeyConcept {
 export interface StructuredNotes {
   /** Server-side generation state for placeholder/error notes. */
   status?: "processing" | "failed" | "ready";
+  /**
+   * Set while the note's job is held by a system incident (e.g. the Gemini
+   * spend cap). Kept alongside status: "processing" so watchers can show an
+   * honest "at capacity" state without treating the note as finished. Cleared
+   * when the incident resolves and the job resumes.
+   */
+  hold?: "gemini_spend_cap" | null;
   /** A clean, descriptive title for the lecture. */
   title: string;
   /** Optional subject/course inferred from the content (e.g. "Organic Chemistry"). */
@@ -194,4 +201,19 @@ export interface LectureSegmentRecord {
   attempts: number;
   created_at: string;
   updated_at: string;
+}
+
+/** Kinds of system-wide incident tracked in `public.system_alerts`. */
+export type SystemAlertType = "GEMINI_SPEND_CAP";
+
+/** A row in `public.system_alerts`. */
+export interface SystemAlert {
+  id: string;
+  type: SystemAlertType;
+  active: boolean;
+  first_detected_at: string;
+  last_detected_at: string;
+  notification_sent: boolean;
+  resolved_at: string | null;
+  created_at: string;
 }
