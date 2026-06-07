@@ -14,6 +14,7 @@ import {
   Sparkles,
   Newspaper,
   Megaphone,
+  ListOrdered,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -45,6 +46,7 @@ function NavLinks({
     ? [
         ...BASE_NAV,
         { href: "/admin/newsroom", label: "Publish news", icon: Megaphone },
+        { href: "/admin/jobs", label: "Jobs", icon: ListOrdered },
       ]
     : BASE_NAV;
   return (
