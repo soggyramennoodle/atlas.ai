@@ -8,7 +8,6 @@ import {
   STALE_JOB_TTL_MS,
   TERMINAL_JOB_RETENTION_MS,
   getJobLastActivityMs,
-  isIncompleteJobStatus,
   isJobStaleForCleanup,
   isStaleCleanupExempt,
 } from "@/lib/jobs-retention";

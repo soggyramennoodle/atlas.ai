@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ListOrdered } from "lucide-react";
 import { AdminBackLink } from "@/components/admin/admin-back-link";
+import {
+  AdminJobsRefreshProvider,
+  AdminJobsToolbar,
+} from "@/components/admin/admin-jobs-refresh";
 import { AdminJobList } from "@/components/admin/job-list";
-import { GeminiRestoreButton } from "@/components/admin/gemini-restore-button";
 import type { AdminJobRow } from "@/lib/admin-jobs";
 import { deriveJobHealth } from "@/lib/job-health";
 import { JOBS_LEASE_MS } from "@/lib/jobs";
@@ -104,51 +107,51 @@ export default async function AdminJobsPage() {
   ).length;
 
   return (
-    <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
-      <div className="mx-auto max-w-6xl">
-        <AdminBackLink fallbackHref="/admin" label="Back" />
+    <AdminJobsRefreshProvider>
+      <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
+        <div className="mx-auto max-w-6xl">
+          <AdminBackLink fallbackHref="/admin" label="Back" />
 
-        <div className="mt-4">
-          <GeminiRestoreButton />
-        </div>
+          <AdminJobsToolbar />
 
-        <div className="mt-4">
-          <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
-            <ListOrdered className="size-3.5" />
-            Admin
-          </span>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight">Lecture jobs</h1>
-          <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
-            Job and note IDs only — no lecture titles or filenames. Stuck jobs are
-            removed after {formatHours(STALE_JOB_TTL_MS)} hours of inactivity; finished
-            job records are purged after {formatDays(TERMINAL_JOB_RETENTION_MS)} days.
-            Cleanup runs every {JOBS_CLEANUP_INTERVAL_HOURS} hours.
-            {incompleteCount > 0
-              ? ` ${incompleteCount} open job${incompleteCount === 1 ? "" : "s"} right now`
-              : ""}
-            {pendingCleanupCount > 0
-              ? ` · ${pendingCleanupCount} overdue for cleanup`
-              : ""}
-            .
-          </p>
-        </div>
+          <div className="mt-4">
+            <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
+              <ListOrdered className="size-3.5" />
+              Admin
+            </span>
+            <h1 className="mt-4 text-2xl font-semibold tracking-tight">Lecture jobs</h1>
+            <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
+              Job and note IDs only — no lecture titles or filenames. Stuck jobs are
+              removed after {formatHours(STALE_JOB_TTL_MS)} hours of inactivity; finished
+              job records are purged after {formatDays(TERMINAL_JOB_RETENTION_MS)} days.
+              Cleanup runs every {JOBS_CLEANUP_INTERVAL_HOURS} hours.
+              {incompleteCount > 0
+                ? ` ${incompleteCount} open job${incompleteCount === 1 ? "" : "s"} right now`
+                : ""}
+              {pendingCleanupCount > 0
+                ? ` · ${pendingCleanupCount} overdue for cleanup`
+                : ""}
+              .
+            </p>
+          </div>
 
-        <div className="mt-8">
-          {rows.length === 0 ? (
-            <div className="rounded-[4px] border border-dashed bg-card px-6 py-16 text-center shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-              <div className="mx-auto grid size-12 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
-                <ListOrdered className="size-5" />
+          <div className="mt-8">
+            {rows.length === 0 ? (
+              <div className="rounded-[4px] border border-dashed bg-card px-6 py-16 text-center shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+                <div className="mx-auto grid size-12 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
+                  <ListOrdered className="size-5" />
+                </div>
+                <h2 className="mt-4 font-medium">No jobs yet</h2>
+                <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">
+                  New recordings and uploads will appear here while they move through the pipeline.
+                </p>
               </div>
-              <h2 className="mt-4 font-medium">No jobs yet</h2>
-              <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">
-                New recordings and uploads will appear here while they move through the pipeline.
-              </p>
-            </div>
-          ) : (
-            <AdminJobList jobs={rows} />
-          )}
+            ) : (
+              <AdminJobList jobs={rows} />
+            )}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </AdminJobsRefreshProvider>
   );
 }

@@ -9,6 +9,7 @@ import {
   formatAdminId,
   type AdminJobRow,
 } from "@/lib/admin-jobs";
+import { useAdminJobsRefresh } from "@/components/admin/admin-jobs-refresh";
 import { formatAutoDeleteCountdown } from "@/lib/jobs-retention";
 import type { JobHealthKey } from "@/lib/job-health";
 
@@ -56,6 +57,7 @@ function formatTimestamp(value: string) {
 }
 
 export function JobRow({ job }: { job: AdminJobRow }) {
+  const { refresh } = useAdminJobsRefresh();
   const [requeuing, setRequeuing] = useState(false);
   const canRequeue = job.health === "failed" || job.health === "stuck";
 
@@ -63,7 +65,7 @@ export function JobRow({ job }: { job: AdminJobRow }) {
     setRequeuing(true);
     try {
       const res = await fetch(`/api/admin/jobs/${job.id}/requeue`, { method: "POST" });
-      if (res.ok) window.location.reload();
+      if (res.ok) refresh();
       else window.alert("Couldn't requeue this job.");
     } finally {
       setRequeuing(false);

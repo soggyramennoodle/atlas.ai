@@ -11,7 +11,7 @@ interface Status {
   since: string | null;
 }
 
-export function GeminiRestoreButton() {
+export function GeminiRestoreButton({ onResolved }: { onResolved?: () => void }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [busy, setBusy] = useState(false);
   // Bumping this re-runs the polling effect (e.g. to refresh right after a
@@ -40,24 +40,27 @@ export function GeminiRestoreButton() {
     if (!status?.active) return;
     if (
       !window.confirm(
-        `Mark Gemini processing restored? ${status.affectedJobs} job(s) will resume and ${status.affectedUsers} user(s) will be emailed.`
+        `Mark Gemini processing restored? ${status.affectedJobs} job(s) will resume and up to ${status.affectedUsers} back-online email(s) will be queued.`
       )
     )
       return;
     setBusy(true);
     try {
       const res = await fetch("/api/admin/gemini/resolve", { method: "POST" });
-      const body = (await res.json()) as { requeued?: number; notified?: number };
-      if (res.ok)
+      const body = (await res.json()) as { requeued?: number; emailsQueued?: number };
+      if (res.ok) {
+        onResolved?.();
         window.alert(
-          `Restored — ${body.requeued ?? 0} job(s) requeued, ${body.notified ?? 0} user(s) notified.`
+          `Restored — ${body.requeued ?? 0} job(s) requeued, ${body.emailsQueued ?? 0} back-online email(s) queued.`
         );
-      else window.alert("Couldn't resolve the incident.");
+      } else {
+        window.alert("Couldn't resolve the incident.");
+      }
     } finally {
       setBusy(false);
       setReloadKey((k) => k + 1);
     }
-  }, [status]);
+  }, [status, onResolved]);
 
   const active = status?.active === true;
 

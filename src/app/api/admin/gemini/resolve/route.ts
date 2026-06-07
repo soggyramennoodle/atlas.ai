@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   if (!admin) return NextResponse.json({ error: "Forbidden." }, { status: 403 });
 
   const alert = await resolveAlert("GEMINI_SPEND_CAP");
-  if (!alert) return NextResponse.json({ resolved: true, requeued: 0, notified: 0 });
+  if (!alert) return NextResponse.json({ resolved: true, requeued: 0, emailsQueued: 0 });
 
   const db = createAdminClient();
 
@@ -58,16 +58,15 @@ export async function POST(request: Request) {
 
   // Email each distinct affected user once.
   const userIds = distinctUserIds(heldJobs);
-  let notified = 0;
+  let emailsQueued = 0;
   for (const userId of userIds) {
     const { data: userRes } = await db.auth.admin.getUserById(userId);
     const email = userRes?.user?.email;
-    if (email) {
-      await sendBackOnlineEmail(email, alert.id);
-      notified += 1;
+    if (email && (await sendBackOnlineEmail(email, alert.id))) {
+      emailsQueued += 1;
     }
   }
 
   await kickTick(request);
-  return NextResponse.json({ resolved: true, requeued: heldJobs.length, notified });
+  return NextResponse.json({ resolved: true, requeued: heldJobs.length, emailsQueued });
 }
