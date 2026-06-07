@@ -3,12 +3,14 @@ import "server-only";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getR2Bucket, r2 } from "@/lib/r2";
+import { getActiveAlert } from "@/lib/alerts";
 import {
   STALE_JOB_TTL_MS,
   TERMINAL_JOB_RETENTION_MS,
   getJobLastActivityMs,
   isIncompleteJobStatus,
   isJobStaleForCleanup,
+  isStaleCleanupExempt,
 } from "@/lib/jobs-retention";
 import type { LectureJobRecord, LectureSegmentRecord } from "@/lib/types";
 
@@ -42,17 +44,18 @@ export async function runJobCleanup(
   terminalRetentionMs: number = TERMINAL_JOB_RETENTION_MS
 ): Promise<JobCleanupResult> {
   const db = createAdminClient();
+  const spendCapActive = !!(await getActiveAlert("GEMINI_SPEND_CAP"));
   const deletedIncompleteIds: string[] = [];
   const deletedTerminalIds: string[] = [];
 
   const { data: incompleteJobs } = await db
     .from("lecture_jobs")
-    .select("id, note_id, status, created_at, updated_at, heartbeat_at")
+    .select("id, note_id, status, error, created_at, updated_at, heartbeat_at")
     .in("status", ["recording", "recording_complete", "processing"]);
 
   const incompleteRows = (incompleteJobs ?? []) as Pick<
     LectureJobRecord,
-    "id" | "note_id" | "status" | "created_at" | "updated_at" | "heartbeat_at"
+    "id" | "note_id" | "status" | "error" | "created_at" | "updated_at" | "heartbeat_at"
   >[];
 
   if (incompleteRows.length > 0) {
@@ -73,6 +76,7 @@ export async function runJobCleanup(
     }
 
     const staleJobs = incompleteRows.filter((job) => {
+      if (isStaleCleanupExempt(job, spendCapActive)) return false;
       const segments = segmentsByJob.get(job.id) ?? [];
       const latestSegmentUpdatedAt = segments.reduce<string | null>((latest, segment) => {
         if (!latest || segment.updated_at > latest) return segment.updated_at;

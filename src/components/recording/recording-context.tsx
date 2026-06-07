@@ -64,7 +64,7 @@ export type RecordingPhase = "idle" | "recording" | "paused" | "recorded";
  */
 export type RecordingSource = "microphone" | "device";
 
-export type ProcessingIssueKind = "silent" | "timeout" | "failed";
+export type ProcessingIssueKind = "silent" | "timeout" | "failed" | "capacity";
 
 export interface ProcessingIssue {
   kind: ProcessingIssueKind;
@@ -1653,7 +1653,17 @@ export function RecordingProvider({
         .select("content")
         .eq("id", noteId)
         .single();
-      const status = (data?.content as { status?: string } | null)?.status;
+      const content = data?.content as { status?: string; hold?: string } | null;
+      const status = content?.status;
+      if (content?.hold === "gemini_spend_cap") {
+        setProcessingIssue({
+          kind: "capacity",
+          title: "Atlas is at capacity right now",
+          message:
+            "Your recording is saved. Atlas AI is temporarily unable to process new recordings, and yours will finish automatically once processing is restored — you'll get an email when it's done.",
+        });
+        return;
+      }
       // Anything that isn't "processing" is terminal (ready / failed / legacy
       // notes with no status). Hard navigation so the note page mounts fresh.
       if (data && status !== "processing") {

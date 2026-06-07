@@ -6,6 +6,7 @@ import {
   getJobLastActivityMs,
   isIncompleteJobStatus,
   isJobStaleForCleanup,
+  isStaleCleanupExempt,
   resolveJobAutoDelete,
 } from "./jobs-retention";
 import type { LectureJobStatus } from "./types";
@@ -89,5 +90,18 @@ describe("formatAutoDeleteCountdown", () => {
     expect(formatAutoDeleteCountdown(now + 2 * 3_600_000 + 15 * 60_000, now)).toBe(
       "2h 15m"
     );
+  });
+});
+
+describe("isStaleCleanupExempt", () => {
+  it("exempts spend-cap-held jobs while an incident is active", () => {
+    expect(isStaleCleanupExempt({ error: "gemini_spend_cap" }, true)).toBe(true);
+  });
+  it("does not exempt held jobs once the incident is resolved", () => {
+    expect(isStaleCleanupExempt({ error: "gemini_spend_cap" }, false)).toBe(false);
+  });
+  it("does not exempt ordinary jobs", () => {
+    expect(isStaleCleanupExempt({ error: null }, true)).toBe(false);
+    expect(isStaleCleanupExempt({ error: "compose" }, true)).toBe(false);
   });
 });

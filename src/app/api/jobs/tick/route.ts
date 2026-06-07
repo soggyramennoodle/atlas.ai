@@ -20,6 +20,9 @@ import type {
   UserMemory,
   UserProfile,
 } from "@/lib/types";
+import { GeminiSpendCapError } from "@/lib/gemini-errors";
+import { getActiveAlert, openAlert, markNotified, shouldNotifyAdmin } from "@/lib/alerts";
+import { sendSpendCapAdminAlert } from "@/lib/admin-notify";
 
 export const runtime = "nodejs";
 export const maxDuration = 60; // Hobby cap; the budget yields before this.
@@ -34,6 +37,55 @@ function failedContent(message: string): StructuredNotes {
     keyConcepts: [],
     transcript: "",
   };
+}
+
+/**
+ * Record a Gemini spend-cap hit: open/refresh the incident (emailing the
+ * operator once), tag the job as held (no attempt burned), mark its note so the
+ * browser can show the "at capacity" screen, and reset any in-flight segment.
+ * Never throws — holding must always succeed so the job is preserved.
+ */
+async function holdJobForSpendCap(
+  db: ReturnType<typeof createAdminClient>,
+  job: LectureJobRecord,
+  inFlightSegmentId: string | null
+) {
+  try {
+    const { alert, created } = await openAlert("GEMINI_SPEND_CAP");
+    if (shouldNotifyAdmin({ created, notification_sent: alert.notification_sent })) {
+      await sendSpendCapAdminAlert(alert.id);
+      await markNotified(alert.id);
+    }
+  } catch (err) {
+    console.error("Failed to open spend-cap alert:", err);
+  }
+
+  const stamp = new Date().toISOString();
+  await db
+    .from("lecture_jobs")
+    .update({ error: "gemini_spend_cap", heartbeat_at: null, updated_at: stamp })
+    .eq("id", job.id);
+
+  if (inFlightSegmentId) {
+    await db
+      .from("lecture_segments")
+      .update({ status: "uploaded", updated_at: stamp })
+      .eq("id", inFlightSegmentId);
+  }
+
+  // Mark the note (keep status: processing) so the watcher flips to capacity.
+  if (job.note_id) {
+    const { data: noteRow } = await db
+      .from("notes")
+      .select("content")
+      .eq("id", job.note_id)
+      .maybeSingle();
+    const content = (noteRow?.content as Record<string, unknown> | null) ?? {};
+    await db
+      .from("notes")
+      .update({ content: { ...content, status: "processing", hold: "gemini_spend_cap" } })
+      .eq("id", job.note_id);
+  }
 }
 
 function configuredSecrets() {
@@ -70,6 +122,12 @@ async function runWorker(request: Request) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
   const db = createAdminClient();
+
+  // Don't touch Gemini while a spend-cap incident is open — every call would
+  // just fail and burn money/retries. Resume happens when an admin resolves it.
+  if (await getActiveAlert("GEMINI_SPEND_CAP")) {
+    return NextResponse.json({ paused: "spend_cap" });
+  }
 
   // 1) Find a claimable job (open + stale/no lease), oldest first.
   const { data: candidates } = await db
@@ -169,6 +227,10 @@ async function runWorker(request: Request) {
           })
           .eq("id", next.id);
       } catch (err) {
+        if (err instanceof GeminiSpendCapError) {
+          await holdJobForSpendCap(db, job, next.id);
+          return NextResponse.json({ claimed: true, held: "spend_cap" });
+        }
         const attempts = next.attempts + 1;
         await db
           .from("lecture_segments")
@@ -234,6 +296,10 @@ async function runWorker(request: Request) {
         );
         return NextResponse.json({ claimed: true, composed: true });
       } catch (err) {
+        if (err instanceof GeminiSpendCapError) {
+          await holdJobForSpendCap(db, job, null);
+          return NextResponse.json({ claimed: true, held: "spend_cap" });
+        }
         console.error("Compose failed:", err);
         await db
           .from("notes")

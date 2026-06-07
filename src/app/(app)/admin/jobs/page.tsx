@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { ListOrdered } from "lucide-react";
 import { AdminBackLink } from "@/components/admin/admin-back-link";
 import { AdminJobList } from "@/components/admin/job-list";
+import { GeminiRestoreButton } from "@/components/admin/gemini-restore-button";
 import type { AdminJobRow } from "@/lib/admin-jobs";
+import { deriveJobHealth } from "@/lib/job-health";
+import { JOBS_LEASE_MS } from "@/lib/jobs";
 import {
   JOBS_CLEANUP_INTERVAL_HOURS,
   STALE_JOB_TTL_MS,
@@ -12,6 +15,7 @@ import {
   isIncompleteJobStatus,
   resolveJobAutoDelete,
 } from "@/lib/jobs-retention";
+import { getActiveAlert } from "@/lib/alerts";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { LectureJobRecord, LectureSegmentRecord } from "@/lib/types";
@@ -32,6 +36,7 @@ export default async function AdminJobsPage() {
   if (!admin) notFound();
 
   const db = createAdminClient();
+  const spendCapActive = !!(await getActiveAlert("GEMINI_SPEND_CAP"));
   const { data: jobs } = await db
     .from("lecture_jobs")
     .select(
@@ -67,6 +72,10 @@ export default async function AdminJobsPage() {
     const lastActivityMs = getJobLastActivityMs(job, latestSegmentUpdatedAt, now);
     const updatedAtMs = new Date(job.updated_at).getTime();
     const autoDelete = resolveJobAutoDelete(job.status, lastActivityMs, updatedAtMs);
+    const health = deriveJobHealth(
+      { status: job.status, error: job.error, heartbeatAt: job.heartbeat_at },
+      { now, leaseMs: JOBS_LEASE_MS, spendCapActive }
+    );
 
     return {
       id: job.id,
@@ -84,6 +93,8 @@ export default async function AdminJobsPage() {
       lastActivityAt: new Date(lastActivityMs).toISOString(),
       autoDeleteAt: new Date(autoDelete.atMs).toISOString(),
       autoDeleteKind: autoDelete.kind,
+      health: health.key,
+      healthLabel: health.label,
     };
   });
 
@@ -96,6 +107,10 @@ export default async function AdminJobsPage() {
     <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
       <div className="mx-auto max-w-6xl">
         <AdminBackLink fallbackHref="/admin" label="Back" />
+
+        <div className="mt-4">
+          <GeminiRestoreButton />
+        </div>
 
         <div className="mt-4">
           <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">

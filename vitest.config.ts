@@ -1,3 +1,4 @@
+import path from "path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -7,6 +8,7 @@ export default defineConfig({
     // Alias it to an empty module so pure-helper tests can import server files.
     alias: {
       "server-only": require.resolve("./src/lib/__server-only-stub__.ts"),
+      "@": path.resolve(__dirname, "src"),
     },
   },
   test: {
