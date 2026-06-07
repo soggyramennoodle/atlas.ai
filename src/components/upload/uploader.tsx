@@ -104,6 +104,7 @@ export function Uploader({ userId }: { userId: string }) {
   const [stage, setStage] = useState<CaptureStage>("idle");
   const [safeToLeave, setSafeToLeave] = useState(false);
   const [processingNoteId, setProcessingNoteId] = useState<string | null>(null);
+  const [prepareHint, setPrepareHint] = useState("");
 
   const busy = stage !== "idle";
 
@@ -185,7 +186,9 @@ export function Uploader({ userId }: { userId: string }) {
       if ((duration ?? 0) > CHUNK_ABOVE_SECONDS) {
         try {
           setStage("preparing");
+          setPrepareHint("Splitting your lecture into segments…");
           const { chunks, mimeType: chunkMime } = await extractAudioChunks(file);
+          setPrepareHint("");
           setStage("uploading");
           const sessionLabel =
             file.name.replace(/\.[^.]+$/, "").trim() || "Uploaded lecture";
@@ -202,6 +205,7 @@ export function Uploader({ userId }: { userId: string }) {
           return;
         } catch (chunkErr) {
           // Fall through to the single-file path below.
+          setPrepareHint("");
           console.error(
             "Chunked upload failed; falling back to single-file upload:",
             chunkErr
@@ -245,6 +249,7 @@ export function Uploader({ userId }: { userId: string }) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
       setStage("idle");
       setSafeToLeave(false);
+      setPrepareHint("");
     }
   }
 
@@ -407,7 +412,7 @@ export function Uploader({ userId }: { userId: string }) {
       )}
 
       {/* Shared lightweight processing overlay. */}
-      <ProcessingOverlay stage={stage} safeToLeave={safeToLeave} />
+      <ProcessingOverlay stage={stage} safeToLeave={safeToLeave} subLabel={prepareHint} />
     </div>
   );
 }
