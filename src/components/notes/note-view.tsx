@@ -299,10 +299,16 @@ export function NoteView({
   const displayStatus = saved.status;
 
   if (displayStatus === "processing" || displayStatus === "failed") {
+    const held = displayStatus === "processing" && saved.hold === "gemini_spend_cap";
     return (
       <ProcessingNoteState
         failed={displayStatus === "failed"}
-        message={saved.summary}
+        held={held}
+        message={
+          held
+            ? "Your recording is saved. Atlas AI is temporarily unable to process new recordings, and yours will finish automatically once processing is restored — you'll get an email when it's done."
+            : saved.summary
+        }
       />
     );
   }
@@ -459,32 +465,45 @@ export function NoteView({
 
 function ProcessingNoteState({
   failed,
+  held = false,
   message,
 }: {
   failed: boolean;
+  /** Held by the Gemini spend-cap incident: still processing, but paused. */
+  held?: boolean;
   message: string;
 }) {
+  const iconClass = failed
+    ? "relative mx-auto grid size-14 place-items-center rounded-[4px] border border-destructive/30 bg-destructive/10 text-destructive"
+    : held
+    ? "relative mx-auto grid size-14 place-items-center rounded-[4px] border border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-400"
+    : "relative mx-auto grid size-14 place-items-center rounded-[4px] border border-primary/30 bg-primary/10 text-primary";
+
   return (
     <div className="relative overflow-hidden rounded-[4px] border border-border bg-card px-6 py-12 text-center">
-      <span
-        className={
-          failed
-            ? "relative mx-auto grid size-14 place-items-center rounded-[4px] border border-destructive/30 bg-destructive/10 text-destructive"
-            : "relative mx-auto grid size-14 place-items-center rounded-[4px] border border-primary/30 bg-primary/10 text-primary"
-        }
-      >
-        {failed ? (
+      <span className={iconClass}>
+        {failed || held ? (
           <AlertCircle className="size-6" />
         ) : (
           <Loader2 className="size-6 animate-spin" />
         )}
       </span>
       <h2 className="relative mt-5 text-3xl font-bold tracking-[-0.02em]">
-        {failed ? "Processing failed" : "Still processing"}
+        {failed
+          ? "Processing failed"
+          : held
+          ? "Atlas is at capacity right now"
+          : "Still processing"}
       </h2>
       <p className="relative mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
         {message}
       </p>
+      {held && (
+        <div className="relative mx-auto mt-5 inline-flex items-center gap-2 rounded-[6px] border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-700 dark:text-emerald-300">
+          <span className="font-semibold">You can safely close this tab</span>
+          <span>— we&apos;ll email you when your notes are ready.</span>
+        </div>
+      )}
     </div>
   );
 }
