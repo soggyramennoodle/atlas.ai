@@ -29,7 +29,7 @@ export interface ProcessingIssue {
   message: string;
 }
 
-const LONG_RUN_DELAY = 15_000;
+const LONG_RUN_DELAY = 20_000;
 
 export function ProcessingOverlay({
   stage,
@@ -39,6 +39,7 @@ export function ProcessingOverlay({
   onDiscard,
   onDownload,
   safeToLeave,
+  subLabel,
 }: {
   stage: CaptureStage;
   issue?: ProcessingIssue | null;
@@ -47,6 +48,8 @@ export function ProcessingOverlay({
   onDiscard?: () => void;
   onDownload?: () => void;
   safeToLeave?: boolean;
+  /** Optional small line under the title (e.g. "Splitting your lecture…"). */
+  subLabel?: string;
 }) {
   const reduceMotion = useReducedMotion();
   const [showLongRunHint, setShowLongRunHint] = useState(false);
@@ -126,6 +129,9 @@ export function ProcessingOverlay({
                 {detail}
               </p>
             )}
+            {!failed && subLabel ? (
+              <p className="mt-2 text-xs font-medium text-primary/80">{subLabel}</p>
+            ) : null}
 
             {/* Extraction + upload run in this tab; closing it mid-flight loses
                 the work. Keep this up until the long-run hint appears — by then
