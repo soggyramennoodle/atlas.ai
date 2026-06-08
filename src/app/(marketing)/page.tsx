@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { SiteStatusBanner } from "@/components/landing/site-status-banner";
 import { Hero } from "@/components/landing/hero";
 import { getPublicAnnouncement } from "@/lib/site-announcement";
 import { SubjectsMarquee } from "@/components/landing/subjects-marquee";
@@ -20,8 +19,7 @@ export default async function Home() {
 
   return (
     <>
-      <SiteStatusBanner announcement={announcement} />
-      <Hero ctaHref={ctaHref} />
+      <Hero ctaHref={ctaHref} announcement={announcement} />
       <SubjectsMarquee />
       <div aria-hidden className="h-12 sm:h-14 lg:h-16" />
       <UniversitiesMarquee />

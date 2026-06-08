@@ -2,8 +2,16 @@ import Link from "next/link";
 import { ArrowRight, Mic, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/landing/reveal";
+import { SiteStatusBanner } from "@/components/landing/site-status-banner";
+import type { SiteAnnouncement } from "@/lib/types";
 
-export function Hero({ ctaHref }: { ctaHref: string }) {
+export function Hero({
+  ctaHref,
+  announcement,
+}: {
+  ctaHref: string;
+  announcement: SiteAnnouncement | null;
+}) {
   return (
     // overflow-x-clip (desktop only) lets the product shot bleed off the right
     // edge as an intentional peek without ever creating a horizontal scrollbar.
@@ -11,7 +19,12 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
       <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 items-center gap-14 lg:grid-cols-12 lg:gap-8">
         {/* Copy — held to the left of an asymmetric split. */}
         <div className="lg:col-span-5">
-          <Reveal>
+          {announcement ? (
+            <Reveal>
+              <SiteStatusBanner announcement={announcement} />
+            </Reveal>
+          ) : null}
+          <Reveal delay={announcement ? 0.04 : 0}>
             <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-muted-foreground">
               A note taker, made for you
             </p>
