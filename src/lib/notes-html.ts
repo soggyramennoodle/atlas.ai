@@ -133,36 +133,43 @@ function normForMatch(s: string): string {
 }
 
 /**
- * Split an AI "go deeper" answer into note-sized bullet items. Paragraphs
- * (double-newline separated) become separate bullets; a single block stays one
- * bullet. Whitespace is collapsed so the inserted notes read cleanly.
+ * Parse a regenerated-line model response into note-sized bullet items. The
+ * expand prompt emits one bullet per line; this splits on newlines, strips any
+ * stray list markers ("-", "*", "•", "1.") the model may add, and collapses
+ * whitespace so each bullet reads cleanly.
  */
-export function splitToNoteItems(text: string): string[] {
+export function parseNoteBullets(text: string): string[] {
   return text
-    .split(/\n{2,}/)
-    .map((part) => part.replace(/\s+/g, " ").trim())
+    .split(/\n+/)
+    .map((line) =>
+      line
+        .replace(/^\s*(?:[-*•‣·]|\d+[.)])\s+/, "")
+        .replace(/\s+/g, " ")
+        .trim()
+    )
     .filter(Boolean);
 }
 
 /**
- * Insert Atlas-generated bullet(s) into note `bodyHtml` immediately after the
- * block whose text matches `afterText`. Each new item is tagged with
- * {@link AI_BLOCK_ATTR} so the renderer can mark its provenance and exclude it
- * from lecture-source indexing (keeping existing `bodySources` aligned).
+ * Replace the note block whose text matches `lineText` with Atlas-regenerated
+ * bullet(s). Each replacement bullet is tagged with {@link AI_BLOCK_ATTR} so the
+ * renderer marks its provenance and excludes it from lecture-source indexing.
  *
- * When the target is a list item the bullets join its list; otherwise (a
- * paragraph or heading) they are wrapped in their own `<ul>`. If no block
- * matches — e.g. the line was edited concurrently — the bullets are appended at
- * the end of the body and `matched` is returned `false` so the caller can warn.
+ * Because the original line is removed, `removedSourceIndex` reports the
+ * lecture-source index it occupied (counting only non-AI `<li>` before it in
+ * document order) — or `null` when the target wasn't a sourceable list item — so
+ * the caller can drop that entry and shift later `bodySources` down by one,
+ * keeping every remaining source bubble aligned.
+ *
+ * If no block matches — e.g. the line was edited concurrently — the bullets are
+ * appended at the end and `matched` is returned `false`.
  */
-export function insertAiBlockHtml(
+export function replaceLineWithAiHtml(
   bodyHtml: string,
-  afterText: string,
+  lineText: string,
   items: string[]
-): { html: string; matched: boolean } {
+): { html: string; matched: boolean; removedSourceIndex: number | null } {
   const clean = items.map((t) => t.trim()).filter(Boolean);
-  if (!clean.length) return { html: bodyHtml, matched: true };
-
   const liHtml = clean
     .map((t) => `<li ${AI_BLOCK_ATTR}="1">${escapeHtml(t)}</li>`)
     .join("");
@@ -170,7 +177,9 @@ export function insertAiBlockHtml(
   const root = parse(sanitizeNoteHtml(bodyHtml || "<p></p>"), {
     lowerCaseTagName: true,
   });
-  const want = normForMatch(afterText);
+  if (!liHtml) return { html: root.toString(), matched: true, removedSourceIndex: null };
+
+  const want = normForMatch(lineText);
   const candidates = root.querySelectorAll("li, p, h1, h2, h3, h4");
   const target =
     candidates.find((el) => normForMatch(el.textContent) === want) ??
@@ -180,15 +189,31 @@ export function insertAiBlockHtml(
     });
 
   if (!target) {
-    return { html: `${root.toString()}<ul>${liHtml}</ul>`, matched: false };
+    return {
+      html: `${root.toString()}<ul>${liHtml}</ul>`,
+      matched: false,
+      removedSourceIndex: null,
+    };
   }
 
-  const tag = target.rawTagName?.toLowerCase();
-  target.insertAdjacentHTML(
-    "afterend",
-    tag === "li" ? liHtml : `<ul>${liHtml}</ul>`
-  );
-  return { html: root.toString(), matched: true };
+  const isLi = target.rawTagName?.toLowerCase() === "li";
+
+  // Lecture-source index of the target = count of non-AI <li> before it.
+  let removedSourceIndex: number | null = null;
+  if (isLi && target.getAttribute(AI_BLOCK_ATTR) == null) {
+    let count = 0;
+    for (const li of root.querySelectorAll("li")) {
+      if (li === target) {
+        removedSourceIndex = count;
+        break;
+      }
+      if (li.getAttribute(AI_BLOCK_ATTR) == null) count += 1;
+    }
+  }
+
+  target.insertAdjacentHTML("afterend", isLi ? liHtml : `<ul>${liHtml}</ul>`);
+  target.remove();
+  return { html: root.toString(), matched: true, removedSourceIndex };
 }
 
 /**

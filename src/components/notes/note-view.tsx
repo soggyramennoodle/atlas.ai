@@ -26,11 +26,11 @@ import { cn } from "@/lib/utils";
 import {
   AI_BLOCK_ATTR,
   htmlToPlainText,
-  insertAiBlockHtml,
   notesBodyToHtml,
+  parseNoteBullets,
+  replaceLineWithAiHtml,
   sanitizeNoteHtml,
   seedBodyFromSections,
-  splitToNoteItems,
 } from "@/lib/notes-html";
 import { SummaryCard } from "./summary-card";
 import { TranscriptPanel } from "./transcript-panel";
@@ -121,10 +121,16 @@ export function NoteView({
   const [readingActive, setReadingActive] = useState(false);
   const [readingFinished, setReadingFinished] = useState(false);
   const [editedTexts, setEditedTexts] = useState<string[]>([]);
-  // Active "Add to note" stream: the line to insert after + the text typing in.
-  const [aiStream, setAiStream] = useState<{ afterText: string; full: string } | null>(
-    null
-  );
+  // Active "Add to note" regeneration: the line being rewritten, the "go deeper"
+  // answer to fold in, and the note context the expand call needs.
+  const [aiStream, setAiStream] = useState<{
+    lineText: string;
+    deeper: string;
+    sourceExcerpt?: string;
+    noteTitle?: string;
+    subject?: string;
+    summary?: string;
+  } | null>(null);
 
   const draftRef = useRef(draft);
   const originalRef = useRef<StructuredNotes>(initial);
@@ -233,15 +239,15 @@ export function NoteView({
     aiStreamRef.current = aiStream;
   }, [aiStream]);
 
-  // Kick off the live typewriter insert. The actual splice + persist happens in
-  // commitAiStream once the typing animation completes (see AiStreamBlock).
+  // Start the regenerate-in-place flow. AiStreamBlock streams the rewrite live
+  // in the note; commitAiStream replaces the line + persists once it's done.
   const onAddToNote = useCallback(
-    (afterText: string, text: string) => {
-      if (!text.trim()) return;
+    (lineText: string, deeper: string, sourceExcerpt?: string) => {
+      if (!lineText.trim() || !deeper.trim()) return;
       // A not-yet-edited note renders from `sections` and has no bodyHtml to
-      // splice into. Seed one (preserving every source excerpt) so the insert
-      // and its live typewriter have a rich-text body to land in. Persisted
-      // together with the new bullet in commitAiStream.
+      // rewrite into. Seed one (preserving every source excerpt) so the rewrite
+      // and its live stream have a rich-text body to land in. Persisted together
+      // with the regenerated line in commitAiStream.
       if (!savedRef.current.bodyHtml) {
         const seeded = clone(savedRef.current);
         seeded.title = note.title;
@@ -253,52 +259,76 @@ export function NoteView({
         savedRef.current = seeded;
         draftRef.current = seeded;
       }
-      setAiStream({ afterText, full: text });
+      // Snapshot context into the stream so the AI block never remounts (and
+      // re-fetches) when `saved` changes mid-stream.
+      setAiStream({
+        lineText,
+        deeper,
+        sourceExcerpt,
+        noteTitle: note.title,
+        subject: savedRef.current.subject,
+        summary: savedRef.current.summary,
+      });
     },
     [note.title]
   );
 
-  const commitAiStream = useCallback(() => {
-    const cur = aiStreamRef.current;
-    setAiStream(null);
-    if (!cur) return;
+  const commitAiStream = useCallback(
+    (fullText: string) => {
+      const cur = aiStreamRef.current;
+      setAiStream(null);
+      if (!cur) return;
 
-    const base = clone(savedRef.current);
-    base.title = note.title;
-    const { html, matched } = insertAiBlockHtml(
-      base.bodyHtml ?? "",
-      cur.afterText,
-      splitToNoteItems(cur.full)
-    );
-    base.bodyHtml = html;
-    setSaved(base);
-    setDraft(base);
-    savedRef.current = base;
-    draftRef.current = base;
-    if (!matched) {
-      toast.message("Added at the end — couldn't pinpoint the exact line.");
-    }
+      const items = parseNoteBullets(fullText);
+      if (!items.length) return; // nothing came back — leave the note untouched
 
-    setStatus("saving");
-    fetch(`/api/notes/${note.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: base }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        setStatus("saved");
-        if (fadeTimer.current) clearTimeout(fadeTimer.current);
-        fadeTimer.current = setTimeout(
-          () => setStatus((s) => (s === "saved" ? "idle" : s)),
-          2000
-        );
+      const base = clone(savedRef.current);
+      base.title = note.title;
+      const { html, matched, removedSourceIndex } = replaceLineWithAiHtml(
+        base.bodyHtml ?? "",
+        cur.lineText,
+        items
+      );
+      base.bodyHtml = html;
+      // The original line was removed: drop its source entry and shift later
+      // ones down so every remaining hover-source bubble stays aligned.
+      if (removedSourceIndex != null) {
+        base.bodySources = (base.bodySources ?? [])
+          .filter((s) => s.index !== removedSourceIndex)
+          .map((s) =>
+            s.index > removedSourceIndex ? { ...s, index: s.index - 1 } : s
+          );
+      }
+      setSaved(base);
+      setDraft(base);
+      savedRef.current = base;
+      draftRef.current = base;
+      if (!matched) {
+        toast.message("Added to your notes — couldn't pinpoint the exact line.");
+      }
+
+      setStatus("saving");
+      fetch(`/api/notes/${note.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: base }),
       })
-      .catch(() => {
-        setStatus("idle");
-        toast.error("Couldn't save the addition.");
-      });
-  }, [note.id, note.title]);
+        .then((res) => {
+          if (!res.ok) throw new Error();
+          setStatus("saved");
+          if (fadeTimer.current) clearTimeout(fadeTimer.current);
+          fadeTimer.current = setTimeout(
+            () => setStatus((s) => (s === "saved" ? "idle" : s)),
+            2000
+          );
+        })
+        .catch(() => {
+          setStatus("idle");
+          toast.error("Couldn't save the addition.");
+        });
+    },
+    [note.id, note.title]
+  );
 
   const lineChat = useMemo(
     () => ({
@@ -317,8 +347,13 @@ export function NoteView({
     () =>
       aiStream ? (
         <AiStreamBlock
-          key={aiStream.afterText}
-          full={aiStream.full}
+          key={aiStream.lineText}
+          line={aiStream.lineText}
+          deeper={aiStream.deeper}
+          sourceExcerpt={aiStream.sourceExcerpt}
+          noteTitle={aiStream.noteTitle}
+          subject={aiStream.subject}
+          summary={aiStream.summary}
           onDone={commitAiStream}
         />
       ) : null,
@@ -533,7 +568,7 @@ export function NoteView({
           <EditedNoteBody
             html={saved.bodyHtml}
             sources={saved.bodySources ?? []}
-            streamAfter={aiStream?.afterText}
+            replaceLine={aiStream?.lineText}
             streamNode={aiStreamNode}
           />
         ) : (
@@ -648,14 +683,14 @@ function tagOf(node: Node): string {
 function EditedNoteBody({
   html,
   sources,
-  streamAfter,
+  replaceLine,
   streamNode,
 }: {
   html: string;
   sources: BodySource[];
-  /** Normalized text of the line a freshly-added AI block should follow. */
-  streamAfter?: string;
-  /** The live-typing AI block (an <li>) to inject after the matching line. */
+  /** Normalized text of the line currently being regenerated in place. */
+  replaceLine?: string;
+  /** The live-streaming AI block (an <li>) rendered in place of that line. */
   streamNode?: React.ReactNode;
 }) {
   const content = useMemo(() => {
@@ -663,31 +698,33 @@ function EditedNoteBody({
     const root = parse(sanitizeNoteHtml(html), { lowerCaseTagName: true });
     let listItemIndex = 0;
 
-    const want = streamAfter ? normText(streamAfter) : null;
-    let streamInjected = false;
+    const want = replaceLine ? normText(replaceLine) : null;
+    let streamShown = false;
     const matchesStream = (text: string) => {
-      if (want == null || streamInjected) return false;
+      if (want == null || streamShown) return false;
       const t = normText(text);
       return (
         t === want || (t.length > 4 && (t.includes(want) || want.includes(t)))
       );
     };
-    // Wrap a rendered block, appending the live AI block after it when it's the
-    // insertion target. `asListSibling` controls whether the AI <li> drops in as
-    // a list sibling (after another <li>) or gets its own wrapping <ul>.
-    const withStream = (
+    // Swap the rendered block for the live AI stream when it's the line being
+    // regenerated. The original block is still present in `html` (the rewrite
+    // isn't committed until streaming ends), so its list-index accounting is
+    // already done by the caller — we only swap what's shown. `asListSibling`
+    // controls whether the AI <li> sits directly in the list or needs its own
+    // wrapping <ul> (when replacing a paragraph/heading).
+    const replaceWithStream = (
       el: React.ReactNode,
       text: string,
       key: string,
       asListSibling: boolean
     ): React.ReactNode => {
       if (!streamNode || !matchesStream(text)) return el;
-      streamInjected = true;
-      return (
-        <Fragment key={`${key}-s`}>
-          {el}
-          {asListSibling ? streamNode : <ul>{streamNode}</ul>}
-        </Fragment>
+      streamShown = true;
+      return asListSibling ? (
+        <Fragment key={`${key}-s`}>{streamNode}</Fragment>
+      ) : (
+        <ul key={`${key}-s`}>{streamNode}</ul>
       );
     };
 
@@ -717,7 +754,7 @@ function EditedNoteBody({
       }
       if (tag === "h1" || tag === "h2") {
         const text = blockText(node);
-        return withStream(
+        return replaceWithStream(
           <h2 key={key}>
             <AskableBlock text={text}>{renderChildren(node.childNodes, key)}</AskableBlock>
           </h2>,
@@ -728,7 +765,7 @@ function EditedNoteBody({
       }
       if (tag === "h3" || tag === "h4") {
         const text = blockText(node);
-        return withStream(
+        return replaceWithStream(
           <h3 key={key}>
             <AskableBlock text={text}>{renderChildren(node.childNodes, key)}</AskableBlock>
           </h3>,
@@ -741,7 +778,7 @@ function EditedNoteBody({
         const children = renderChildren(node.childNodes, key, inListItem);
         if (inListItem) return <span key={key}>{children}</span>;
         const text = blockText(node);
-        return withStream(
+        return replaceWithStream(
           <p key={key}>
             <AskableBlock text={text}>{children}</AskableBlock>
           </p>,
@@ -789,7 +826,7 @@ function EditedNoteBody({
         const sourceStatus: "lecture" | "edited" =
           source?.status === "edited" ? "edited" : "lecture";
 
-        return withStream(
+        return replaceWithStream(
           <li key={key}>
             <AskableBlock
               text={text}
@@ -820,7 +857,7 @@ function EditedNoteBody({
     };
 
     return renderChildren(root.childNodes, "edited");
-  }, [html, sources, streamAfter, streamNode]);
+  }, [html, sources, replaceLine, streamNode]);
 
   return <div className="note-prose">{content}</div>;
 }
@@ -831,47 +868,90 @@ function blockText(node: HTMLElement): string {
 }
 
 /**
- * The live "Add to note" block: a violet, Atlas-flagged <li> that types out the
- * deeper answer (ChatGPT-style), then calls `onDone` so NoteView splices it into
- * the body and persists. Falls back to an instant insert under reduced motion.
+ * The live "Add to note" block: a violet, Atlas-flagged <li> rendered in place
+ * of the line being regenerated. It streams the rewrite from /api/lines/expand
+ * (the cheapest model, folding the "go deeper" answer into the original line),
+ * showing tokens as they arrive, then calls `onDone(fullText)` so NoteView
+ * replaces the line in the body and persists. Streaming is aborted on unmount;
+ * an aborted stream never commits.
  */
-function AiStreamBlock({ full, onDone }: { full: string; onDone: () => void }) {
-  const reduce = useReducedMotion();
+function AiStreamBlock({
+  line,
+  deeper,
+  sourceExcerpt,
+  noteTitle,
+  subject,
+  summary,
+  onDone,
+}: {
+  line: string;
+  deeper: string;
+  sourceExcerpt?: string;
+  noteTitle?: string;
+  subject?: string;
+  summary?: string;
+  onDone: (fullText: string) => void;
+}) {
   const [shown, setShown] = useState("");
+  const [done, setDone] = useState(false);
   const doneRef = useRef(onDone);
   useEffect(() => {
     doneRef.current = onDone;
   }, [onDone]);
 
   useEffect(() => {
-    // Reduced motion (or empty text): skip the animation, commit immediately.
-    if (reduce || !full) {
-      doneRef.current();
-      return;
-    }
-    let i = 0;
-    const step = Math.max(1, Math.round(full.length / 90));
-    const id = window.setInterval(() => {
-      i += step;
-      if (i >= full.length) {
-        setShown(full);
-        window.clearInterval(id);
-        doneRef.current();
-      } else {
-        setShown(full.slice(0, i));
+    const controller = new AbortController();
+    let full = "";
+    let aborted = false;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/lines/expand", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            line,
+            deeper,
+            sourceExcerpt,
+            noteTitle,
+            subject,
+            summary,
+          }),
+          signal: controller.signal,
+        });
+        if (!res.ok || !res.body) throw new Error();
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        for (;;) {
+          const { done: streamDone, value } = await reader.read();
+          if (streamDone) break;
+          full += decoder.decode(value, { stream: true });
+          setShown(full);
+        }
+      } catch (err) {
+        if ((err as Error).name === "AbortError") {
+          aborted = true;
+        }
+      } finally {
+        // Don't commit a partial rewrite if we were torn down mid-stream.
+        if (!aborted) {
+          setDone(true);
+          doneRef.current(full);
+        }
       }
-    }, 18);
-    return () => window.clearInterval(id);
+    })();
+
+    return () => {
+      aborted = true;
+      controller.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Under reduced motion the typed state stays empty; render the full text.
-  const display = reduce ? full : shown;
-
   return (
     <li className="text-violet-900/90 dark:text-violet-200/90">
-      <SourceBullet text={display} status="ai" />
-      {display.length < full.length && (
+      <SourceBullet text={shown || "…"} status="ai" />
+      {!done && (
         <motion.span
           aria-hidden
           animate={{ opacity: [1, 0.2, 1] }}

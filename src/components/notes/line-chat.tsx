@@ -41,8 +41,11 @@ interface LineChatValue {
   summary?: string;
   /** Whether the note has a rich-text body that AI bullets can be spliced into. */
   canAddToNote: boolean;
-  /** Stream the given text into the note body as Atlas-added bullet(s). */
-  onAddToNote: (afterText: string, text: string) => void;
+  /**
+   * Regenerate `lineText` in the note body, folding in the `deeper` answer, and
+   * persist. `sourceExcerpt` gives the rewrite the line's lecture source.
+   */
+  onAddToNote: (lineText: string, deeper: string, sourceExcerpt?: string) => void;
 }
 
 const LineChatContext = createContext<LineChatValue | null>(null);
@@ -314,7 +317,7 @@ function LineChatPopup({
     );
 
   function addToNote(text: string) {
-    ctx.onAddToNote(line, text);
+    ctx.onAddToNote(line, text, sourceExcerpt);
     onClose();
   }
 
