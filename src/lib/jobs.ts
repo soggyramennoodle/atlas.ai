@@ -9,6 +9,9 @@ export const JOBS_LEASE_MS = Number(process.env.JOBS_LEASE_MS) || 90_000;
 /** Per-tick wall-clock budget; yield before Vercel Hobby's 60s cap. */
 export const JOBS_SLICE_BUDGET_MS =
   Number(process.env.JOBS_SLICE_BUDGET_MS) || 45_000;
+/** Reserve time for the compose LLM pass so we never start it on a nearly-dead tick. */
+export const JOBS_COMPOSE_MIN_BUDGET_MS =
+  Number(process.env.JOBS_COMPOSE_MIN_BUDGET_MS) || 25_000;
 /**
  * Max segments transcribed in parallel per worker tick. Default 4 balances
  * speed against Gemini burst rate limits on Hobby — not a magic number, just a

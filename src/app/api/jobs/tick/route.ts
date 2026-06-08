@@ -7,6 +7,7 @@ import { mimeFromKey } from "@/lib/upload-lecture";
 import { buildMemoryContext } from "@/lib/memory";
 import {
   JOBS_SEGMENT_CONCURRENCY,
+  JOBS_COMPOSE_MIN_BUDGET_MS,
   JOBS_SLICE_BUDGET_MS,
   MAX_SEGMENT_ATTEMPTS,
   isLeaseStale,
@@ -328,7 +329,24 @@ async function runWorker(request: Request) {
     }
 
     // 4) No segment to transcribe. Compose if the job is ready; else yield.
-    if (jobIsComposable(job.status, job.segment_count, segments)) {
+    const { data: freshMeta } = await db
+      .from("lecture_jobs")
+      .select("status, segment_count, note_id, live_transcript, total_seconds")
+      .eq("id", job.id)
+      .maybeSingle();
+    const composableStatus = (freshMeta?.status ?? job.status) as LectureJobRecord["status"];
+    const composableCount = freshMeta?.segment_count ?? job.segment_count;
+
+    if (jobIsComposable(composableStatus, composableCount, segments)) {
+      if (Date.now() - start > JOBS_SLICE_BUDGET_MS - JOBS_COMPOSE_MIN_BUDGET_MS) {
+        await db
+          .from("lecture_jobs")
+          .update({ heartbeat_at: null, updated_at: new Date().toISOString() })
+          .eq("id", job.id);
+        await selfChain(request);
+        return NextResponse.json({ claimed: true, yielded: true, beforeCompose: true });
+      }
+
       const ordered = segments
         .filter((s) => s.partial_notes)
         .sort((a, b) => a.index - b.index)
@@ -351,10 +369,25 @@ async function runWorker(request: Request) {
         return NextResponse.json({ claimed: true, composed: false, transcribeFailed: true });
       }
 
+      // Release the lease before a long compose so a Vercel timeout doesn't
+      // block reclaim for the full lease window.
+      await db
+        .from("lecture_jobs")
+        .update({ heartbeat_at: null, updated_at: new Date().toISOString() })
+        .eq("id", job.id);
+
+      const noteId = freshMeta?.note_id ?? job.note_id;
+      const liveTranscript = freshMeta?.live_transcript ?? job.live_transcript;
+      const totalSeconds = freshMeta?.total_seconds ?? job.total_seconds;
+
       try {
-        const notes = await composeNotes({ segments: ordered, memoryContext });
-        if (!notes.transcript?.trim() && job.live_transcript?.trim()) {
-          notes.transcript = job.live_transcript.trim();
+        const notes = await composeNotes({
+          segments: ordered,
+          memoryContext,
+          skipResearch: true,
+        });
+        if (!notes.transcript?.trim() && liveTranscript?.trim()) {
+          notes.transcript = liveTranscript.trim();
         }
         await db
           .from("notes")
@@ -362,9 +395,9 @@ async function runWorker(request: Request) {
             title: notes.title,
             subject: notes.subject || null,
             content: notes,
-            duration_seconds: job.total_seconds ?? null,
+            duration_seconds: totalSeconds ?? null,
           })
-          .eq("id", job.note_id);
+          .eq("id", noteId);
         await db
           .from("lecture_jobs")
           .update({ status: "ready", heartbeat_at: null, updated_at: new Date().toISOString() })

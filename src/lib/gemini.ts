@@ -488,6 +488,8 @@ async function enrichNotesWithResearch(
 interface ComposeArgs {
   segments: SegmentNotes[];
   memoryContext?: string;
+  /** Worker ticks skip research enrichment to stay under Vercel's 60s cap. */
+  skipResearch?: boolean;
 }
 
 /**
@@ -500,6 +502,7 @@ interface ComposeArgs {
 export async function composeNotes({
   segments,
   memoryContext,
+  skipResearch = false,
 }: ComposeArgs): Promise<StructuredNotes> {
   const merged = mergeSegmentNotes(segments);
   const ai = getClient();
@@ -539,10 +542,12 @@ export async function composeNotes({
   parsed.sections = defaultLectureOrigin(preserved.sections);
   parsed.keyConcepts = preserved.keyConcepts;
 
-  try {
-    parsed = await enrichNotesWithResearch(parsed, merged.transcript, memoryContext);
-  } catch (err) {
-    console.warn("Research enrich failed; returning compose-only notes:", err);
+  if (!skipResearch) {
+    try {
+      parsed = await enrichNotesWithResearch(parsed, merged.transcript, memoryContext);
+    } catch (err) {
+      console.warn("Research enrich failed; returning compose-only notes:", err);
+    }
   }
 
   parsed.sections = defaultLectureOrigin(parsed.sections);
