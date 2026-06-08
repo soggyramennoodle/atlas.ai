@@ -9,15 +9,19 @@ export function SiteStatusBanner({
   if (!announcement) return null;
 
   return (
-    <div className="px-4 pt-10 sm:px-6 sm:pt-12 lg:pt-14">
-      <div className="mx-auto max-w-[1200px]">
-        <div className="inline-flex max-w-full items-center gap-2.5 rounded-full border border-primary/25 bg-primary/8 px-4 py-2 text-sm text-foreground shadow-[0_8px_24px_-16px_rgba(10,87,54,0.45)]">
-          <span className="grid size-7 shrink-0 place-items-center rounded-full border border-primary/20 bg-primary/10 text-primary">
-            <Megaphone className="size-3.5" />
-          </span>
-          <span className="text-pretty font-medium">{announcement.message}</span>
+    <section className="px-4 sm:px-6">
+      <div className="mx-auto flex max-w-[1200px] justify-center pt-[clamp(4rem,14vh,8.5rem)]">
+        <div className="w-full max-w-lg rounded-[4px] border border-border bg-background/85 px-4 py-3.5 text-center shadow-[0_2px_8px_rgba(15,23,42,0.04),0_14px_34px_-20px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:px-5 sm:py-4">
+          <div className="flex items-center justify-center gap-3">
+            <span className="grid size-8 shrink-0 place-items-center rounded-[4px] border border-border bg-card text-primary">
+              <Megaphone className="size-4" />
+            </span>
+            <p className="text-pretty text-sm font-medium leading-snug text-foreground">
+              {announcement.message}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
