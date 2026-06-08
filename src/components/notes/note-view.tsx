@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { HTMLElement, NodeType, parse, type Node } from "node-html-parser";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
@@ -16,11 +23,19 @@ import type {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { htmlToPlainText, notesBodyToHtml, sanitizeNoteHtml } from "@/lib/notes-html";
+import {
+  AI_BLOCK_ATTR,
+  htmlToPlainText,
+  insertAiBlockHtml,
+  notesBodyToHtml,
+  sanitizeNoteHtml,
+  splitToNoteItems,
+} from "@/lib/notes-html";
 import { SummaryCard } from "./summary-card";
 import { TranscriptPanel } from "./transcript-panel";
 import { SourceBullet } from "./source-bubble";
 import { KeyConceptsGrid } from "./concept-card";
+import { AskableBlock, LineChatProvider } from "./line-chat";
 import { RichNoteEditor } from "./rich-note-editor";
 
 /** Coerce a bullet (old `string` shape or new `NotePoint`) to a NotePoint. */
@@ -105,6 +120,10 @@ export function NoteView({
   const [readingActive, setReadingActive] = useState(false);
   const [readingFinished, setReadingFinished] = useState(false);
   const [editedTexts, setEditedTexts] = useState<string[]>([]);
+  // Active "Add to note" stream: the line to insert after + the text typing in.
+  const [aiStream, setAiStream] = useState<{ afterText: string; full: string } | null>(
+    null
+  );
 
   const draftRef = useRef(draft);
   const originalRef = useRef<StructuredNotes>(initial);
@@ -205,6 +224,84 @@ export function NoteView({
         });
     },
     [editMode, note.id, note.title]
+  );
+
+  // ── "Add to note": stream an AI "go deeper" answer into the body ──────────
+  const aiStreamRef = useRef(aiStream);
+  useEffect(() => {
+    aiStreamRef.current = aiStream;
+  }, [aiStream]);
+
+  // Kick off the live typewriter insert. The actual splice + persist happens in
+  // commitAiStream once the typing animation completes (see AiStreamBlock).
+  const onAddToNote = useCallback((afterText: string, text: string) => {
+    if (!text.trim()) return;
+    setAiStream({ afterText, full: text });
+  }, []);
+
+  const commitAiStream = useCallback(() => {
+    const cur = aiStreamRef.current;
+    setAiStream(null);
+    if (!cur) return;
+
+    const base = clone(savedRef.current);
+    base.title = note.title;
+    const { html, matched } = insertAiBlockHtml(
+      base.bodyHtml ?? "",
+      cur.afterText,
+      splitToNoteItems(cur.full)
+    );
+    base.bodyHtml = html;
+    setSaved(base);
+    setDraft(base);
+    savedRef.current = base;
+    draftRef.current = base;
+    if (!matched) {
+      toast.message("Added at the end — couldn't pinpoint the exact line.");
+    }
+
+    setStatus("saving");
+    fetch(`/api/notes/${note.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: base }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        setStatus("saved");
+        if (fadeTimer.current) clearTimeout(fadeTimer.current);
+        fadeTimer.current = setTimeout(
+          () => setStatus((s) => (s === "saved" ? "idle" : s)),
+          2000
+        );
+      })
+      .catch(() => {
+        setStatus("idle");
+        toast.error("Couldn't save the addition.");
+      });
+  }, [note.id, note.title]);
+
+  const lineChat = useMemo(
+    () => ({
+      noteTitle: note.title,
+      subject: saved.subject,
+      summary: saved.summary,
+      canAddToNote: !!saved.bodyHtml,
+      onAddToNote,
+    }),
+    [note.title, saved.subject, saved.summary, saved.bodyHtml, onAddToNote]
+  );
+
+  const aiStreamNode = useMemo(
+    () =>
+      aiStream ? (
+        <AiStreamBlock
+          key={aiStream.afterText}
+          full={aiStream.full}
+          onDone={commitAiStream}
+        />
+      ) : null,
+    [aiStream, commitAiStream]
   );
 
   function startEditing() {
@@ -389,6 +486,7 @@ export function NoteView({
         editedTexts={editedTexts}
         containerRef={articleRef}
       />
+      <LineChatProvider value={lineChat}>
       <article ref={articleRef} className="relative space-y-10">
         {/* Summary — read-only text with an AI "Regenerate" capsule. The
             summary is no longer hand-edited; it's re-derived from the full
@@ -411,7 +509,12 @@ export function NoteView({
             onChange={(html) => update((d) => void (d.bodyHtml = html))}
           />
         ) : saved.bodyHtml ? (
-          <EditedNoteBody html={saved.bodyHtml} sources={saved.bodySources ?? []} />
+          <EditedNoteBody
+            html={saved.bodyHtml}
+            sources={saved.bodySources ?? []}
+            streamAfter={aiStream?.afterText}
+            streamNode={aiStreamNode}
+          />
         ) : (
           <div className="space-y-9">
             {saved.sections.map((section, i) => (
@@ -467,6 +570,7 @@ export function NoteView({
           </section>
         )}
       </article>
+      </LineChatProvider>
     </div>
   );
 }
@@ -523,14 +627,48 @@ function tagOf(node: Node): string {
 function EditedNoteBody({
   html,
   sources,
+  streamAfter,
+  streamNode,
 }: {
   html: string;
   sources: BodySource[];
+  /** Normalized text of the line a freshly-added AI block should follow. */
+  streamAfter?: string;
+  /** The live-typing AI block (an <li>) to inject after the matching line. */
+  streamNode?: React.ReactNode;
 }) {
   const content = useMemo(() => {
     const sourceByIndex = new Map(sources.map((source) => [source.index, source]));
     const root = parse(sanitizeNoteHtml(html), { lowerCaseTagName: true });
     let listItemIndex = 0;
+
+    const want = streamAfter ? normText(streamAfter) : null;
+    let streamInjected = false;
+    const matchesStream = (text: string) => {
+      if (want == null || streamInjected) return false;
+      const t = normText(text);
+      return (
+        t === want || (t.length > 4 && (t.includes(want) || want.includes(t)))
+      );
+    };
+    // Wrap a rendered block, appending the live AI block after it when it's the
+    // insertion target. `asListSibling` controls whether the AI <li> drops in as
+    // a list sibling (after another <li>) or gets its own wrapping <ul>.
+    const withStream = (
+      el: React.ReactNode,
+      text: string,
+      key: string,
+      asListSibling: boolean
+    ): React.ReactNode => {
+      if (!streamNode || !matchesStream(text)) return el;
+      streamInjected = true;
+      return (
+        <Fragment key={`${key}-s`}>
+          {el}
+          {asListSibling ? streamNode : <ul>{streamNode}</ul>}
+        </Fragment>
+      );
+    };
 
     const renderChildren = (nodes: Node[], keyPrefix: string, inListItem = false) =>
       nodes.map((node, index) =>
@@ -557,14 +695,39 @@ function EditedNoteBody({
         return <u key={key}>{renderChildren(node.childNodes, key, inListItem)}</u>;
       }
       if (tag === "h1" || tag === "h2") {
-        return <h2 key={key}>{renderChildren(node.childNodes, key)}</h2>;
+        const text = blockText(node);
+        return withStream(
+          <h2 key={key}>
+            <AskableBlock text={text}>{renderChildren(node.childNodes, key)}</AskableBlock>
+          </h2>,
+          text,
+          key,
+          false
+        );
       }
       if (tag === "h3" || tag === "h4") {
-        return <h3 key={key}>{renderChildren(node.childNodes, key)}</h3>;
+        const text = blockText(node);
+        return withStream(
+          <h3 key={key}>
+            <AskableBlock text={text}>{renderChildren(node.childNodes, key)}</AskableBlock>
+          </h3>,
+          text,
+          key,
+          false
+        );
       }
       if (tag === "p") {
         const children = renderChildren(node.childNodes, key, inListItem);
-        return inListItem ? <span key={key}>{children}</span> : <p key={key}>{children}</p>;
+        if (inListItem) return <span key={key}>{children}</span>;
+        const text = blockText(node);
+        return withStream(
+          <p key={key}>
+            <AskableBlock text={text}>{children}</AskableBlock>
+          </p>,
+          text,
+          key,
+          false
+        );
       }
       if (tag === "ul") {
         return <ul key={key}>{renderChildren(node.childNodes, key)}</ul>;
@@ -573,9 +736,6 @@ function EditedNoteBody({
         return <ol key={key}>{renderChildren(node.childNodes, key)}</ol>;
       }
       if (tag === "li") {
-        const currentIndex = listItemIndex;
-        listItemIndex += 1;
-        const source = sourceByIndex.get(currentIndex);
         const inlineNodes = node.childNodes.filter((child) => {
           const childTag = tagOf(child);
           return childTag !== "ul" && childTag !== "ol";
@@ -585,26 +745,53 @@ function EditedNoteBody({
           return childTag === "ul" || childTag === "ol";
         });
         const text = htmlToPlainText(inlineNodes.map((child) => child.toString()).join(""));
+        const inline = renderChildren(inlineNodes, `${key}-inline`, true);
+
+        // Atlas-added bullet: honest provenance, and crucially it does NOT consume
+        // a lecture-source index, so existing bodySources stay aligned.
+        if (node.getAttribute(AI_BLOCK_ATTR) != null) {
+          return (
+            <li key={key}>
+              <SourceBullet text={text} status="ai">
+                {inline}
+              </SourceBullet>
+              {renderChildren(nestedLists, `${key}-nested`)}
+            </li>
+          );
+        }
+
+        const currentIndex = listItemIndex;
+        listItemIndex += 1;
+        const source = sourceByIndex.get(currentIndex);
         const sourceable =
           source?.source_excerpt && (source.status === "lecture" || source.status === "edited");
         const sourceStatus: "lecture" | "edited" =
           source?.status === "edited" ? "edited" : "lecture";
 
-        return (
+        return withStream(
           <li key={key}>
-            {sourceable ? (
-              <SourceBullet
-                text={text}
-                excerpt={source.source_excerpt}
-                status={sourceStatus}
-              >
-                {renderChildren(inlineNodes, `${key}-inline`, true)}
-              </SourceBullet>
-            ) : (
-              renderChildren(inlineNodes, `${key}-inline`, true)
-            )}
+            <AskableBlock
+              text={text}
+              sourceExcerpt={sourceable ? source.source_excerpt : undefined}
+              sourceStatus={sourceStatus}
+            >
+              {sourceable ? (
+                <SourceBullet
+                  text={text}
+                  excerpt={source.source_excerpt}
+                  status={sourceStatus}
+                >
+                  {inline}
+                </SourceBullet>
+              ) : (
+                inline
+              )}
+            </AskableBlock>
             {renderChildren(nestedLists, `${key}-nested`)}
-          </li>
+          </li>,
+          text,
+          key,
+          true
         );
       }
 
@@ -612,9 +799,67 @@ function EditedNoteBody({
     };
 
     return renderChildren(root.childNodes, "edited");
-  }, [html, sources]);
+  }, [html, sources, streamAfter, streamNode]);
 
   return <div className="note-prose">{content}</div>;
+}
+
+/** Plain, whitespace-collapsed text of a parsed block (for matching/labels). */
+function blockText(node: HTMLElement): string {
+  return (node.textContent ?? "").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * The live "Add to note" block: a violet, Atlas-flagged <li> that types out the
+ * deeper answer (ChatGPT-style), then calls `onDone` so NoteView splices it into
+ * the body and persists. Falls back to an instant insert under reduced motion.
+ */
+function AiStreamBlock({ full, onDone }: { full: string; onDone: () => void }) {
+  const reduce = useReducedMotion();
+  const [shown, setShown] = useState("");
+  const doneRef = useRef(onDone);
+  useEffect(() => {
+    doneRef.current = onDone;
+  }, [onDone]);
+
+  useEffect(() => {
+    // Reduced motion (or empty text): skip the animation, commit immediately.
+    if (reduce || !full) {
+      doneRef.current();
+      return;
+    }
+    let i = 0;
+    const step = Math.max(1, Math.round(full.length / 90));
+    const id = window.setInterval(() => {
+      i += step;
+      if (i >= full.length) {
+        setShown(full);
+        window.clearInterval(id);
+        doneRef.current();
+      } else {
+        setShown(full.slice(0, i));
+      }
+    }, 18);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Under reduced motion the typed state stays empty; render the full text.
+  const display = reduce ? full : shown;
+
+  return (
+    <li className="text-violet-900/90 dark:text-violet-200/90">
+      <SourceBullet text={display} status="ai" />
+      {display.length < full.length && (
+        <motion.span
+          aria-hidden
+          animate={{ opacity: [1, 0.2, 1] }}
+          transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+          className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[2px] rounded-full bg-violet-500 align-baseline"
+        />
+      )}
+    </li>
+  );
 }
 
 // Atlas's own cursor colour — amber/orange so it contrasts the green brand and
@@ -932,7 +1177,7 @@ function SectionView({
           {(index + 1).toString().padStart(2, "0")}
         </span>
         <h3 className="text-2xl font-bold tracking-[-0.02em]">
-          {section.heading}
+          <AskableBlock text={section.heading}>{section.heading}</AskableBlock>
         </h3>
       </div>
 
@@ -940,18 +1185,26 @@ function SectionView({
         {section.points.map((point, j) => (
           <li key={j} className="flex gap-3 leading-relaxed">
             <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-primary/60" />
-            <SourceBullet
+            <AskableBlock
               text={point.text}
-              excerpt={point.source_excerpt}
-              status={point.origin === "research" ? "research" : "lecture"}
-            />
+              sourceExcerpt={point.source_excerpt}
+              sourceStatus={point.origin === "research" ? "research" : "lecture"}
+            >
+              <SourceBullet
+                text={point.text}
+                excerpt={point.source_excerpt}
+                status={point.origin === "research" ? "research" : "lecture"}
+              />
+            </AskableBlock>
           </li>
         ))}
       </ul>
 
       {section.subsections?.map((sub, k) => (
         <div key={k} className="mt-5 border-l-2 border-border pl-5">
-          <h4 className="font-medium tracking-tight">{sub.heading}</h4>
+          <h4 className="font-medium tracking-tight">
+            <AskableBlock text={sub.heading}>{sub.heading}</AskableBlock>
+          </h4>
           <ul className="mt-2.5 space-y-2">
             {sub.points.map((point, j) => (
               <li
@@ -959,11 +1212,17 @@ function SectionView({
                 className="flex gap-3 text-sm leading-relaxed text-muted-foreground"
               >
                 <span className="mt-2 size-1.5 shrink-0 rounded-full bg-border" />
-                <SourceBullet
+                <AskableBlock
                   text={point.text}
-                  excerpt={point.source_excerpt}
-                  status={point.origin === "research" ? "research" : "lecture"}
-                />
+                  sourceExcerpt={point.source_excerpt}
+                  sourceStatus={point.origin === "research" ? "research" : "lecture"}
+                >
+                  <SourceBullet
+                    text={point.text}
+                    excerpt={point.source_excerpt}
+                    status={point.origin === "research" ? "research" : "lecture"}
+                  />
+                </AskableBlock>
               </li>
             ))}
           </ul>

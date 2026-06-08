@@ -4,6 +4,7 @@
  * rich-note-editor.tsx) and the read-only note view. Pure string work so it is
  * safe to import on both the client and the server (exports).
  */
+import { parse } from "node-html-parser";
 import type { NotePoint, StructuredNotes } from "@/lib/types";
 
 function pointText(p: NotePoint | string): string {
@@ -121,4 +122,71 @@ export function htmlToPlainText(html: string): string {
     .replace(/&quot;/gi, '"')
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+/** Marker attribute flagging a note block as Atlas-generated (not lecture-sourced). */
+export const AI_BLOCK_ATTR = "data-atlas-ai";
+
+/** Normalize block text for tolerant matching (mirrors note-view's normText). */
+function normForMatch(s: string): string {
+  return s.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+/**
+ * Split an AI "go deeper" answer into note-sized bullet items. Paragraphs
+ * (double-newline separated) become separate bullets; a single block stays one
+ * bullet. Whitespace is collapsed so the inserted notes read cleanly.
+ */
+export function splitToNoteItems(text: string): string[] {
+  return text
+    .split(/\n{2,}/)
+    .map((part) => part.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
+/**
+ * Insert Atlas-generated bullet(s) into note `bodyHtml` immediately after the
+ * block whose text matches `afterText`. Each new item is tagged with
+ * {@link AI_BLOCK_ATTR} so the renderer can mark its provenance and exclude it
+ * from lecture-source indexing (keeping existing `bodySources` aligned).
+ *
+ * When the target is a list item the bullets join its list; otherwise (a
+ * paragraph or heading) they are wrapped in their own `<ul>`. If no block
+ * matches — e.g. the line was edited concurrently — the bullets are appended at
+ * the end of the body and `matched` is returned `false` so the caller can warn.
+ */
+export function insertAiBlockHtml(
+  bodyHtml: string,
+  afterText: string,
+  items: string[]
+): { html: string; matched: boolean } {
+  const clean = items.map((t) => t.trim()).filter(Boolean);
+  if (!clean.length) return { html: bodyHtml, matched: true };
+
+  const liHtml = clean
+    .map((t) => `<li ${AI_BLOCK_ATTR}="1">${escapeHtml(t)}</li>`)
+    .join("");
+
+  const root = parse(sanitizeNoteHtml(bodyHtml || "<p></p>"), {
+    lowerCaseTagName: true,
+  });
+  const want = normForMatch(afterText);
+  const candidates = root.querySelectorAll("li, p, h1, h2, h3, h4");
+  const target =
+    candidates.find((el) => normForMatch(el.textContent) === want) ??
+    candidates.find((el) => {
+      const t = normForMatch(el.textContent);
+      return t.length > 4 && (t.includes(want) || want.includes(t));
+    });
+
+  if (!target) {
+    return { html: `${root.toString()}<ul>${liHtml}</ul>`, matched: false };
+  }
+
+  const tag = target.rawTagName?.toLowerCase();
+  target.insertAdjacentHTML(
+    "afterend",
+    tag === "li" ? liHtml : `<ul>${liHtml}</ul>`
+  );
+  return { html: root.toString(), matched: true };
 }
