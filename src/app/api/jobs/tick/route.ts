@@ -23,6 +23,7 @@ import type {
 import { GeminiSpendCapError } from "@/lib/gemini-errors";
 import { getActiveAlert, openAlert, markNotified, shouldNotifyAdmin } from "@/lib/alerts";
 import { sendSpendCapAdminAlert } from "@/lib/admin-notify";
+import { sendLectureReadyEmail } from "@/lib/lecture-notify";
 
 export const runtime = "nodejs";
 export const maxDuration = 60; // Hobby cap; the budget yields before this.
@@ -287,6 +288,17 @@ async function runWorker(request: Request) {
           .from("lecture_jobs")
           .update({ status: "ready", heartbeat_at: null, updated_at: new Date().toISOString() })
           .eq("id", job.id);
+
+        const { data: userRes } = await db.auth.admin.getUserById(job.user_id);
+        const email = userRes?.user?.email;
+        if (email && job.note_id) {
+          await sendLectureReadyEmail(email, {
+            jobId: job.id,
+            noteId: job.note_id,
+            title: notes.title,
+          });
+        }
+
         await Promise.all(
           segments.map((segment) =>
             r2
