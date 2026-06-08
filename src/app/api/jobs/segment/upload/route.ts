@@ -7,8 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-/** Vercel Hobby request-body cap is ~4.5 MB; segments are ~5 min each. */
-const MAX_SEGMENT_BYTES = 4 * 1024 * 1024;
+/** Vercel Hobby request-body cap is ~4.5 MB; keep a safety margin. */
+const MAX_SEGMENT_BYTES = 3 * 1024 * 1024;
 
 /**
  * Upload one lecture segment through the app server (not a browser PUT to R2).
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "This segment is too large for a direct upload. Try a shorter recording or contact support.",
+          "This segment is too large for a direct upload. Atlas will retry via direct-to-storage upload — please try again.",
       },
       { status: 413 }
     );

@@ -2,8 +2,8 @@
 
 import { uploadSegment } from "@/lib/segment-upload";
 
-/** Vercel Hobby request-body cap is ~4.5 MB; direct upload stays under it. */
-export const DIRECT_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
+/** Vercel Hobby request-body cap is ~4.5 MB; stay under it with headroom. */
+export const DIRECT_UPLOAD_MAX_BYTES = 3 * 1024 * 1024;
 /** Must match R2 minimum multipart part size in src/lib/r2.ts. */
 export const MULTIPART_PART_BYTES = 5 * 1024 * 1024;
 
@@ -109,9 +109,14 @@ export async function uploadAudioViaServer(args: {
   segmentIndex: number;
   durationSeconds?: number | null;
   signal?: AbortSignal;
+  /** File-upload chunks bypass the app server and PUT straight to R2. */
+  preferMultipart?: boolean;
 }): Promise<string> {
-  if (args.blob.size <= DIRECT_UPLOAD_MAX_BYTES) {
-    return uploadSegment(args);
+  if (
+    args.preferMultipart ||
+    args.blob.size > DIRECT_UPLOAD_MAX_BYTES
+  ) {
+    return uploadLargeViaPresignedMultipart(args);
   }
-  return uploadLargeViaPresignedMultipart(args);
+  return uploadSegment(args);
 }
