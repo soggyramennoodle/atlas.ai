@@ -7,6 +7,7 @@ import {
   ListOrdered,
   Megaphone,
   ShieldCheck,
+  Users,
   ChevronRight,
 } from "lucide-react";
 import { countUnreadFeedback } from "@/lib/admin-feedback-server";
@@ -42,6 +43,13 @@ const ACTIONS = [
     title: "User reports",
     description:
       "Note quality reports and general feedback from students.",
+  },
+  {
+    href: "/admin/users",
+    icon: Users,
+    title: "Users",
+    description:
+      "Accounts by email and sign-in method. Resend links, suspend, or delete.",
   },
 ] as const;
 
