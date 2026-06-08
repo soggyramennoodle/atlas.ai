@@ -45,7 +45,10 @@ export async function POST(request: Request) {
       index: segmentIndex,
       r2_key: r2Key,
       status: "uploaded",
-      duration_seconds: body.durationSeconds ?? null,
+      duration_seconds:
+        body.durationSeconds != null && Number.isFinite(body.durationSeconds)
+          ? Math.round(body.durationSeconds)
+          : null,
     },
     { onConflict: "job_id,index" }
   );

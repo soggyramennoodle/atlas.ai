@@ -242,7 +242,8 @@ export async function uploadLectureChunks({
     {
       jobId,
       segmentCount: chunks.length,
-      durationSeconds: durationSeconds ?? null,
+      durationSeconds:
+        durationSeconds != null ? Math.round(durationSeconds) : null,
       liveTranscript: null,
     },
     "Could not start note generation —",

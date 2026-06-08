@@ -62,6 +62,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No audio segments to process." }, { status: 400 });
   }
 
+  const durationSeconds =
+    body.durationSeconds != null && Number.isFinite(body.durationSeconds)
+      ? Math.round(body.durationSeconds)
+      : null;
+
   const { data: job } = await supabase
     .from("lecture_jobs")
     .select("id, note_id")
@@ -92,11 +97,12 @@ export async function POST(request: Request) {
         subject: null,
         content: processingContent(),
         audio_path: body.jobId,
-        duration_seconds: body.durationSeconds ?? null,
+        duration_seconds: durationSeconds,
       })
       .select("id")
       .single();
     if (noteErr || !note) {
+      console.error("Note insert failed:", noteErr);
       return NextResponse.json({ error: "Could not create the note." }, { status: 500 });
     }
     noteId = note.id;
@@ -108,7 +114,7 @@ export async function POST(request: Request) {
       status: "recording_complete",
       note_id: noteId,
       segment_count: segmentCount,
-      total_seconds: body.durationSeconds ?? null,
+      total_seconds: durationSeconds,
       live_transcript: body.liveTranscript ?? null,
       updated_at: new Date().toISOString(),
     })
