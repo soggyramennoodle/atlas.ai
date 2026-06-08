@@ -61,7 +61,7 @@ export async function getProcessingSnapshot(): Promise<ProcessingSnapshot> {
     .from("lecture_jobs")
     .select(JOB_COLUMNS)
     .or(
-      `status.in.(recording,recording_complete,processing),updated_at.gte.${cutoff}`
+      `status.in.(recording,recording_complete,processing,enriching),updated_at.gte.${cutoff}`
     )
     .order("created_at", { ascending: true });
 

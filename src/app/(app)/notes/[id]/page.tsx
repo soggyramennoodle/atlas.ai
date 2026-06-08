@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ReportButton } from "@/components/feedback/report-dialog";
 import { DeleteNoteButton, DownloadAudioButton, ExportMenu } from "@/components/notes/note-actions";
 import { NoteSession } from "@/components/notes/note-session";
+import { EnrichmentWatcher } from "@/components/notes/enrichment-watcher";
 import { ProcessingWatcher } from "@/components/notes/processing-watcher";
 import type { NoteRecord } from "@/lib/types";
 
@@ -50,10 +51,12 @@ export default async function NotePage({
 
   const processing = note.content?.status === "processing";
   const failed = note.content?.status === "failed";
+  const enriching = note.content?.enrichment === "pending";
 
   return (
     <main className="px-4 pb-24 pt-10 lg:pt-16">
       {processing && <ProcessingWatcher noteId={note.id} />}
+      {!processing && enriching && <EnrichmentWatcher noteId={note.id} />}
       <div className="mx-auto max-w-3xl">
         <div className="flex items-center justify-between">
           <Link

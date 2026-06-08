@@ -135,6 +135,9 @@ export function deriveStage(
     case "recording_complete":
       return { key: "queued", label: "Queued for worker" };
 
+    case "enriching":
+      return { key: "composing", label: "Adding supplementary context" };
+
     case "processing": {
       if (job.error === "gemini_spend_cap") {
         return {
@@ -189,7 +192,8 @@ export function isVisibleJob(
   if (
     job.status === "recording" ||
     job.status === "recording_complete" ||
-    job.status === "processing"
+    job.status === "processing" ||
+    job.status === "enriching"
   ) {
     return true;
   }

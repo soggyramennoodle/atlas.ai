@@ -557,6 +557,42 @@ export async function composeNotes({
   return parsed;
 }
 
+function isResearchEnrichmentEnabled() {
+  return process.env.GEMINI_COMPOSE_RESEARCH !== "0";
+}
+
+/**
+ * Optional second-pass web research enrichment for a composed note. Runs in its
+ * own worker tick so compose can finish within Vercel's 60s cap.
+ */
+export async function enrichNoteWithResearch(
+  notes: StructuredNotes,
+  memoryContext?: string
+): Promise<StructuredNotes> {
+  if (!isResearchEnrichmentEnabled()) {
+    return { ...notes, enrichment: "skipped" };
+  }
+
+  const transcript = notes.transcript ?? "";
+  try {
+    const enriched = await enrichNotesWithResearch(notes, transcript, memoryContext);
+    return {
+      ...enriched,
+      sections: defaultLectureOrigin(enriched.sections),
+      transcript: notes.transcript,
+      status: notes.status ?? "ready",
+      enrichment: "complete",
+    };
+  } catch (err) {
+    console.warn("Research enrich failed; keeping compose-only notes:", err);
+    return { ...notes, enrichment: "failed" };
+  }
+}
+
+export function shouldQueueResearchEnrichment() {
+  return isResearchEnrichmentEnabled();
+}
+
 interface GenerateArgs {
   bytes: Buffer | Uint8Array;
   mimeType: string;

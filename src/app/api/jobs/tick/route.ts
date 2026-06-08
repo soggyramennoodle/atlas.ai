@@ -2,7 +2,12 @@ import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getR2Bucket, r2 } from "@/lib/r2";
-import { composeNotes, transcribeSegment } from "@/lib/gemini";
+import {
+  composeNotes,
+  enrichNoteWithResearch,
+  shouldQueueResearchEnrichment,
+  transcribeSegment,
+} from "@/lib/gemini";
 import { mimeFromKey } from "@/lib/upload-lecture";
 import { buildMemoryContext } from "@/lib/memory";
 import {
@@ -77,18 +82,21 @@ async function holdJobForSpendCap(
       .eq("id", inFlightSegmentId);
   }
 
-  // Mark the note (keep status: processing) so the watcher flips to capacity.
+  // Mark processing notes for the capacity overlay. Enriching jobs already
+  // expose a readable note — leave that content untouched.
   if (job.note_id) {
     const { data: noteRow } = await db
       .from("notes")
       .select("content")
       .eq("id", job.note_id)
       .maybeSingle();
-    const content = (noteRow?.content as Record<string, unknown> | null) ?? {};
-    await db
-      .from("notes")
-      .update({ content: { ...content, status: "processing", hold: "gemini_spend_cap" } })
-      .eq("id", job.note_id);
+    const content = (noteRow?.content as StructuredNotes | null) ?? ({} as StructuredNotes);
+    if (content.status !== "ready") {
+      await db
+        .from("notes")
+        .update({ content: { ...content, status: "processing", hold: "gemini_spend_cap" } })
+        .eq("id", job.note_id);
+    }
   }
 }
 
@@ -132,6 +140,102 @@ async function selfChain(request: Request) {
   }).catch(() => {});
 }
 
+async function claimJob(
+  db: ReturnType<typeof createAdminClient>,
+  job: LectureJobRecord
+): Promise<boolean> {
+  const claimStamp = new Date().toISOString();
+  let claimQuery = db
+    .from("lecture_jobs")
+    .update({ heartbeat_at: claimStamp, updated_at: claimStamp })
+    .eq("id", job.id)
+    .eq("status", job.status);
+  claimQuery = job.heartbeat_at
+    ? claimQuery.eq("heartbeat_at", job.heartbeat_at)
+    : claimQuery.is("heartbeat_at", null);
+  const { data: claimed } = await claimQuery.select("id").maybeSingle();
+  return !!claimed;
+}
+
+async function runEnrichmentWorker(
+  request: Request,
+  job: LectureJobRecord,
+  start: number
+) {
+  const db = createAdminClient();
+
+  if (!(await claimJob(db, job))) {
+    return NextResponse.json({ claimed: false, raced: true });
+  }
+
+  const [{ data: memoryRow }, { data: profileRow }, { data: noteRow }] = await Promise.all([
+    db.from("user_memory").select("memory_blob").eq("user_id", job.user_id).maybeSingle(),
+    db.from("user_profiles").select("*").eq("user_id", job.user_id).maybeSingle(),
+    db.from("notes").select("content").eq("id", job.note_id).maybeSingle(),
+  ]);
+
+  const memoryContext =
+    buildMemoryContext(
+      (memoryRow?.memory_blob as UserMemory | undefined) ?? null,
+      (profileRow as UserProfile | undefined) ?? null
+    ) || undefined;
+
+  const content = (noteRow?.content as StructuredNotes | null) ?? null;
+  if (!content || content.enrichment !== "pending") {
+    await db
+      .from("lecture_jobs")
+      .update({ status: "ready", heartbeat_at: null, updated_at: new Date().toISOString() })
+      .eq("id", job.id);
+    return NextResponse.json({ claimed: true, enriched: false, skipped: true });
+  }
+
+  if (Date.now() - start > JOBS_SLICE_BUDGET_MS - JOBS_COMPOSE_MIN_BUDGET_MS) {
+    await db
+      .from("lecture_jobs")
+      .update({ heartbeat_at: null, updated_at: new Date().toISOString() })
+      .eq("id", job.id);
+    await selfChain(request);
+    return NextResponse.json({ claimed: true, yielded: true, beforeEnrich: true });
+  }
+
+  await db
+    .from("lecture_jobs")
+    .update({ heartbeat_at: null, updated_at: new Date().toISOString() })
+    .eq("id", job.id);
+
+  try {
+    const enriched = await enrichNoteWithResearch(content, memoryContext);
+    await db
+      .from("notes")
+      .update({ content: enriched })
+      .eq("id", job.note_id);
+    await db
+      .from("lecture_jobs")
+      .update({ status: "ready", heartbeat_at: null, updated_at: new Date().toISOString() })
+      .eq("id", job.id);
+    return NextResponse.json({
+      claimed: true,
+      enriched: true,
+      enrichment: enriched.enrichment ?? "complete",
+    });
+  } catch (err) {
+    if (err instanceof GeminiSpendCapError) {
+      await holdJobForSpendCap(db, job, null);
+      return NextResponse.json({ claimed: true, held: "spend_cap" });
+    }
+    console.error("Research enrich failed:", err);
+    await db
+      .from("notes")
+      .update({ content: { ...content, enrichment: "failed" } })
+      .eq("id", job.note_id);
+    await db
+      .from("lecture_jobs")
+      .update({ status: "ready", heartbeat_at: null, updated_at: new Date().toISOString() })
+      .eq("id", job.id);
+    return NextResponse.json({ claimed: true, enriched: false });
+  }
+}
+
 async function runWorker(request: Request) {
   const start = Date.now();
   if (!isAuthorizedTick(request)) {
@@ -145,19 +249,36 @@ async function runWorker(request: Request) {
     return NextResponse.json({ paused: "spend_cap" });
   }
 
-  // 1) Find a claimable job (open + stale/no lease), oldest first.
-  const { data: candidates } = await db
+  const now = Date.now();
+
+  // 1) Prefer transcription/compose work over background enrichment.
+  const { data: processingCandidates } = await db
     .from("lecture_jobs")
     .select("*")
     .in("status", ["recording_complete", "processing"])
     .order("created_at", { ascending: true })
     .limit(10);
 
-  const now = Date.now();
-  const jobCandidate = (candidates as LectureJobRecord[] | null)?.find((j) =>
+  let jobCandidate = (processingCandidates as LectureJobRecord[] | null)?.find((j) =>
     isLeaseStale(j.heartbeat_at, now)
   );
-  if (!jobCandidate) return NextResponse.json({ claimed: false });
+
+  if (!jobCandidate) {
+    const { data: enrichingCandidates } = await db
+      .from("lecture_jobs")
+      .select("*")
+      .eq("status", "enriching")
+      .order("created_at", { ascending: true })
+      .limit(10);
+    jobCandidate = (enrichingCandidates as LectureJobRecord[] | null)?.find((j) =>
+      isLeaseStale(j.heartbeat_at, now)
+    );
+    if (jobCandidate) {
+      return runEnrichmentWorker(request, jobCandidate, start);
+    }
+    return NextResponse.json({ claimed: false });
+  }
+
   const job: LectureJobRecord = jobCandidate;
 
   // 2) Claim it: conditional update on the heartbeat we saw (optimistic lock).
@@ -167,7 +288,6 @@ async function runWorker(request: Request) {
     .update({ status: "processing", heartbeat_at: claimStamp, updated_at: claimStamp })
     .eq("id", job.id)
     .eq("status", job.status);
-  // Only claim if the heartbeat is still what we read.
   claimQuery = job.heartbeat_at
     ? claimQuery.eq("heartbeat_at", job.heartbeat_at)
     : claimQuery.is("heartbeat_at", null);
@@ -389,6 +509,10 @@ async function runWorker(request: Request) {
         if (!notes.transcript?.trim() && liveTranscript?.trim()) {
           notes.transcript = liveTranscript.trim();
         }
+
+        const queueEnrichment = shouldQueueResearchEnrichment();
+        notes.enrichment = queueEnrichment ? "pending" : "skipped";
+
         await db
           .from("notes")
           .update({
@@ -400,7 +524,11 @@ async function runWorker(request: Request) {
           .eq("id", noteId);
         await db
           .from("lecture_jobs")
-          .update({ status: "ready", heartbeat_at: null, updated_at: new Date().toISOString() })
+          .update({
+            status: queueEnrichment ? "enriching" : "ready",
+            heartbeat_at: null,
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", job.id);
 
         const { data: userRes } = await db.auth.admin.getUserById(job.user_id);
@@ -420,7 +548,9 @@ async function runWorker(request: Request) {
               .catch(() => {})
           )
         );
-        return NextResponse.json({ claimed: true, composed: true });
+
+        if (queueEnrichment) await selfChain(request);
+        return NextResponse.json({ claimed: true, composed: true, enriching: queueEnrichment });
       } catch (err) {
         if (err instanceof GeminiSpendCapError) {
           await holdJobForSpendCap(db, job, null);

@@ -313,8 +313,16 @@ export function NoteView({
     );
   }
 
+  const enriching = saved.enrichment === "pending";
+
   return (
     <div className="relative">
+      {enriching && (
+        <div className="mb-4 rounded-[4px] border border-amber-500/25 bg-amber-500/8 px-3 py-2 text-sm text-amber-800 dark:text-amber-200/90">
+          Adding supplementary context from the web. Your lecture notes are ready to read — new
+          highlights may appear shortly.
+        </div>
+      )}
       {/* Notes-section toolbar */}
       <div className="mb-5 flex items-center justify-between gap-3">
         <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">

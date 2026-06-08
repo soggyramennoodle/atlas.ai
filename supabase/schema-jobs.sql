@@ -26,7 +26,7 @@ create index if not exists lecture_jobs_user_idx
 -- Worker scan: open jobs ordered by staleness.
 create index if not exists lecture_jobs_active_idx
   on public.lecture_jobs (status, heartbeat_at)
-  where status in ('recording_complete', 'processing');
+  where status in ('recording_complete', 'processing', 'enriching');
 
 create table if not exists public.lecture_segments (
   id               uuid primary key default gen_random_uuid(),

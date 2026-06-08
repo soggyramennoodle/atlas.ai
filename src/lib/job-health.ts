@@ -42,10 +42,16 @@ export function deriveJobHealth(
       ? { key: "failed", label: "Stopped by admin" }
       : { key: "failed", label: "Failed" };
   }
-  if (job.status === "processing" || job.status === "recording_complete") {
+  if (
+    job.status === "processing" ||
+    job.status === "recording_complete" ||
+    job.status === "enriching"
+  ) {
     return leaseStale(job.heartbeatAt, now, leaseMs)
       ? { key: "stuck", label: "Stuck" }
-      : { key: "running", label: "Running" };
+      : job.status === "enriching"
+        ? { key: "running", label: "Enriching" }
+        : { key: "running", label: "Running" };
   }
   return { key: "idle", label: "Idle" };
 }

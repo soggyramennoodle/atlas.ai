@@ -60,6 +60,11 @@ export interface StructuredNotes {
    * when the incident resolves and the job resumes.
    */
   hold?: "gemini_spend_cap" | null;
+  /**
+   * Background web-research pass after compose. Notes are readable while
+   * `pending`; supplementary bullets appear once `complete`.
+   */
+  enrichment?: "pending" | "complete" | "failed" | "skipped";
   /** A clean, descriptive title for the lecture. */
   title: string;
   /** Optional subject/course inferred from the content (e.g. "Organic Chemistry"). */
@@ -208,6 +213,7 @@ export type LectureJobStatus =
   | "recording"
   | "recording_complete"
   | "processing"
+  | "enriching"
   | "ready"
   | "failed";
 
