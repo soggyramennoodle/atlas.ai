@@ -21,7 +21,20 @@ export async function GET(request: Request) {
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`);
     }
+    // A banned user can still complete Google OAuth (or click an old magic
+    // link) and arrive here with a valid code — the ban is enforced now, at the
+    // session exchange. Send them to the dedicated "account locked" screen
+    // instead of the generic error toast.
+    if (isBannedError(error)) {
+      return NextResponse.redirect(`${origin}/login?locked=1`);
+    }
   }
 
   return NextResponse.redirect(`${origin}/login?error=auth`);
+}
+
+/** Whether an auth error is GoTrue's "user is banned" rejection. */
+function isBannedError(error: { code?: string; message?: string }): boolean {
+  if (error.code === "user_banned") return true;
+  return /banned/i.test(error.message ?? "");
 }

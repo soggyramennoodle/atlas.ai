@@ -3,12 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Loader2, Mail } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { checkAccountLocked } from "@/app/login/actions";
+
+/** Where locked-out users are told to reach us. */
+const SUPPORT_EMAIL = "hello@atlasai.ca";
 
 // Apple OAuth is intentionally omitted until an Apple Developer account is
 // configured — showing a button that can't complete sign-in is worse than not
@@ -26,9 +31,15 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [sending, setSending] = useState(false);
   const [redirecting, setRedirecting] = useState<OAuthProvider | null>(null);
   const [sent, setSent] = useState(false);
+  const [locked, setLocked] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
   const isSignup = mode === "signup";
+
+  // The callback route appends `?locked=1` when it rejects a banned user (e.g.
+  // after Google OAuth). Derive the locked view from the URL so we don't have
+  // to set state inside an effect; `locked` state covers the email-submit path.
+  const showLocked = locked || params.get("locked") != null;
 
   // Surface auth errors bounced back from the callback route.
   useEffect(() => {
@@ -66,6 +77,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     e.preventDefault();
     setSending(true);
     try {
+      // Show the locked screen instead of sending a link to a banned account.
+      const { locked: isLocked } = await checkAccountLocked(email);
+      if (isLocked) {
+        setLocked(true);
+        return;
+      }
       if (await deliverLink()) {
         setSent(true);
         setCooldown(RESEND_COOLDOWN);
@@ -111,6 +128,48 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           : `Couldn't continue with ${provider}.`
       );
     }
+  }
+
+  if (showLocked) {
+    return (
+      <div className="rounded-[4px] border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
+        <span className="mx-auto grid size-12 place-items-center rounded-[4px] border border-destructive/40 bg-destructive/10 text-destructive">
+          <Lock className="size-6" />
+        </span>
+        <h2 className="mt-5 text-2xl font-bold tracking-tight">
+          Account locked
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground text-pretty">
+          This account has been locked and can&apos;t sign in right now. If you
+          think this is a mistake, reach out and we&apos;ll help sort it out.
+        </p>
+
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            className={cn(buttonVariants(), "w-full")}
+          >
+            <Mail className="size-4" />
+            Contact {SUPPORT_EMAIL}
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              setLocked(false);
+              setEmail("");
+              // Clear the `?locked=1` flag the callback may have appended.
+              if (params.get("locked") != null) {
+                router.replace(isSignup ? "/signup" : "/login");
+              }
+            }}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" />
+            Go back
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (sent) {
