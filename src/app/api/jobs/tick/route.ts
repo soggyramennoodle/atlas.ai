@@ -153,10 +153,11 @@ async function runWorker(request: Request) {
     .limit(10);
 
   const now = Date.now();
-  const job = (candidates as LectureJobRecord[] | null)?.find((j) =>
+  const jobCandidate = (candidates as LectureJobRecord[] | null)?.find((j) =>
     isLeaseStale(j.heartbeat_at, now)
   );
-  if (!job) return NextResponse.json({ claimed: false });
+  if (!jobCandidate) return NextResponse.json({ claimed: false });
+  const job: LectureJobRecord = jobCandidate;
 
   // 2) Claim it: conditional update on the heartbeat we saw (optimistic lock).
   const claimStamp = new Date().toISOString();

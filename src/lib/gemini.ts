@@ -413,7 +413,7 @@ function applyResearchAdditions(
 
     let extra = out.find((s) => s.heading === "Additional context");
     if (!extra) {
-      extra = { heading: "Additional context", points: [] };
+      extra = { heading: "Additional context", points: [], subsections: undefined };
       out.push(extra);
     }
     extra.points.push(researchPoint);
