@@ -23,6 +23,10 @@ import { GeminiSpendCapError, classifyGeminiError } from "./gemini-errors";
  */
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-pro";
 
+/** Faster/cheaper model for per-segment transcription (compose stays on MODEL). */
+const SEGMENT_MODEL =
+  process.env.GEMINI_SEGMENT_MODEL || "gemini-2.5-flash";
+
 /** A lighter, cheaper model for short helper calls (explanations, edit diffs). */
 export const HELPER_MODEL =
   process.env.GEMINI_HELPER_MODEL || "gemini-2.5-flash";
@@ -279,7 +283,7 @@ export async function transcribeSegment({
 
   const response = await callGemini(() =>
     ai.models.generateContent({
-      model: MODEL,
+      model: SEGMENT_MODEL,
       contents: createUserContent([
         createPartFromBase64(base64, mimeType),
         "Transcribe and take exhaustive, audio-grounded notes on THIS lecture segment, following SEGMENT MODE.",

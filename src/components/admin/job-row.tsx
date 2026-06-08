@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, RefreshCcw, Loader2 } from "lucide-react";
+import { Copy, Check, RefreshCcw, Loader2, OctagonX } from "lucide-react";
+import { isJobCancellable } from "@/lib/admin-jobs";
 import { cn } from "@/lib/utils";
 import {
   JOB_STATUS_LABELS,
@@ -59,7 +60,9 @@ function formatTimestamp(value: string) {
 export function JobRow({ job }: { job: AdminJobRow }) {
   const { refresh } = useAdminJobsRefresh();
   const [requeuing, setRequeuing] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const canRequeue = job.health === "failed" || job.health === "stuck";
+  const canStop = isJobCancellable(job.status);
 
   async function requeue() {
     setRequeuing(true);
@@ -69,6 +72,20 @@ export function JobRow({ job }: { job: AdminJobRow }) {
       else window.alert("Couldn't requeue this job.");
     } finally {
       setRequeuing(false);
+    }
+  }
+
+  async function stopJob() {
+    if (!window.confirm("Stop this job and delete its uploaded audio? Gemini processing will halt immediately.")) {
+      return;
+    }
+    setStopping(true);
+    try {
+      const res = await fetch(`/api/admin/jobs/${job.id}/cancel`, { method: "POST" });
+      if (res.ok) refresh();
+      else window.alert("Couldn't stop this job.");
+    } finally {
+      setStopping(false);
     }
   }
 
@@ -102,9 +119,16 @@ export function JobRow({ job }: { job: AdminJobRow }) {
         </div>
       </td>
 
-      {/* User column */}
+      {/* Owner column */}
       <td className="px-4 py-3.5">
-        <CopyId label="user" value={job.userId} />
+        {job.userEmail ? (
+          <p className="text-sm text-foreground">{job.userEmail}</p>
+        ) : (
+          <p className="text-sm text-muted-foreground">—</p>
+        )}
+        <div className="mt-0.5">
+          <CopyId label="user" value={job.userId} />
+        </div>
       </td>
 
       {/* Segments column */}
@@ -145,20 +169,36 @@ export function JobRow({ job }: { job: AdminJobRow }) {
         <p className="mt-0.5 text-[0.65rem] text-muted-foreground">
           {job.autoDeleteKind === "stale" ? "Abandoned job cleanup" : "Job record retention"}
         </p>
-        {canRequeue ? (
-          <button
-            onClick={requeue}
-            disabled={requeuing}
-            className="mt-1.5 inline-flex items-center gap-1 rounded-[3px] border px-2 py-0.5 text-xs hover:bg-secondary"
-          >
-            {requeuing ? (
-              <Loader2 className="size-3 animate-spin" />
-            ) : (
-              <RefreshCcw className="size-3" />
-            )}
-            Requeue
-          </button>
-        ) : null}
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {canStop ? (
+            <button
+              onClick={stopJob}
+              disabled={stopping}
+              className="inline-flex items-center gap-1 rounded-[3px] border border-destructive/40 px-2 py-0.5 text-xs text-destructive hover:bg-destructive/10"
+            >
+              {stopping ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <OctagonX className="size-3" />
+              )}
+              Stop
+            </button>
+          ) : null}
+          {canRequeue ? (
+            <button
+              onClick={requeue}
+              disabled={requeuing}
+              className="inline-flex items-center gap-1 rounded-[3px] border px-2 py-0.5 text-xs hover:bg-secondary"
+            >
+              {requeuing ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <RefreshCcw className="size-3" />
+              )}
+              Requeue
+            </button>
+          ) : null}
+        </div>
       </td>
     </tr>
   );

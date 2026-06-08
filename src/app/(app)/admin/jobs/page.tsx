@@ -18,6 +18,7 @@ import {
   isIncompleteJobStatus,
   resolveJobAutoDelete,
 } from "@/lib/jobs-retention";
+import { fetchUserEmails } from "@/lib/admin-user-emails";
 import { getActiveAlert } from "@/lib/alerts";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -50,6 +51,7 @@ export default async function AdminJobsPage() {
 
   const jobRows = (jobs ?? []) as LectureJobRecord[];
   const jobIds = jobRows.map((job) => job.id);
+  const userEmails = await fetchUserEmails(jobRows.map((job) => job.user_id));
 
   const { data: segmentRows } = jobIds.length
     ? await db
@@ -84,6 +86,7 @@ export default async function AdminJobsPage() {
       id: job.id,
       status: job.status,
       userId: job.user_id,
+      userEmail: userEmails.get(job.user_id) ?? null,
       noteId: job.note_id,
       segmentCount: job.segment_count,
       segmentRows: segments.length,
@@ -121,7 +124,7 @@ export default async function AdminJobsPage() {
             </span>
             <h1 className="mt-4 text-2xl font-semibold tracking-tight">Lecture jobs</h1>
             <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
-              Job and note IDs only — no lecture titles or filenames. Stuck jobs are
+              Job and note IDs with owner email — no lecture titles or filenames. Stuck jobs are
               removed after {formatHours(STALE_JOB_TTL_MS)} hours of inactivity; finished
               job records are purged after {formatDays(TERMINAL_JOB_RETENTION_MS)} days.
               Cleanup runs every {JOBS_CLEANUP_INTERVAL_HOURS} hours.

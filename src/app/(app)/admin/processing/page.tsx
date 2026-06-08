@@ -31,7 +31,7 @@ export default async function AdminProcessingPage() {
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Live status of recordings and uploads moving through the pipeline.
-            No note content or user is shown — only job state.
+            Owner email and pipeline state — no lecture content.
           </p>
         </div>
 

@@ -7,7 +7,10 @@ import {
   MonitorSmartphone,
   AlertTriangle,
   CircleDot,
+  OctagonX,
+  Loader2,
 } from "lucide-react";
+import { isJobCancellable } from "@/lib/admin-jobs";
 import { cn } from "@/lib/utils";
 import type {
   ProcessingStageKey,
@@ -97,8 +100,37 @@ function SegmentBar({ tally }: { tally: SegmentTally }) {
   );
 }
 
-function JobCard({ row, now }: { row: ProcessingJobRow; now: number }) {
+function JobCard({
+  row,
+  now,
+  onStopped,
+}: {
+  row: ProcessingJobRow;
+  now: number;
+  onStopped: () => void;
+}) {
+  const [stopping, setStopping] = useState(false);
   const SourceIcon = row.source === "device" ? MonitorSmartphone : Mic;
+  const canStop = isJobCancellable(row.status);
+
+  async function stopJob() {
+    if (
+      !window.confirm(
+        "Stop this job and delete its uploaded audio? Gemini processing will halt immediately."
+      )
+    ) {
+      return;
+    }
+    setStopping(true);
+    try {
+      const res = await fetch(`/api/admin/jobs/${row.jobId}/cancel`, { method: "POST" });
+      if (res.ok) onStopped();
+      else window.alert("Couldn't stop this job.");
+    } finally {
+      setStopping(false);
+    }
+  }
+
   return (
     <li className="flex flex-col gap-3 px-4 py-3.5 transition duration-300 ease-out hover:bg-secondary/55 sm:flex-row sm:items-center">
       <div className="min-w-0 flex-1">
@@ -117,6 +149,9 @@ function JobCard({ row, now }: { row: ProcessingJobRow; now: number }) {
             </span>
           )}
         </div>
+        {row.userEmail ? (
+          <p className="mt-1 text-sm text-foreground">{row.userEmail}</p>
+        ) : null}
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-xs">
           <span className="text-foreground" title={`job ${row.jobId}`}>
             job {shortId(row.jobId)}
@@ -137,7 +172,21 @@ function JobCard({ row, now }: { row: ProcessingJobRow; now: number }) {
         <SegmentBar tally={row.segments} />
       </div>
 
-      <div className="shrink-0 text-right text-xs text-muted-foreground sm:w-36">
+      <div className="shrink-0 text-right text-xs text-muted-foreground sm:w-40">
+        {canStop ? (
+          <button
+            onClick={stopJob}
+            disabled={stopping}
+            className="mb-2 inline-flex items-center gap-1 rounded-[3px] border border-destructive/40 px-2 py-0.5 text-xs text-destructive hover:bg-destructive/10"
+          >
+            {stopping ? (
+              <Loader2 className="size-3 animate-spin" />
+            ) : (
+              <OctagonX className="size-3" />
+            )}
+            Stop
+          </button>
+        ) : null}
         <p title={new Date(row.createdAt).toLocaleString()}>
           started {relativeTime(row.createdAt, now)}
         </p>
@@ -245,7 +294,7 @@ export function ProcessingMonitor({
       ) : (
         <ul className="divide-y rounded-[4px] border bg-card shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
           {jobs.map((row) => (
-            <JobCard key={row.jobId} row={row} now={now} />
+            <JobCard key={row.jobId} row={row} now={now} onStopped={poll} />
           ))}
         </ul>
       )}

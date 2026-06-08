@@ -2,7 +2,8 @@ import "server-only";
 import { ATLAS_SITE_URL } from "@/lib/atlas-brand";
 import { sendLoopsEmail } from "@/lib/loops";
 
-const LECTURE_READY_TEMPLATE = process.env.LOOPS_LECTURE_READY_TRANSACTIONAL_ID;
+export const LOOPS_LECTURE_READY_TRANSACTIONAL_ID =
+  process.env.LOOPS_LECTURE_READY_TRANSACTIONAL_ID ?? "cmq4jaj9z56dw0j4lmxpsfltz";
 
 export interface LectureReadyEmailInput {
   jobId: string;
@@ -15,21 +16,14 @@ export async function sendLectureReadyEmail(
   email: string,
   input: LectureReadyEmailInput
 ): Promise<boolean> {
-  if (!LECTURE_READY_TEMPLATE) {
-    console.warn(
-      "LOOPS_LECTURE_READY_TRANSACTIONAL_ID not set; skipping lecture-ready email."
-    );
-    return false;
-  }
-
   try {
     await sendLoopsEmail({
-      transactionalId: LECTURE_READY_TEMPLATE,
+      transactionalId: LOOPS_LECTURE_READY_TRANSACTIONAL_ID,
       email,
       addToAudience: false,
       dataVariables: {
         lectureTitle: input.title,
-        noteUrl: `${ATLAS_SITE_URL}/notes/${input.noteId}`,
+        noteURL: `${ATLAS_SITE_URL}/notes/${input.noteId}`,
       },
       idempotencyKey: `lecture-ready-${input.jobId}`,
     });

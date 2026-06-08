@@ -36,6 +36,16 @@ export default function TermsPage() {
           body: [
             "You agree not to use Atlas to record people without the consent required by law, to infringe others’ rights, to upload unlawful content, or to attempt to disrupt, reverse-engineer, or gain unauthorized access to the service.",
             "You must follow your institution’s policies and applicable laws regarding the recording of lectures — some instructors and venues require prior consent.",
+            "You agree not to abuse the service — including automated or excessive use, attempts to circumvent usage limits, uploading content you do not have rights to process, sharing accounts to evade restrictions, or any activity that imposes unreasonable load on Atlas or our providers.",
+          ],
+        },
+        {
+          heading: "Account Suspension & Access Restrictions",
+          body: [
+            "We may suspend, restrict, or terminate your account if we detect unusual activity, suspected abuse, violations of these terms, or conduct that risks the security, reliability, or cost of the service.",
+            "Suspension may be applied automatically by our systems when protective limits are triggered. If your account is restricted, you may be unable to sign in or continue using Atlas until the restriction is lifted.",
+            "When processing is paused or an account is restricted, certain data associated with your account — including recordings, uploads, transcripts, and notes — may be retained for a limited period and may be deleted thereafter. Retention is not guaranteed.",
+            "If you believe a restriction was applied in error, contact us at hello@atlasai.ca.",
           ],
         },
         {

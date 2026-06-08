@@ -6,11 +6,11 @@ import { composeNotes, transcribeSegment } from "@/lib/gemini";
 import { mimeFromKey } from "@/lib/upload-lecture";
 import { buildMemoryContext } from "@/lib/memory";
 import {
+  JOBS_SEGMENT_CONCURRENCY,
   JOBS_SLICE_BUDGET_MS,
   MAX_SEGMENT_ATTEMPTS,
   isLeaseStale,
   jobIsComposable,
-  nextSegmentToTranscribe,
 } from "@/lib/jobs";
 import type {
   LectureJobRecord,
@@ -106,6 +106,18 @@ function isAuthorizedTick(request: Request) {
   return secrets.some((secret) => secret === headerSecret || secret === bearer);
 }
 
+async function isJobCancelled(
+  db: ReturnType<typeof createAdminClient>,
+  jobId: string
+): Promise<boolean> {
+  const { data } = await db
+    .from("lecture_jobs")
+    .select("status, error")
+    .eq("id", jobId)
+    .maybeSingle();
+  return data?.status === "failed" || data?.error === "admin_stopped";
+}
+
 async function selfChain(request: Request) {
   const secret = configuredSecrets()[0];
   if (!secret) return;
@@ -179,9 +191,66 @@ async function runWorker(request: Request) {
       (profileRow as UserProfile | undefined) ?? null
     ) || undefined;
 
-  // 3) Transcribe segments until the slice budget is spent.
+  async function transcribeOneSegment(next: LectureSegmentRecord): Promise<"ok" | "spend_cap" | "failed"> {
+    await db
+      .from("lecture_segments")
+      .update({ status: "transcribing", updated_at: new Date().toISOString() })
+      .eq("id", next.id);
+
+    try {
+      const { Body } = await r2.send(
+        new GetObjectCommand({ Bucket: getR2Bucket(), Key: next.r2_key })
+      );
+      if (!Body) throw new Error("Empty R2 body.");
+      const bytes = Buffer.from(await Body.transformToByteArray());
+      const mime = mimeFromKey(next.r2_key);
+
+      const partial: SegmentNotes = await transcribeSegment({
+        bytes,
+        mimeType: mime,
+        memoryContext,
+      });
+
+      await db
+        .from("lecture_segments")
+        .update({
+          status: "transcribed",
+          transcript_text: partial.transcript,
+          partial_notes: partial,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", next.id);
+      return "ok";
+    } catch (err) {
+      if (err instanceof GeminiSpendCapError) {
+        await holdJobForSpendCap(db, job, next.id);
+        return "spend_cap";
+      }
+      const attempts = next.attempts + 1;
+      await db
+        .from("lecture_segments")
+        .update({
+          status: attempts >= MAX_SEGMENT_ATTEMPTS ? "failed" : "uploaded",
+          attempts,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", next.id);
+      console.error(`Segment ${next.index} transcription failed:`, err);
+      return "failed";
+    }
+  }
+
+  // 3) Transcribe segments (in parallel batches) until the slice budget is spent.
   for (;;) {
+    if (await isJobCancelled(db, job.id)) {
+      return NextResponse.json({ claimed: true, cancelled: true });
+    }
+
     if (Date.now() - start > JOBS_SLICE_BUDGET_MS) {
+      await db
+        .from("lecture_jobs")
+        .update({ heartbeat_at: null, updated_at: new Date().toISOString() })
+        .eq("id", job.id);
       await selfChain(request);
       return NextResponse.json({ claimed: true, yielded: true });
     }
@@ -193,55 +262,19 @@ async function runWorker(request: Request) {
       .order("index", { ascending: true });
     const segments = (segRows as LectureSegmentRecord[] | null) ?? [];
 
-    const next = nextSegmentToTranscribe(segments);
-    if (next) {
-      await db
-        .from("lecture_segments")
-        .update({ status: "transcribing", updated_at: new Date().toISOString() })
-        .eq("id", next.id);
+    const pending = segments
+      .filter((s) => s.status === "uploaded")
+      .sort((a, b) => a.index - b.index);
+    if (pending.length > 0) {
+      const batch = pending.slice(0, JOBS_SEGMENT_CONCURRENCY);
       await db
         .from("lecture_jobs")
         .update({ heartbeat_at: new Date().toISOString() })
         .eq("id", job.id);
 
-      try {
-        const { Body } = await r2.send(
-          new GetObjectCommand({ Bucket: getR2Bucket(), Key: next.r2_key })
-        );
-        if (!Body) throw new Error("Empty R2 body.");
-        const bytes = Buffer.from(await Body.transformToByteArray());
-        const mime = mimeFromKey(next.r2_key);
-
-        const partial: SegmentNotes = await transcribeSegment({
-          bytes,
-          mimeType: mime,
-          memoryContext,
-        });
-
-        await db
-          .from("lecture_segments")
-          .update({
-            status: "transcribed",
-            transcript_text: partial.transcript,
-            partial_notes: partial,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", next.id);
-      } catch (err) {
-        if (err instanceof GeminiSpendCapError) {
-          await holdJobForSpendCap(db, job, next.id);
-          return NextResponse.json({ claimed: true, held: "spend_cap" });
-        }
-        const attempts = next.attempts + 1;
-        await db
-          .from("lecture_segments")
-          .update({
-            status: attempts >= MAX_SEGMENT_ATTEMPTS ? "failed" : "uploaded",
-            attempts,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", next.id);
-        console.error(`Segment ${next.index} transcription failed:`, err);
+      const results = await Promise.all(batch.map((segment) => transcribeOneSegment(segment)));
+      if (results.includes("spend_cap")) {
+        return NextResponse.json({ claimed: true, held: "spend_cap" });
       }
       continue;
     }

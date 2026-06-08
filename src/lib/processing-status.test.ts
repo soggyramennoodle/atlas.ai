@@ -19,6 +19,8 @@ function job(
   const { segments, ...rest } = overrides;
   return {
     jobId: "j",
+    userId: "u",
+    userEmail: null,
     noteId: null,
     status: "processing",
     source: "microphone",

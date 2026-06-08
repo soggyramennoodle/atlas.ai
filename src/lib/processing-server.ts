@@ -1,4 +1,5 @@
 import "server-only";
+import { fetchUserEmails } from "@/lib/admin-user-emails";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { JOBS_LEASE_MS } from "@/lib/jobs";
 import {
@@ -24,12 +25,12 @@ export interface ProcessingSnapshot {
   leaseMs: number;
 }
 
-// Only the bookkeeping columns — never user_id, session_label, live_transcript.
 const JOB_COLUMNS =
-  "id, note_id, status, segment_count, total_seconds, source, attempts, heartbeat_at, error, created_at, updated_at" as const;
+  "id, user_id, note_id, status, segment_count, total_seconds, source, attempts, heartbeat_at, error, created_at, updated_at" as const;
 
 interface JobRow {
   id: string;
+  user_id: string;
   note_id: string | null;
   status: LectureJobStatus;
   segment_count: number | null;
@@ -67,6 +68,8 @@ export async function getProcessingSnapshot(): Promise<ProcessingSnapshot> {
   const jobs = (jobData as JobRow[] | null) ?? [];
   if (jobs.length === 0) return { jobs: [], now, leaseMs: JOBS_LEASE_MS };
 
+  const userEmails = await fetchUserEmails(jobs.map((j) => j.user_id));
+
   // One round trip for all segments, tallied per job (no transcript columns).
   const { data: segData } = await db
     .from("lecture_segments")
@@ -87,6 +90,8 @@ export async function getProcessingSnapshot(): Promise<ProcessingSnapshot> {
   const rows: ProcessingJobRow[] = jobs.map((j) => {
     const view: ProcessingJobView = {
       jobId: j.id,
+      userId: j.user_id,
+      userEmail: userEmails.get(j.user_id) ?? null,
       noteId: j.note_id,
       status: j.status,
       source: j.source,

@@ -31,7 +31,7 @@ export function AdminJobList({ jobs }: { jobs: AdminJobRow[] }) {
         <thead className="border-b bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
           <tr>
             <th className="px-4 py-3 font-medium">Job</th>
-            <th className="px-4 py-3 font-medium">User</th>
+            <th className="px-4 py-3 font-medium">Owner</th>
             <th className="px-4 py-3 font-medium">Segments</th>
             <th className="px-4 py-3 font-medium">Last activity</th>
             <th className="px-4 py-3 font-medium">Auto-delete</th>

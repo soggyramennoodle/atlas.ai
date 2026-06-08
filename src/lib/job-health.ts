@@ -17,6 +17,10 @@ export function isSpendCapHeld(error: string | null): boolean {
   return error === "gemini_spend_cap";
 }
 
+export function isAdminStopped(error: string | null): boolean {
+  return error === "admin_stopped";
+}
+
 function leaseStale(heartbeatAt: string | null, now: number, leaseMs: number): boolean {
   if (!heartbeatAt) return true;
   return now - new Date(heartbeatAt).getTime() > leaseMs;
@@ -33,7 +37,11 @@ export function deriveJobHealth(
     return { key: "held", label: "Held · at capacity" };
   }
   if (job.status === "ready") return { key: "ready", label: "Ready" };
-  if (job.status === "failed") return { key: "failed", label: "Failed" };
+  if (job.status === "failed") {
+    return isAdminStopped(job.error)
+      ? { key: "failed", label: "Stopped by admin" }
+      : { key: "failed", label: "Failed" };
+  }
   if (job.status === "processing" || job.status === "recording_complete") {
     return leaseStale(job.heartbeatAt, now, leaseMs)
       ? { key: "stuck", label: "Stuck" }

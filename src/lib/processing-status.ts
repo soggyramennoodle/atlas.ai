@@ -49,6 +49,8 @@ export function tallySegments(statuses: LectureSegmentStatus[]): SegmentTally {
  */
 export interface ProcessingJobView {
   jobId: string;
+  userId: string;
+  userEmail: string | null;
   noteId: string | null;
   status: LectureJobStatus;
   source: "microphone" | "device";

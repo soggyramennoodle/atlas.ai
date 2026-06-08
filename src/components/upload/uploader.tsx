@@ -92,6 +92,26 @@ function formatDuration(s: number) {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
+/** Wait for browser metadata — avoids skipping chunking when duration isn't ready yet. */
+function probeFileDuration(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const media = isLikelyVideoFile(file)
+      ? document.createElement("video")
+      : new Audio();
+    media.preload = "metadata";
+    const done = (value: number | null) => {
+      URL.revokeObjectURL(url);
+      resolve(value);
+    };
+    media.onloadedmetadata = () => {
+      done(Number.isFinite(media.duration) ? media.duration : null);
+    };
+    media.onerror = () => done(null);
+    media.src = url;
+  });
+}
+
 export function Uploader({ userId }: { userId: string }) {
   const reduceMotion = useReducedMotion();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -180,11 +200,21 @@ export function Uploader({ userId }: { userId: string }) {
     let durationSeconds = duration;
 
     try {
+      if (!durationSeconds || !Number.isFinite(durationSeconds)) {
+        setStage("preparing");
+        setPrepareHint("Reading file duration…");
+        durationSeconds = await probeFileDuration(file);
+        setPrepareHint("");
+        if (durationSeconds) setDuration(durationSeconds);
+      }
+
       // Long lectures: split into ~5-min segments so each stays within Gemini's
       // limits and is transcribed + spliced by the same worker the live recorder
       // uses. Short ones keep the simple single-file path. On any chunking error
       // we fall back to single-file (no worse than before).
-      if ((duration ?? 0) > CHUNK_ABOVE_SECONDS) {
+      const shouldChunk =
+        (durationSeconds ?? 0) > CHUNK_ABOVE_SECONDS || file.size > 10 * 1024 * 1024;
+      if (shouldChunk) {
         try {
           setStage("preparing");
           setPrepareHint("Splitting your lecture into segments…");

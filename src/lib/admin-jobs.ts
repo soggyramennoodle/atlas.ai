@@ -1,6 +1,11 @@
 import type { JobAutoDeleteKind } from "@/lib/jobs-retention";
 import type { LectureJobStatus } from "@/lib/types";
 
+/** True when a job can still be cancelled (not already terminal). */
+export function isJobCancellable(status: string): boolean {
+  return status === "recording" || status === "recording_complete" || status === "processing";
+}
+
 export function formatAdminId(id: string): string {
   return id.length > 12 ? `${id.slice(0, 8)}…${id.slice(-4)}` : id;
 }
@@ -9,6 +14,7 @@ export type AdminJobRow = {
   id: string;
   status: LectureJobStatus;
   userId: string;
+  userEmail: string | null;
   noteId: string | null;
   segmentCount: number | null;
   segmentRows: number;

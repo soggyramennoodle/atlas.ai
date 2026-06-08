@@ -9,6 +9,9 @@ export const JOBS_LEASE_MS = Number(process.env.JOBS_LEASE_MS) || 90_000;
 /** Per-tick wall-clock budget; yield before Vercel Hobby's 60s cap. */
 export const JOBS_SLICE_BUDGET_MS =
   Number(process.env.JOBS_SLICE_BUDGET_MS) || 45_000;
+/** How many segments to transcribe in parallel within one tick. */
+export const JOBS_SEGMENT_CONCURRENCY =
+  Number(process.env.JOBS_SEGMENT_CONCURRENCY) || 4;
 /** Per-segment transcription retry ceiling. */
 export const MAX_SEGMENT_ATTEMPTS = Number(process.env.MAX_SEGMENT_ATTEMPTS) || 3;
 /** Whole-job retry ceiling. */
