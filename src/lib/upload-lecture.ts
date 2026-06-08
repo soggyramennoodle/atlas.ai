@@ -227,9 +227,6 @@ export async function uploadLectureChunks({
       segmentIndex: i,
       durationSeconds: perChunk,
       signal,
-      // Chunked file uploads always go direct-to-R2 so Vercel's ~4.5 MB body
-      // cap can't kill later segments of a long lecture.
-      preferMultipart: true,
     });
     if (!key.startsWith(`${userId}/`)) {
       throw new Error("Upload was rejected because it was scoped incorrectly.");

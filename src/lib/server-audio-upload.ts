@@ -58,11 +58,22 @@ async function uploadLargeViaPresignedMultipart(args: {
     const end = Math.min(start + partSize, args.blob.size);
     const chunk = args.blob.slice(start, end);
 
-    const partRes = await fetch(presignedUrl, {
-      method: "PUT",
-      body: chunk,
-      signal: args.signal,
-    });
+    let partRes: Response;
+    try {
+      partRes = await fetch(presignedUrl, {
+        method: "PUT",
+        body: chunk,
+        signal: args.signal,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/load failed|failed to fetch|networkerror/i.test(msg)) {
+        throw new Error(
+          "Upload to storage was blocked by the browser (usually a network or CORS issue). Please try again, or contact support if it keeps failing."
+        );
+      }
+      throw err;
+    }
     if (!partRes.ok) {
       throw new Error(
         `Upload failed (part ${partNumber}, HTTP ${partRes.status}). Please try again.`
@@ -109,14 +120,22 @@ export async function uploadAudioViaServer(args: {
   segmentIndex: number;
   durationSeconds?: number | null;
   signal?: AbortSignal;
-  /** File-upload chunks bypass the app server and PUT straight to R2. */
+  /** Force browser PUTs to R2 even when the segment fits through the app server. */
   preferMultipart?: boolean;
 }): Promise<string> {
-  if (
-    args.preferMultipart ||
-    args.blob.size > DIRECT_UPLOAD_MAX_BYTES
-  ) {
+  if (args.preferMultipart || args.blob.size > DIRECT_UPLOAD_MAX_BYTES) {
     return uploadLargeViaPresignedMultipart(args);
   }
-  return uploadSegment(args);
+  try {
+    return await uploadSegment(args);
+  } catch (err) {
+    // Server route returns 413 when a segment exceeds the Vercel body cap.
+    if (
+      err instanceof Error &&
+      /too large for a direct upload|HTTP 413/i.test(err.message)
+    ) {
+      return uploadLargeViaPresignedMultipart(args);
+    }
+    throw err;
+  }
 }
