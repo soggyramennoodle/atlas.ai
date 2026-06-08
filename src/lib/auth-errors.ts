@@ -18,3 +18,20 @@ export function authErrorMessage(
   if (isAuthEmailRateLimitError(error)) return AUTH_EMAIL_RATE_LIMIT_MESSAGE;
   return error?.message?.trim() || fallback;
 }
+
+/** Whether an auth error is GoTrue's "user is banned" rejection. */
+export function isBannedAuthError(
+  error: { code?: string; message?: string } | null | undefined
+): boolean {
+  if (!error) return false;
+  if (error.code === "user_banned") return true;
+  return /banned/i.test(error.message ?? "");
+}
+
+export function safeAuthNextPath(
+  rawNext: string | null | undefined,
+  fallback = "/dashboard"
+): string {
+  if (!rawNext?.startsWith("/") || rawNext.startsWith("//")) return fallback;
+  return rawNext;
+}

@@ -7,8 +7,25 @@ export function magicLinkRedirectTo(next = "/dashboard"): string {
 }
 
 /**
- * Build the same Supabase verify URL the send-email hook puts in Loops emails.
- * Admin-generated links must match this shape or the callback won't exchange.
+ * Admin magic links must land on our server confirm route. Links that bounce
+ * through Supabase /verify expect a PKCE verifier in the browser, which only
+ * exists for self-initiated signInWithOtp — not admin generateLink emails.
+ */
+export function buildAdminMagicLinkUrl(
+  tokenHash: string,
+  next = "/dashboard"
+): string {
+  const path = next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+  const url = new URL("/auth/confirm", ATLAS_SITE_URL);
+  url.searchParams.set("token_hash", tokenHash);
+  url.searchParams.set("type", "magiclink");
+  url.searchParams.set("next", path);
+  return url.toString();
+}
+
+/**
+ * Build the Supabase verify URL for self-initiated OTP emails (send-email hook).
+ * Those flows store a PKCE verifier client-side before the email is sent.
  */
 export function buildMagicLinkConfirmationUrl(
   tokenHash: string,

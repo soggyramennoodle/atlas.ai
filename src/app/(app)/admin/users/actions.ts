@@ -15,10 +15,7 @@ import {
   LOOPS_MAGIC_LINK_TRANSACTIONAL_ID,
   sendLoopsEmail,
 } from "@/lib/loops";
-import {
-  buildMagicLinkConfirmationUrl,
-  magicLinkRedirectTo,
-} from "@/lib/magic-link-url";
+import { buildAdminMagicLinkUrl } from "@/lib/magic-link-url";
 
 // GoTrue treats a far-future ban as an indefinite suspension; "none" clears it.
 const BAN_DURATION = "876000h"; // ~100 years
@@ -70,12 +67,10 @@ export async function resendMagicLink(email: string): Promise<ActionResult> {
   const trimmed = email.trim();
   if (!trimmed) return { ok: false, error: "Missing email." };
 
-  const redirectTo = magicLinkRedirectTo("/dashboard");
   const db = createAdminClient();
   const { data, error } = await db.auth.admin.generateLink({
     type: "magiclink",
     email: trimmed,
-    options: { redirectTo },
   });
 
   const tokenHash = data?.properties?.hashed_token;
@@ -92,7 +87,7 @@ export async function resendMagicLink(email: string): Promise<ActionResult> {
       transactionalId: LOOPS_MAGIC_LINK_TRANSACTIONAL_ID,
       email: trimmed,
       dataVariables: {
-        confirmationURL: buildMagicLinkConfirmationUrl(tokenHash, redirectTo),
+        confirmationURL: buildAdminMagicLinkUrl(tokenHash, "/dashboard"),
       },
       idempotencyKey: `admin-resend-${trimmed}-${Date.now()}`,
     });
