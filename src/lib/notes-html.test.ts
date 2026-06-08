@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { insertAiBlockHtml, splitToNoteItems } from "./notes-html";
+import {
+  insertAiBlockHtml,
+  notesBodyToHtml,
+  seedBodyFromSections,
+  splitToNoteItems,
+} from "./notes-html";
+import type { StructuredNotes } from "./types";
+
+function makeNotes(sections: StructuredNotes["sections"]): StructuredNotes {
+  return { title: "T", summary: "", sections, keyConcepts: [] };
+}
 
 describe("splitToNoteItems", () => {
   it("keeps a single paragraph as one bullet", () => {
@@ -99,5 +109,44 @@ describe("insertAiBlockHtml", () => {
     expect(html).toContain(
       '<li data-atlas-ai="1">a &lt; b &amp; c &gt; d</li>'
     );
+  });
+});
+
+describe("seedBodyFromSections", () => {
+  it("produces the same bodyHtml as notesBodyToHtml", () => {
+    const notes = makeNotes([
+      { heading: "S1", points: [{ text: "p1" }, { text: "p2" }] },
+    ]);
+    const { bodyHtml } = seedBodyFromSections(notes);
+    expect(bodyHtml).toBe(notesBodyToHtml(notes));
+  });
+
+  it("aligns source indices with li order, skipping empty points but still consuming index slots", () => {
+    const notes = makeNotes([
+      {
+        heading: "S1",
+        points: [
+          { text: "p1", source_excerpt: "e1" },
+          { text: "p2" }, // no excerpt: consumes index 1, no source entry
+          { text: "   " }, // empty: not rendered, not indexed
+        ],
+        subsections: [
+          { heading: "Sub", points: [{ text: "p3", source_excerpt: "e3" }] },
+        ],
+      },
+    ]);
+
+    const { bodySources } = seedBodyFromSections(notes);
+    expect(bodySources).toEqual([
+      { index: 0, text: "p1", status: "lecture", source_excerpt: "e1" },
+      { index: 2, text: "p3", status: "lecture", source_excerpt: "e3" },
+    ]);
+  });
+
+  it("returns an empty source map when no points carry excerpts", () => {
+    const notes = makeNotes([
+      { heading: "S1", points: [{ text: "p1" }, { text: "p2" }] },
+    ]);
+    expect(seedBodyFromSections(notes).bodySources).toEqual([]);
   });
 });

@@ -5,7 +5,7 @@
  * safe to import on both the client and the server (exports).
  */
 import { parse } from "node-html-parser";
-import type { NotePoint, StructuredNotes } from "@/lib/types";
+import type { BodySource, NotePoint, StructuredNotes } from "@/lib/types";
 
 function pointText(p: NotePoint | string): string {
   return typeof p === "string" ? p : p.text;
@@ -189,4 +189,40 @@ export function insertAiBlockHtml(
     tag === "li" ? liHtml : `<ul>${liHtml}</ul>`
   );
   return { html: root.toString(), matched: true };
+}
+
+/**
+ * Build a rich-text body (and matching source map) from a structured notes
+ * document, so a not-yet-edited note can gain a `bodyHtml` the first time the
+ * student adds AI content to it. The list-item order mirrors
+ * {@link notesBodyToHtml} exactly — points then subsection points, per section,
+ * skipping empties — so each `BodySource.index` lines up with the `<li>` index
+ * the renderer assigns, preserving every hover-source excerpt.
+ */
+export function seedBodyFromSections(notes: StructuredNotes): {
+  bodyHtml: string;
+  bodySources: BodySource[];
+} {
+  const bodyHtml = notesBodyToHtml(notes);
+  const bodySources: BodySource[] = [];
+  let index = 0;
+
+  const consume = (p: NotePoint | string) => {
+    const text = pointText(p).trim();
+    if (!text) return; // notesBodyToHtml omits empty points, so don't index them
+    const excerpt = typeof p === "string" ? "" : p.source_excerpt?.trim() ?? "";
+    if (excerpt) {
+      bodySources.push({ index, text, status: "lecture", source_excerpt: excerpt });
+    }
+    index += 1;
+  };
+
+  for (const section of notes.sections ?? []) {
+    for (const p of section.points ?? []) consume(p);
+    for (const sub of section.subsections ?? []) {
+      for (const p of sub.points ?? []) consume(p);
+    }
+  }
+
+  return { bodyHtml, bodySources };
 }

@@ -32,6 +32,15 @@ const SEGMENT_MODEL =
 export const HELPER_MODEL =
   process.env.GEMINI_HELPER_MODEL || "gemini-2.5-flash";
 
+/**
+ * The cheapest model in the 2.5 family — for the lightest, highest-volume
+ * helper calls where cost matters most (e.g. per-note-line chat / "go deeper").
+ * Pinned to flash-lite by default so it stays cheap even if GEMINI_HELPER_MODEL
+ * is overridden to a pricier model elsewhere.
+ */
+export const LITE_MODEL =
+  process.env.GEMINI_LITE_MODEL || "gemini-2.5-flash-lite";
+
 function getClient() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {

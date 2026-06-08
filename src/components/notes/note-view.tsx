@@ -29,6 +29,7 @@ import {
   insertAiBlockHtml,
   notesBodyToHtml,
   sanitizeNoteHtml,
+  seedBodyFromSections,
   splitToNoteItems,
 } from "@/lib/notes-html";
 import { SummaryCard } from "./summary-card";
@@ -234,10 +235,28 @@ export function NoteView({
 
   // Kick off the live typewriter insert. The actual splice + persist happens in
   // commitAiStream once the typing animation completes (see AiStreamBlock).
-  const onAddToNote = useCallback((afterText: string, text: string) => {
-    if (!text.trim()) return;
-    setAiStream({ afterText, full: text });
-  }, []);
+  const onAddToNote = useCallback(
+    (afterText: string, text: string) => {
+      if (!text.trim()) return;
+      // A not-yet-edited note renders from `sections` and has no bodyHtml to
+      // splice into. Seed one (preserving every source excerpt) so the insert
+      // and its live typewriter have a rich-text body to land in. Persisted
+      // together with the new bullet in commitAiStream.
+      if (!savedRef.current.bodyHtml) {
+        const seeded = clone(savedRef.current);
+        seeded.title = note.title;
+        const { bodyHtml, bodySources } = seedBodyFromSections(seeded);
+        seeded.bodyHtml = bodyHtml;
+        seeded.bodySources = bodySources;
+        setSaved(seeded);
+        setDraft(seeded);
+        savedRef.current = seeded;
+        draftRef.current = seeded;
+      }
+      setAiStream({ afterText, full: text });
+    },
+    [note.title]
+  );
 
   const commitAiStream = useCallback(() => {
     const cur = aiStreamRef.current;
@@ -286,10 +305,12 @@ export function NoteView({
       noteTitle: note.title,
       subject: saved.subject,
       summary: saved.summary,
-      canAddToNote: !!saved.bodyHtml,
+      // Always offered: notes without a bodyHtml are seeded from their
+      // structured sections on first add (see onAddToNote).
+      canAddToNote: true,
       onAddToNote,
     }),
-    [note.title, saved.subject, saved.summary, saved.bodyHtml, onAddToNote]
+    [note.title, saved.subject, saved.summary, onAddToNote]
   );
 
   const aiStreamNode = useMemo(
