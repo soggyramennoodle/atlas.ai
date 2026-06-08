@@ -29,13 +29,19 @@ export function ThemeSync({
   const hydrated = useRef(false);
   const skipNextSave = useRef(false);
   const seeded = useRef(false);
+  const appliedSavedTheme = useRef<ThemePreference | null>(null);
 
+  // Apply the server-stored preference once per saved value. `setTheme` from
+  // next-themes is recreated whenever `theme` changes — including it in deps
+  // would re-run this effect after every local toggle and snap the UI back.
   useEffect(() => {
-    if (savedTheme) {
-      skipNextSave.current = true;
-      setTheme(savedTheme);
-    }
-  }, [savedTheme, setTheme]);
+    if (!savedTheme || appliedSavedTheme.current === savedTheme) return;
+    appliedSavedTheme.current = savedTheme;
+    skipNextSave.current = true;
+    setTheme(savedTheme);
+    // setTheme identity changes when theme changes; only react to savedTheme.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment above
+  }, [savedTheme]);
 
   useEffect(() => {
     if (savedTheme || seeded.current) return;
