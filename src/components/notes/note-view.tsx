@@ -131,6 +131,8 @@ export function NoteView({
     subject?: string;
     summary?: string;
   } | null>(null);
+  // Whether the top toolbar is on screen; drives the floating Edit/Done pill.
+  const [toolbarVisible, setToolbarVisible] = useState(true);
 
   const draftRef = useRef(draft);
   const originalRef = useRef<StructuredNotes>(initial);
@@ -138,6 +140,7 @@ export function NoteView({
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const articleRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     draftRef.current = draft;
@@ -146,6 +149,18 @@ export function NoteView({
   useEffect(() => {
     savedRef.current = saved;
   }, [saved]);
+
+  // Reveal the floating Edit/Done pill once the top toolbar scrolls out of view.
+  useEffect(() => {
+    const el = toolbarRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setToolbarVisible(entry.isIntersecting),
+      { rootMargin: "-8px 0px 0px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const update = (fn: (d: StructuredNotes) => void) =>
     setDraft((prev) => {
@@ -477,64 +492,29 @@ export function NoteView({
         </div>
       )}
       {/* Notes-section toolbar */}
-      <div className="mb-5 flex items-center justify-between gap-3">
+      <div ref={toolbarRef} className="mb-5 flex items-center justify-between gap-3">
         <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
           {editMode ? "Editing notes" : "Lecture notes"}
         </h2>
-        <div className="flex items-center gap-3">
-          <AutosaveIndicator status={editMode ? status : "idle"} />
-          {editMode ? (
-            <motion.button
-              layout
-              onClick={doneInProgress ? undefined : done}
-              disabled={doneInProgress}
-              className={cn(
-                "relative inline-flex items-center justify-center overflow-hidden bg-primary text-primary-foreground text-xs font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none",
-                doneInProgress
-                  ? "size-[30px] rounded-full"
-                  : "h-[30px] rounded-[4px] px-3 gap-1.5"
-              )}
-              transition={{ layout: { type: "spring", stiffness: 420, damping: 30 } }}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                {doneInProgress ? (
-                  <motion.span
-                    key="loading"
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.6 }}
-                    transition={{ duration: 0.12 }}
-                  >
-                    <Loader2 className="size-3.5 animate-spin" />
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="idle"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.1 }}
-                    className="flex items-center gap-1.5"
-                  >
-                    <Check className="size-3.5" />
-                    Done
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </motion.button>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={startEditing}
-              className="gap-2"
-            >
-              <Pencil className="size-3.5" />
-              Edit notes
-            </Button>
-          )}
-        </div>
+        <EditControls
+          editMode={editMode}
+          status={status}
+          doneInProgress={doneInProgress}
+          onEdit={startEditing}
+          onDone={done}
+        />
       </div>
+
+      {/* Floating mirror of the toolbar's Edit/Done control, revealed once the
+          toolbar scrolls out of view so editing/saving is reachable anywhere. */}
+      <FloatingEditControls
+        visible={!toolbarVisible}
+        editMode={editMode}
+        status={status}
+        doneInProgress={doneInProgress}
+        onEdit={startEditing}
+        onDone={done}
+      />
 
       <AtlasCursor
         active={readingActive}
@@ -1201,6 +1181,122 @@ function AtlasCursor({
   );
 }
 
+
+/**
+ * The Edit/Done action cluster — the autosave indicator plus the morphing
+ * Edit (view) / Done (edit) button. Shared by the top toolbar and the floating
+ * pill so their behavior can never drift.
+ */
+function EditControls({
+  editMode,
+  status,
+  doneInProgress,
+  onEdit,
+  onDone,
+}: {
+  editMode: boolean;
+  status: SaveStatus;
+  doneInProgress: boolean;
+  onEdit: () => void;
+  onDone: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <AutosaveIndicator status={editMode ? status : "idle"} />
+      {editMode ? (
+        <motion.button
+          layout
+          onClick={doneInProgress ? undefined : onDone}
+          disabled={doneInProgress}
+          className={cn(
+            "relative inline-flex items-center justify-center overflow-hidden bg-primary text-primary-foreground text-xs font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none",
+            doneInProgress
+              ? "size-[30px] rounded-full"
+              : "h-[30px] rounded-[4px] px-3 gap-1.5"
+          )}
+          transition={{ layout: { type: "spring", stiffness: 420, damping: 30 } }}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {doneInProgress ? (
+              <motion.span
+                key="loading"
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.12 }}
+              >
+                <Loader2 className="size-3.5 animate-spin" />
+              </motion.span>
+            ) : (
+              <motion.span
+                key="idle"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.1 }}
+                className="flex items-center gap-1.5"
+              >
+                <Check className="size-3.5" />
+                Done
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
+      ) : (
+        <Button variant="outline" size="sm" onClick={onEdit} className="gap-2">
+          <Pencil className="size-3.5" />
+          Edit notes
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The floating Edit/Done pill: a fixed, bottom-right card hosting the same
+ * {@link EditControls}, revealed (fade + slide; opacity-only under reduced
+ * motion) once the top toolbar scrolls out of view. Sits below the line-chat
+ * popup and AtlasCursor overlay so neither is obscured.
+ */
+function FloatingEditControls({
+  visible,
+  editMode,
+  status,
+  doneInProgress,
+  onEdit,
+  onDone,
+}: {
+  visible: boolean;
+  editMode: boolean;
+  status: SaveStatus;
+  doneInProgress: boolean;
+  onEdit: () => void;
+  onDone: () => void;
+}) {
+  const reduce = useReducedMotion();
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: reduce ? 0 : 12, scale: reduce ? 1 : 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: reduce ? 0 : 12, scale: reduce ? 1 : 0.96 }}
+          transition={{ type: "spring", stiffness: 360, damping: 28 }}
+          className="fixed bottom-6 right-4 z-40 rounded-[8px] border bg-card/95 px-2.5 py-2 shadow-[0_10px_36px_-10px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:right-6"
+          style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+        >
+          <EditControls
+            editMode={editMode}
+            status={status}
+            doneInProgress={doneInProgress}
+            onEdit={onEdit}
+            onDone={onDone}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 /** A small "Saved" pill that fades in after a save and out ~2s later (§1). */
 function AutosaveIndicator({ status }: { status: SaveStatus }) {
