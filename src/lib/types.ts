@@ -170,6 +170,8 @@ export interface UserProfile {
   grad_year: string | null;
   welcome_email_sent_at: string | null;
   ui_tour_completed_at: string | null;
+  /** Saved light / dark / system preference, synced across devices. */
+  theme_preference: string | null;
   created_at: string;
 }
 

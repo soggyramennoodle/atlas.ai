@@ -43,6 +43,23 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (user) {
+    const { data: isBanned, error: banError } = await supabase.rpc(
+      "current_user_is_banned"
+    );
+    if (!banError && isBanned) {
+      await supabase.auth.signOut();
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.search = "locked=1";
+      const redirect = NextResponse.redirect(url);
+      response.cookies.getAll().forEach(({ name, value, ...options }) => {
+        redirect.cookies.set(name, value, options);
+      });
+      return redirect;
+    }
+  }
+
   const { pathname } = request.nextUrl;
   const needsAuth = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
 
