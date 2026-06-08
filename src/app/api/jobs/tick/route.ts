@@ -11,7 +11,9 @@ import {
   MAX_SEGMENT_ATTEMPTS,
   isLeaseStale,
   jobIsComposable,
+  reduceSegmentConcurrency,
 } from "@/lib/jobs";
+import { classifyGeminiError } from "@/lib/gemini-errors";
 import type {
   LectureJobRecord,
   LectureSegmentRecord,
@@ -191,7 +193,9 @@ async function runWorker(request: Request) {
       (profileRow as UserProfile | undefined) ?? null
     ) || undefined;
 
-  async function transcribeOneSegment(next: LectureSegmentRecord): Promise<"ok" | "spend_cap" | "failed"> {
+  type SegmentResult = "ok" | "spend_cap" | "failed" | "rate_limit";
+
+  async function transcribeOneSegment(next: LectureSegmentRecord): Promise<SegmentResult> {
     await db
       .from("lecture_segments")
       .update({ status: "transcribing", updated_at: new Date().toISOString() })
@@ -226,6 +230,14 @@ async function runWorker(request: Request) {
         await holdJobForSpendCap(db, job, next.id);
         return "spend_cap";
       }
+      if (classifyGeminiError(err) === "rate_limit") {
+        await db
+          .from("lecture_segments")
+          .update({ status: "uploaded", updated_at: new Date().toISOString() })
+          .eq("id", next.id);
+        console.warn(`Segment ${next.index} hit rate limit; will retry with lower concurrency.`);
+        return "rate_limit";
+      }
       const attempts = next.attempts + 1;
       await db
         .from("lecture_segments")
@@ -239,6 +251,37 @@ async function runWorker(request: Request) {
       return "failed";
     }
   }
+
+  /** Run a batch, stepping down parallelism when Gemini returns 429. */
+  async function transcribeBatchAdaptive(
+    batch: LectureSegmentRecord[],
+    concurrency: number
+  ): Promise<{ results: SegmentResult[]; concurrency: number }> {
+    let parallel = concurrency;
+    let offset = 0;
+    const results: SegmentResult[] = [];
+
+    while (offset < batch.length) {
+      const slice = batch.slice(offset, offset + parallel);
+      const sliceResults = await Promise.all(slice.map((s) => transcribeOneSegment(s)));
+
+      if (sliceResults.includes("spend_cap")) {
+        return { results: sliceResults, concurrency: parallel };
+      }
+      if (sliceResults.includes("rate_limit")) {
+        parallel = reduceSegmentConcurrency(parallel);
+        await new Promise((r) => setTimeout(r, 2000));
+        if (parallel < slice.length) continue;
+      }
+
+      results.push(...sliceResults);
+      offset += slice.length;
+    }
+
+    return { results, concurrency: parallel };
+  }
+
+  let segmentConcurrency = JOBS_SEGMENT_CONCURRENCY;
 
   // 3) Transcribe segments (in parallel batches) until the slice budget is spent.
   for (;;) {
@@ -266,13 +309,17 @@ async function runWorker(request: Request) {
       .filter((s) => s.status === "uploaded")
       .sort((a, b) => a.index - b.index);
     if (pending.length > 0) {
-      const batch = pending.slice(0, JOBS_SEGMENT_CONCURRENCY);
+      const batch = pending.slice(0, segmentConcurrency);
       await db
         .from("lecture_jobs")
         .update({ heartbeat_at: new Date().toISOString() })
         .eq("id", job.id);
 
-      const results = await Promise.all(batch.map((segment) => transcribeOneSegment(segment)));
+      const { results, concurrency: nextConcurrency } = await transcribeBatchAdaptive(
+        batch,
+        segmentConcurrency
+      );
+      segmentConcurrency = nextConcurrency;
       if (results.includes("spend_cap")) {
         return NextResponse.json({ claimed: true, held: "spend_cap" });
       }

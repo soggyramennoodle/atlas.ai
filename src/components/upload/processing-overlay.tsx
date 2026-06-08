@@ -40,6 +40,7 @@ export function ProcessingOverlay({
   onDownload,
   safeToLeave,
   subLabel,
+  progress,
 }: {
   stage: CaptureStage;
   issue?: ProcessingIssue | null;
@@ -50,6 +51,8 @@ export function ProcessingOverlay({
   safeToLeave?: boolean;
   /** Optional small line under the title (e.g. "Splitting your lecture…"). */
   subLabel?: string;
+  /** 0–1 upload/prepare progress; omit for indeterminate. */
+  progress?: number | null;
 }) {
   const reduceMotion = useReducedMotion();
   const [showLongRunHint, setShowLongRunHint] = useState(false);
@@ -141,6 +144,36 @@ export function ProcessingOverlay({
             )}
             {!failed && subLabel ? (
               <p className="mt-2 text-xs font-medium text-primary/80">{subLabel}</p>
+            ) : null}
+
+            {!failed && (stage === "preparing" || stage === "uploading") ? (
+              <div className="mt-5 w-full max-w-sm">
+                <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+                  {typeof progress === "number" ? (
+                    <motion.div
+                      className="h-full rounded-full bg-primary"
+                      initial={false}
+                      animate={{ width: `${Math.round(Math.min(1, Math.max(0, progress)) * 100)}%` }}
+                      transition={{ duration: reduceMotion ? 0 : 0.2, ease: "easeOut" }}
+                    />
+                  ) : (
+                    <motion.div
+                      className="h-full w-1/3 rounded-full bg-primary"
+                      animate={reduceMotion ? undefined : { x: ["-100%", "350%"] }}
+                      transition={
+                        reduceMotion
+                          ? undefined
+                          : { duration: 1.2, ease: "easeInOut", repeat: Infinity }
+                      }
+                    />
+                  )}
+                </div>
+                {typeof progress === "number" ? (
+                  <p className="mt-1.5 font-mono text-[0.65rem] text-muted-foreground">
+                    {Math.round(Math.min(1, Math.max(0, progress)) * 100)}%
+                  </p>
+                ) : null}
+              </div>
             ) : null}
 
             {/* Extraction + upload run in this tab; closing it mid-flight loses

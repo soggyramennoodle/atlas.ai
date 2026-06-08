@@ -9,9 +9,20 @@ export const JOBS_LEASE_MS = Number(process.env.JOBS_LEASE_MS) || 90_000;
 /** Per-tick wall-clock budget; yield before Vercel Hobby's 60s cap. */
 export const JOBS_SLICE_BUDGET_MS =
   Number(process.env.JOBS_SLICE_BUDGET_MS) || 45_000;
-/** How many segments to transcribe in parallel within one tick. */
+/**
+ * Max segments transcribed in parallel per worker tick. Default 4 balances
+ * speed against Gemini burst rate limits on Hobby — not a magic number, just a
+ * conservative starting point. Override with JOBS_SEGMENT_CONCURRENCY; the
+ * worker steps down automatically on 429s.
+ */
 export const JOBS_SEGMENT_CONCURRENCY =
   Number(process.env.JOBS_SEGMENT_CONCURRENCY) || 4;
+
+/** Step down parallel transcription after a rate-limit (429) hit. */
+export function reduceSegmentConcurrency(current: number): number {
+  if (current <= 1) return 1;
+  return Math.max(1, Math.floor(current / 2));
+}
 /** Per-segment transcription retry ceiling. */
 export const MAX_SEGMENT_ATTEMPTS = Number(process.env.MAX_SEGMENT_ATTEMPTS) || 3;
 /** Whole-job retry ceiling. */

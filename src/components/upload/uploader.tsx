@@ -27,6 +27,7 @@ import {
   extractAudioFromVideo,
   fileHasVideoTrack,
   isLikelyVideoFile,
+  UPLOAD_SEGMENT_SECONDS,
 } from "@/lib/extract-audio-from-video";
 
 /**
@@ -126,6 +127,10 @@ export function Uploader({ userId }: { userId: string }) {
   const [processingNoteId, setProcessingNoteId] = useState<string | null>(null);
   const [prepareHint, setPrepareHint] = useState("");
   const [issue, setIssue] = useState<import("@/components/upload/processing-overlay").ProcessingIssue | null>(null);
+  /** False until we've read duration/metadata for the selected file. */
+  const [fileReady, setFileReady] = useState(false);
+  const [durationLoading, setDurationLoading] = useState(false);
+  const [transferProgress, setTransferProgress] = useState<number | null>(null);
 
   const busy = stage !== "idle";
 
@@ -162,17 +167,17 @@ export function Uploader({ userId }: { userId: string }) {
     setPreviewUrl(url);
     setDuration(null);
     setSafeToLeave(false);
+    setFileReady(false);
+    setDurationLoading(true);
+    setTransferProgress(null);
 
     void fileHasVideoTrack(f).then(setHasVideo);
 
-    const media = isLikelyVideoFile(f)
-      ? document.createElement("video")
-      : new Audio();
-    media.preload = "metadata";
-    media.onloadedmetadata = () => {
-      if (Number.isFinite(media.duration)) setDuration(media.duration);
-    };
-    media.src = url;
+    void probeFileDuration(f).then((seconds) => {
+      if (seconds) setDuration(seconds);
+      setDurationLoading(false);
+      setFileReady(true);
+    });
   }, []);
 
   function onDrop(e: React.DragEvent) {
@@ -190,6 +195,9 @@ export function Uploader({ userId }: { userId: string }) {
     setPreviewUrl(null);
     setDuration(null);
     setSafeToLeave(false);
+    setFileReady(false);
+    setDurationLoading(false);
+    setTransferProgress(null);
   }
 
   async function generate() {
@@ -200,13 +208,7 @@ export function Uploader({ userId }: { userId: string }) {
     let durationSeconds = duration;
 
     try {
-      if (!durationSeconds || !Number.isFinite(durationSeconds)) {
-        setStage("preparing");
-        setPrepareHint("Reading file duration…");
-        durationSeconds = await probeFileDuration(file);
-        setPrepareHint("");
-        if (durationSeconds) setDuration(durationSeconds);
-      }
+      setTransferProgress(null);
 
       // Long lectures: split into ~5-min segments so each stays within Gemini's
       // limits and is transcribed + spliced by the same worker the live recorder
@@ -218,7 +220,10 @@ export function Uploader({ userId }: { userId: string }) {
         try {
           setStage("preparing");
           setPrepareHint("Splitting your lecture into segments…");
-          const { chunks, mimeType: chunkMime } = await extractAudioChunks(file);
+          setTransferProgress(0);
+          const { chunks, mimeType: chunkMime } = await extractAudioChunks(file, UPLOAD_SEGMENT_SECONDS, (ratio) => {
+            setTransferProgress(ratio * 0.45);
+          });
           setPrepareHint("");
           setStage("uploading");
           const sessionLabel =
@@ -229,6 +234,7 @@ export function Uploader({ userId }: { userId: string }) {
             mimeType: chunkMime,
             durationSeconds,
             sessionLabel,
+            onProgress: (ratio) => setTransferProgress(0.45 + ratio * 0.55),
           });
           setStage("analyzing");
           setSafeToLeave(true);
@@ -254,6 +260,8 @@ export function Uploader({ userId }: { userId: string }) {
         }
       }
 
+      setStage("uploading");
+      setTransferProgress(null);
       const { id, status } = await uploadLectureAndGenerate({
         supabase,
         userId,
@@ -261,7 +269,10 @@ export function Uploader({ userId }: { userId: string }) {
         mimeType,
         ext: extForMime(mimeType),
         durationSeconds,
-        onStage: setStage,
+        onStage: (nextStage) => {
+          setStage(nextStage);
+          if (nextStage === "uploading") setTransferProgress(null);
+        },
       });
       if (status === "processing") {
         // Stay on the scrim; the watcher below redirects to the note the moment
@@ -402,9 +413,18 @@ export function Uploader({ userId }: { userId: string }) {
               <p className="truncate font-medium">{file.name}</p>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {formatBytes(file.size)}
-                {duration ? ` · ${formatDuration(duration)}` : ""}
+                {durationLoading
+                  ? " · reading file…"
+                  : duration
+                    ? ` · ${formatDuration(duration)}`
+                    : ""}
                 {hasVideo ? " · video (audio only will be used)" : ""}
               </p>
+              {durationLoading ? (
+                <div className="mt-3 h-1 overflow-hidden rounded-full bg-secondary">
+                  <div className="h-full w-1/3 animate-pulse rounded-full bg-primary/70" />
+                </div>
+              ) : null}
             </div>
             {!busy && (
               <button
@@ -438,22 +458,32 @@ export function Uploader({ userId }: { userId: string }) {
           <div className="mt-5">
             <Button
               onClick={generate}
-              disabled={busy}
+              disabled={busy || durationLoading || !fileReady}
               className="h-12 w-full text-base"
             >
-              {busy ? (
+              {busy || durationLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <Sparkles className="size-4" />
               )}
-              {busy ? "Working…" : "Generate notes"}
+              {busy
+                ? "Working…"
+                : durationLoading
+                  ? "Reading file…"
+                  : "Generate notes"}
             </Button>
           </div>
         </motion.div>
       )}
 
       {/* Shared lightweight processing overlay. */}
-      <ProcessingOverlay stage={stage} issue={issue} safeToLeave={safeToLeave} subLabel={prepareHint} />
+      <ProcessingOverlay
+        stage={stage}
+        issue={issue}
+        safeToLeave={safeToLeave}
+        subLabel={prepareHint}
+        progress={transferProgress}
+      />
     </div>
   );
 }

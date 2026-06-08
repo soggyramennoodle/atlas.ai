@@ -5,6 +5,7 @@ import {
   nextSegmentToTranscribe,
   allSegmentsResolved,
   jobIsComposable,
+  reduceSegmentConcurrency,
 } from "./jobs";
 import type { LectureSegmentRecord } from "./types";
 
@@ -59,6 +60,15 @@ describe("allSegmentsResolved", () => {
   });
   it("false when one is still uploaded", () => {
     expect(allSegmentsResolved([seg(0, "transcribed"), seg(1, "uploaded")])).toBe(false);
+  });
+});
+
+describe("reduceSegmentConcurrency", () => {
+  it("halves down to a minimum of 1", () => {
+    expect(reduceSegmentConcurrency(12)).toBe(6);
+    expect(reduceSegmentConcurrency(6)).toBe(3);
+    expect(reduceSegmentConcurrency(2)).toBe(1);
+    expect(reduceSegmentConcurrency(1)).toBe(1);
   });
 });
 
