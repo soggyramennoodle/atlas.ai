@@ -2,7 +2,6 @@
 
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { revalidatePath } from "next/cache";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
 import { isNewsroomAdmin } from "@/lib/newsroom";
@@ -12,6 +11,11 @@ import {
   clearPendingRevocation,
   queueAccessRevocation,
 } from "@/lib/access-revocations";
+import { authErrorMessage } from "@/lib/auth-errors";
+import {
+  LOOPS_MAGIC_LINK_TRANSACTIONAL_ID,
+  sendLoopsEmail,
+} from "@/lib/loops";
 
 // GoTrue treats a far-future ban as an indefinite suspension; "none" clears it.
 const BAN_DURATION = "876000h"; // ~100 years
@@ -52,10 +56,9 @@ async function requireSafeTarget(
 }
 
 /**
- * Emails the user a fresh magic sign-in link via the same passwordless path the
- * login form uses. Uses a throwaway anon client (no session, no cookies) so it
- * only triggers Supabase's email send and never touches the admin's session.
- * Allowed for any user — it just delivers a sign-in link to their own inbox.
+ * Emails the user a fresh magic sign-in link. Uses the admin generateLink API
+ * plus Loops so we don't burn the public /otp email rate limit during support
+ * or testing.
  */
 export async function resendMagicLink(email: string): Promise<ActionResult> {
   const gate = await requireAdmin();
@@ -64,27 +67,32 @@ export async function resendMagicLink(email: string): Promise<ActionResult> {
   const trimmed = email.trim();
   if (!trimmed) return { ok: false, error: "Missing email." };
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) {
-    return { ok: false, error: "Auth is not configured." };
+  const db = createAdminClient();
+  const { data, error } = await db.auth.admin.generateLink({
+    type: "magiclink",
+    email: trimmed,
+    options: { redirectTo: `${ATLAS_SITE_URL}/auth/callback` },
+  });
+
+  const actionLink = data?.properties?.action_link;
+  if (error || !actionLink) {
+    console.error("Admin magic link generation failed:", error);
+    return {
+      ok: false,
+      error: authErrorMessage(error, "Couldn't generate a sign-in link."),
+    };
   }
 
-  const anon = createSupabaseClient(url, anonKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-
-  const { error } = await anon.auth.signInWithOtp({
-    email: trimmed,
-    options: {
-      shouldCreateUser: false,
-      emailRedirectTo: `${ATLAS_SITE_URL}/auth/callback`,
-    },
-  });
-
-  if (error) {
-    console.error("Resend magic link failed:", error);
-    return { ok: false, error: "Couldn't send the link. Try again." };
+  try {
+    await sendLoopsEmail({
+      transactionalId: LOOPS_MAGIC_LINK_TRANSACTIONAL_ID,
+      email: trimmed,
+      dataVariables: { confirmationURL: actionLink },
+      idempotencyKey: `admin-resend-${trimmed}-${Date.now()}`,
+    });
+  } catch (err) {
+    console.error("Admin magic link email failed:", err);
+    return { ok: false, error: "Link generated but the email didn't send." };
   }
 
   return { ok: true };

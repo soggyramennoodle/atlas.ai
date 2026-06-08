@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { checkAccountLocked } from "@/app/login/actions";
+import { authErrorMessage } from "@/lib/auth-errors";
 
 /** Where locked-out users are told to reach us. */
 const SUPPORT_EMAIL = "hello@atlasai.ca";
@@ -20,7 +21,7 @@ const SUPPORT_EMAIL = "hello@atlasai.ca";
 // offering it.
 type OAuthProvider = "google";
 
-const RESEND_COOLDOWN = 60; // seconds
+const RESEND_COOLDOWN = 90; // seconds — stay under Supabase's per-email OTP throttle
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
@@ -67,7 +68,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       options: { emailRedirectTo: redirectTo(), shouldCreateUser: true },
     });
     if (error) {
-      toast.error(error.message || "Couldn't send the link. Try again.");
+      toast.error(authErrorMessage(error));
       return false;
     }
     return true;
