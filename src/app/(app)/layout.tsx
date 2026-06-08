@@ -27,7 +27,7 @@ export default async function AppLayout({
   // and we don't want to trap the user in a redirect loop.
   const { data: profile, error: profileError } = await supabase
     .from("user_profiles")
-    .select("display_name, ui_tour_completed_at, theme_preference")
+    .select("display_name, ui_tour_completed_at, theme_preference, avatar_r2_key")
     .maybeSingle();
   if (!profileError && !profile?.display_name) redirect("/onboarding");
 
@@ -43,6 +43,7 @@ export default async function AppLayout({
         <AppShell
           email={user.email ?? ""}
           name={profile?.display_name ?? ""}
+          avatarR2Key={profile?.avatar_r2_key ?? null}
           isAdmin={isNewsroomAdmin(user.email)}
           showUiTour={!profileError && !profile?.ui_tour_completed_at}
         >

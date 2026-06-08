@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 
 const LINKS = [
   { href: "/#how", label: "How it works" },
@@ -22,9 +22,16 @@ const LINKS = [
   { href: "/#faq", label: "FAQ" },
 ];
 
-export function Nav({ email }: { email: string | null }) {
+export function Nav({
+  email,
+  displayName,
+  avatarR2Key,
+}: {
+  email: string | null;
+  displayName: string | null;
+  avatarR2Key: string | null;
+}) {
   const [open, setOpen] = useState(false);
-  const initials = email ? email[0]?.toUpperCase() : "?";
 
   return (
     // The <header> is a transparent sticky shell — no full-width strip. The
@@ -57,7 +64,11 @@ export function Nav({ email }: { email: string | null }) {
                 <Button asChild variant="ghost" size="sm">
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
-                <UserMenu email={email} initials={initials} />
+                <UserMenu
+                  email={email}
+                  displayName={displayName ?? email.split("@")[0]}
+                  avatarR2Key={avatarR2Key}
+                />
               </div>
             ) : (
               <div className="hidden items-center gap-2 md:flex">
@@ -132,16 +143,24 @@ export function Nav({ email }: { email: string | null }) {
   );
 }
 
-function UserMenu({ email, initials }: { email: string; initials: string }) {
+function UserMenu({
+  email,
+  displayName,
+  avatarR2Key,
+}: {
+  email: string;
+  displayName: string;
+  avatarR2Key: string | null;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="rounded-[4px] outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring">
-          <Avatar className="size-9 rounded-[4px] border border-border">
-            <AvatarFallback className="rounded-[4px] bg-secondary text-sm font-semibold text-foreground">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            displayName={displayName}
+            avatarR2Key={avatarR2Key}
+            className="size-9"
+          />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

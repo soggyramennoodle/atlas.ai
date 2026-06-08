@@ -221,5 +221,12 @@ async function collectUserR2Keys(
     if (note.audio_path && note.audio_path.includes("/")) keys.add(note.audio_path);
   }
 
+  const { data: profile } = await db
+    .from("user_profiles")
+    .select("avatar_r2_key")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (profile?.avatar_r2_key) keys.add(profile.avatar_r2_key);
+
   return [...keys];
 }

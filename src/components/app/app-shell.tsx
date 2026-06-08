@@ -7,12 +7,14 @@ import { UiTour } from "@/components/onboarding/ui-tour";
 export function AppShell({
   email,
   name,
+  avatarR2Key,
   isAdmin,
   showUiTour,
   children,
 }: {
   email: string;
   name?: string;
+  avatarR2Key?: string | null;
   isAdmin?: boolean;
   showUiTour: boolean;
   children: React.ReactNode;
@@ -24,6 +26,7 @@ export function AppShell({
       <AppSidebar
         email={email}
         name={name}
+        avatarR2Key={avatarR2Key}
         isAdmin={isAdmin}
         mobileOpen={mobileOpen}
         onMobileOpenChange={setMobileOpen}

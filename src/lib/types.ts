@@ -198,6 +198,8 @@ export interface UserProfile {
   ui_tour_completed_at: string | null;
   /** Saved light / dark / system preference, synced across devices. */
   theme_preference: string | null;
+  /** Cloudflare R2 object key for the user's profile picture. */
+  avatar_r2_key: string | null;
   created_at: string;
 }
 

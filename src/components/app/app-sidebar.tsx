@@ -16,7 +16,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { ReportButton } from "@/components/feedback/report-dialog";
 import { ThemeSelector } from "@/components/theme-selector";
 import { cn } from "@/lib/utils";
@@ -110,16 +110,23 @@ function NavLinks({
   );
 }
 
-function Profile({ email, name }: { email: string; name?: string }) {
+function Profile({
+  email,
+  name,
+  avatarR2Key,
+}: {
+  email: string;
+  name?: string;
+  avatarR2Key?: string | null;
+}) {
   const displayName = name?.trim() || email.split("@")[0];
-  const initials = (displayName[0] ?? email[0] ?? "?").toUpperCase();
   return (
     <div className="flex items-center gap-3 rounded-[4px] border border-border bg-background p-2.5">
-      <Avatar className="size-9 rounded-[4px] border border-border">
-        <AvatarFallback className="rounded-[4px] bg-secondary text-sm font-semibold text-foreground">
-          {initials}
-        </AvatarFallback>
-      </Avatar>
+      <UserAvatar
+        displayName={displayName}
+        avatarR2Key={avatarR2Key}
+        className="size-9"
+      />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{displayName}</p>
         <p className="truncate text-xs text-muted-foreground">{email}</p>
@@ -139,11 +146,13 @@ function Profile({ email, name }: { email: string; name?: string }) {
 function SidebarBody({
   email,
   name,
+  avatarR2Key,
   isAdmin,
   onNavigate,
 }: {
   email: string;
   name?: string;
+  avatarR2Key?: string | null;
   isAdmin?: boolean;
   onNavigate?: () => void;
 }) {
@@ -169,7 +178,7 @@ function SidebarBody({
             Coming soon to turn your notes into active recall.
           </p>
         </div>
-        <Profile email={email} name={name} />
+        <Profile email={email} name={name} avatarR2Key={avatarR2Key} />
         <div className="flex items-center justify-center gap-2 text-[0.7rem] text-muted-foreground/70">
           <Link
             href="/privacy"
@@ -195,12 +204,14 @@ function SidebarBody({
 export function AppSidebar({
   email,
   name,
+  avatarR2Key,
   isAdmin,
   mobileOpen,
   onMobileOpenChange,
 }: {
   email: string;
   name?: string;
+  avatarR2Key?: string | null;
   isAdmin?: boolean;
   mobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
@@ -220,7 +231,12 @@ export function AppSidebar({
         data-tour="sidebar"
         className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border bg-card lg:block"
       >
-        <SidebarBody email={email} name={name} isAdmin={isAdmin} />
+        <SidebarBody
+          email={email}
+          name={name}
+          avatarR2Key={avatarR2Key}
+          isAdmin={isAdmin}
+        />
       </aside>
 
       <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-border bg-card/85 px-4 py-3 backdrop-blur-sm lg:hidden">
@@ -271,6 +287,7 @@ export function AppSidebar({
                 <SidebarBody
                   email={email}
                   name={name}
+                  avatarR2Key={avatarR2Key}
                   isAdmin={isAdmin}
                   onNavigate={() => setOpen(false)}
                 />

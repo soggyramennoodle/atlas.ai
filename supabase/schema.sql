@@ -82,6 +82,7 @@ create table if not exists public.user_profiles (
   welcome_email_sent_at timestamptz,
   ui_tour_completed_at timestamptz,
   theme_preference text check (theme_preference is null or theme_preference in ('system', 'light', 'dark')),
+  avatar_r2_key text,
   created_at   timestamptz not null default now()
 );
 
@@ -94,6 +95,9 @@ alter table public.user_profiles
 alter table public.user_profiles
   add column if not exists theme_preference text
   check (theme_preference is null or theme_preference in ('system', 'light', 'dark'));
+
+alter table public.user_profiles
+  add column if not exists avatar_r2_key text;
 
 alter table public.user_profiles enable row level security;
 

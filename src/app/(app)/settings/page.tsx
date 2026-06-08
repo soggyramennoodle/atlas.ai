@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarUpload } from "@/components/settings/avatar-upload";
 import { SettingsClient } from "@/components/settings/settings-client";
 import type { UserProfile } from "@/lib/types";
 
@@ -43,12 +43,11 @@ export default async function SettingsPage() {
         <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
           <div className="h-14 border-b border-border bg-secondary bg-hairlines" />
           <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
-            <Avatar className="size-18 rounded-[4px] border border-border bg-card shadow-[0_8px_20px_rgba(15,23,42,0.10)] sm:size-20">
-              <AvatarFallback className="rounded-[4px] bg-primary text-2xl font-semibold text-primary-foreground">
-                {displayName[0]?.toUpperCase() ?? "?"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
+            <AvatarUpload
+              displayName={displayName}
+              avatarR2Key={profile?.avatar_r2_key ?? null}
+            />
+            <div className="min-w-0 sm:flex-1">
               <h2 className="text-xl font-semibold tracking-tight">
                 {displayName}
               </h2>
