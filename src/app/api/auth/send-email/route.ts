@@ -4,6 +4,7 @@ import {
   LOOPS_MAGIC_LINK_TRANSACTIONAL_ID,
   sendLoopsEmail,
 } from "@/lib/loops";
+import { buildMagicLinkConfirmationUrl } from "@/lib/magic-link-url";
 
 export const runtime = "nodejs";
 
@@ -38,18 +39,21 @@ function verifyHook(payload: string, headers: Headers) {
   return webhook.verify(payload, Object.fromEntries(headers)) as SupabaseSendEmailHookPayload;
 }
 
-function actionTypeForVerify(type: EmailActionType) {
-  return type === "magiclink" ? "magiclink" : type;
-}
-
 function confirmationUrl(payload: SupabaseSendEmailHookPayload) {
+  const { email_data } = payload;
+  if (email_data.email_action_type === "magiclink") {
+    return buildMagicLinkConfirmationUrl(
+      email_data.token_hash,
+      email_data.redirect_to
+    );
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL.");
 
-  const { email_data } = payload;
   const url = new URL("/auth/v1/verify", supabaseUrl);
   url.searchParams.set("token", email_data.token_hash);
-  url.searchParams.set("type", actionTypeForVerify(email_data.email_action_type));
+  url.searchParams.set("type", email_data.email_action_type);
   url.searchParams.set("redirect_to", email_data.redirect_to);
   return url.toString();
 }

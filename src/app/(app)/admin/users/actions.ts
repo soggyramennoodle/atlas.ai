@@ -6,7 +6,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
 import { isNewsroomAdmin } from "@/lib/newsroom";
 import { getR2Bucket, r2 } from "@/lib/r2";
-import { ATLAS_SITE_URL } from "@/lib/atlas-brand";
 import {
   clearPendingRevocation,
   queueAccessRevocation,
@@ -16,6 +15,10 @@ import {
   LOOPS_MAGIC_LINK_TRANSACTIONAL_ID,
   sendLoopsEmail,
 } from "@/lib/loops";
+import {
+  buildMagicLinkConfirmationUrl,
+  magicLinkRedirectTo,
+} from "@/lib/magic-link-url";
 
 // GoTrue treats a far-future ban as an indefinite suspension; "none" clears it.
 const BAN_DURATION = "876000h"; // ~100 years
@@ -67,15 +70,16 @@ export async function resendMagicLink(email: string): Promise<ActionResult> {
   const trimmed = email.trim();
   if (!trimmed) return { ok: false, error: "Missing email." };
 
+  const redirectTo = magicLinkRedirectTo("/dashboard");
   const db = createAdminClient();
   const { data, error } = await db.auth.admin.generateLink({
     type: "magiclink",
     email: trimmed,
-    options: { redirectTo: `${ATLAS_SITE_URL}/auth/callback` },
+    options: { redirectTo },
   });
 
-  const actionLink = data?.properties?.action_link;
-  if (error || !actionLink) {
+  const tokenHash = data?.properties?.hashed_token;
+  if (error || !tokenHash) {
     console.error("Admin magic link generation failed:", error);
     return {
       ok: false,
@@ -87,7 +91,9 @@ export async function resendMagicLink(email: string): Promise<ActionResult> {
     await sendLoopsEmail({
       transactionalId: LOOPS_MAGIC_LINK_TRANSACTIONAL_ID,
       email: trimmed,
-      dataVariables: { confirmationURL: actionLink },
+      dataVariables: {
+        confirmationURL: buildMagicLinkConfirmationUrl(tokenHash, redirectTo),
+      },
       idempotencyKey: `admin-resend-${trimmed}-${Date.now()}`,
     });
   } catch (err) {
