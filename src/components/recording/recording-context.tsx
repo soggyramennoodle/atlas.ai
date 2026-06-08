@@ -30,6 +30,7 @@ import {
   getRecordingSegments,
 } from "@/lib/recording-draft";
 import { uploadSegment } from "@/lib/segment-upload";
+import { setCaptureActivity } from "@/lib/capture-activity";
 
 export const BARS = 32;
 const IDLE_LEVELS = () => Array(BARS).fill(0.04) as number[];
@@ -391,6 +392,13 @@ export function RecordingProvider({
   const getLiveTranscript = useCallback(() => liveTranscriptRef.current, []);
 
   const busy = stage !== "idle";
+
+  useEffect(() => {
+    setCaptureActivity({
+      recorderActive: phase === "recording" || phase === "paused",
+      recorderUploading: stage === "preparing" || stage === "uploading",
+    });
+  }, [phase, stage]);
 
   const enqueueDraftWrite = useCallback((write: () => Promise<void>) => {
     draftWriteQueueRef.current = draftWriteQueueRef.current

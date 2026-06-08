@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Users,
   ChevronRight,
+  Globe2,
 } from "lucide-react";
 import { countUnreadFeedback } from "@/lib/admin-feedback-server";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
@@ -50,6 +51,13 @@ const ACTIONS = [
     title: "Users",
     description:
       "Accounts by email and sign-in method. Resend links, suspend, or delete.",
+  },
+  {
+    href: "/admin/site",
+    icon: Globe2,
+    title: "Site",
+    description:
+      "Landing status pill, global sign-out queue, and broadcast messaging.",
   },
 ] as const;
 

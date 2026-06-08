@@ -7,6 +7,7 @@ import { RecordingProvider } from "@/components/recording/recording-context";
 import { RecordingDock } from "@/components/recording/recording-dock";
 import { MarketingBackground } from "@/components/marketing-background";
 import { ThemeSync } from "@/components/theme-sync";
+import { AccessRevocationGuard } from "@/components/access-revocation-guard";
 
 export default async function AppLayout({
   children,
@@ -35,6 +36,7 @@ export default async function AppLayout({
   return (
     <RecordingProvider userId={user.id}>
       <ThemeSync savedTheme={savedTheme} />
+      <AccessRevocationGuard userId={user.id} />
       <div className="relative min-h-screen">
         {/* Clean rivo-light canvas, shared with the marketing surface. */}
         <MarketingBackground />

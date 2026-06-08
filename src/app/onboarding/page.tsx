@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
+import { AccessRevocationGuard } from "@/components/access-revocation-guard";
 
 export const metadata: Metadata = { title: "Welcome to Atlas" };
 
@@ -19,5 +20,10 @@ export default async function OnboardingPage() {
     .maybeSingle();
   if (profile?.display_name) redirect("/dashboard");
 
-  return <OnboardingFlow />;
+  return (
+    <>
+      <AccessRevocationGuard userId={user.id} />
+      <OnboardingFlow />
+    </>
+  );
 }

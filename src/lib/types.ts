@@ -160,6 +160,32 @@ export interface AdminFeedbackRow extends UserFeedback {
   note_title: string | null;
 }
 
+export type AccessRevocationKind = "banned" | "global_logout";
+export type AccessRevocationGrace =
+  | "immediate"
+  | "after_recording"
+  | "after_upload";
+
+/** A pending forced sign-out surfaced to the user in-app. */
+export interface AccessRevocation {
+  id: string;
+  user_id: string;
+  kind: AccessRevocationKind;
+  grace: AccessRevocationGrace;
+  status: "pending" | "completed";
+  created_at: string;
+  completed_at: string | null;
+}
+
+/** Admin-editable landing-page status pill. */
+export interface SiteAnnouncement {
+  id: number;
+  message: string;
+  enabled: boolean;
+  updated_at: string;
+  updated_by?: string | null;
+}
+
 /** A row in the `user_profiles` table. */
 export interface UserProfile {
   user_id: string;

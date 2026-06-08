@@ -8,6 +8,10 @@ import { getNewsroomAdmin } from "@/lib/newsroom-server";
 import { isNewsroomAdmin } from "@/lib/newsroom";
 import { getR2Bucket, r2 } from "@/lib/r2";
 import { ATLAS_SITE_URL } from "@/lib/atlas-brand";
+import {
+  clearPendingRevocation,
+  queueAccessRevocation,
+} from "@/lib/access-revocations";
 
 // GoTrue treats a far-future ban as an indefinite suspension; "none" clears it.
 const BAN_DURATION = "876000h"; // ~100 years
@@ -105,6 +109,17 @@ export async function setUserBanned(
   if (error) {
     console.error("Ban toggle failed:", error);
     return { ok: false, error: "Couldn't update the user." };
+  }
+
+  try {
+    if (banned) {
+      await queueAccessRevocation(id, "banned");
+    } else {
+      await clearPendingRevocation(id);
+    }
+  } catch (err) {
+    console.error("Revocation queue failed:", err);
+    return { ok: false, error: "Ban saved but the in-app notice failed." };
   }
 
   revalidateUsers();

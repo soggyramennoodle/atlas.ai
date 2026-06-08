@@ -22,6 +22,7 @@ import {
   MAX_BYTES,
   type CaptureStage,
 } from "@/lib/upload-lecture";
+import { setCaptureActivity } from "@/lib/capture-activity";
 import {
   extractAudioChunks,
   extractAudioFromVideo,
@@ -133,6 +134,12 @@ export function Uploader({ userId }: { userId: string }) {
   const [transferProgress, setTransferProgress] = useState<number | null>(null);
 
   const busy = stage !== "idle";
+
+  useEffect(() => {
+    setCaptureActivity({
+      fileUploading: stage === "preparing" || stage === "uploading",
+    });
+  }, [stage]);
 
   // While audio is being extracted or uploaded, the work lives in this tab —
   // closing or navigating away aborts it. Warn before unload until the audio is
