@@ -932,7 +932,11 @@ function SectionView({
         {section.points.map((point, j) => (
           <li key={j} className="flex gap-3 leading-relaxed">
             <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-primary/60" />
-            <SourceBullet text={point.text} excerpt={point.source_excerpt} />
+            <SourceBullet
+              text={point.text}
+              excerpt={point.source_excerpt}
+              status={point.origin === "research" ? "research" : "lecture"}
+            />
           </li>
         ))}
       </ul>
@@ -947,7 +951,11 @@ function SectionView({
                 className="flex gap-3 text-sm leading-relaxed text-muted-foreground"
               >
                 <span className="mt-2 size-1.5 shrink-0 rounded-full bg-border" />
-                <SourceBullet text={point.text} excerpt={point.source_excerpt} />
+                <SourceBullet
+                  text={point.text}
+                  excerpt={point.source_excerpt}
+                  status={point.origin === "research" ? "research" : "lecture"}
+                />
               </li>
             ))}
           </ul>

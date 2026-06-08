@@ -40,3 +40,33 @@ export function mergeSegmentNotes(segments: SegmentNotes[]): {
     transcript: joinTranscripts(segments),
   };
 }
+
+/** Count bullets across sections and subsections. */
+export function countNotePoints(sections: NoteSection[]): number {
+  return sections.reduce((total, section) => {
+    const sub =
+      section.subsections?.reduce((n, s) => n + s.points.length, 0) ?? 0;
+    return total + section.points.length + sub;
+  }, 0);
+}
+
+/**
+ * If the compose model dropped segment bullets (common when downgrading segment
+ * quality), restore the deterministic merge so nothing from the lecture is lost.
+ */
+export function preserveMergedPoints(
+  composed: { sections: NoteSection[]; keyConcepts: KeyConcept[] },
+  merged: { sections: NoteSection[]; keyConcepts: KeyConcept[] }
+): { sections: NoteSection[]; keyConcepts: KeyConcept[] } {
+  const sections =
+    countNotePoints(composed.sections) < countNotePoints(merged.sections)
+      ? merged.sections
+      : composed.sections;
+
+  const keyConcepts =
+    composed.keyConcepts.length < merged.keyConcepts.length
+      ? merged.keyConcepts
+      : composed.keyConcepts;
+
+  return { sections, keyConcepts };
+}

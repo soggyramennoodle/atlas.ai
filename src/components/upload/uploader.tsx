@@ -235,12 +235,11 @@ export function Uploader({ userId }: { userId: string }) {
           setProcessingNoteId(id);
           return;
         } catch (chunkErr) {
-          // Fall through to the single-file path below.
           setPrepareHint("");
-          console.error(
-            "Chunked upload failed; falling back to single-file upload:",
-            chunkErr
-          );
+          console.error("Chunked upload failed:", chunkErr);
+          throw chunkErr instanceof Error
+            ? chunkErr
+            : new Error("Could not split this lecture for processing.");
         }
       }
 

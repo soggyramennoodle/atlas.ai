@@ -13,6 +13,11 @@ export interface NotePoint {
   text: string;
   /** Verbatim transcript snippet this point was distilled from, if available. */
   source_excerpt?: string;
+  /**
+   * `lecture` (default) = grounded in audio/segment notes.
+   * `research` = supplementary context added during compose via web grounding.
+   */
+  origin?: "lecture" | "research";
 }
 
 export interface BodySource {

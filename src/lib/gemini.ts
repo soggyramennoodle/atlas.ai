@@ -10,7 +10,8 @@ import {
   type Schema,
 } from "@google/genai";
 import type { SegmentNotes, StructuredNotes } from "./types";
-import { mergeSegmentNotes } from "./notes-compose";
+import { mergeSegmentNotes, preserveMergedPoints } from "./notes-compose";
+import type { NotePoint, NoteSection } from "./types";
 import { GeminiSpendCapError, classifyGeminiError } from "./gemini-errors";
 
 /**
@@ -70,9 +71,15 @@ const pointSchema: Schema = {
       description:
         "A short verbatim quote (one or two sentences) from the lecture transcript that this point was drawn from. Used to trace a note back to what the professor actually said.",
     },
+    origin: {
+      type: Type.STRING,
+      description:
+        'Use "lecture" for audio-grounded bullets. Use "research" ONLY for supplementary bullets you add during compose to fill a genuine gap (see COMPOSE rules).',
+      enum: ["lecture", "research"],
+    },
   },
   required: ["text"],
-  propertyOrdering: ["text", "source_excerpt"],
+  propertyOrdering: ["text", "source_excerpt", "origin"],
 };
 
 /** JSON schema that constrains Gemini's output to our StructuredNotes shape. */
@@ -209,20 +216,37 @@ SEGMENT MODE: This audio is ONE ~5-minute slice of a longer lecture, not the who
 - Do NOT write a title, subject, or overall summary — those are produced once for the whole lecture later.
 - Do NOT emit the insufficient-content rejection. If this slice is sparse (e.g. a pause, transition, or the lecturer is mid-sentence from the previous slice), simply return the few sections/concepts/transcript that apply, or empty arrays and an empty/partial transcript. The whole-lecture judgement is made elsewhere.
 - A point may continue a thought from the previous slice; that is fine — capture what is said here.
-- "source_excerpt" must be a real quote from THIS audio.`;
+- "source_excerpt" must be a real quote from THIS audio.
+- Every bullet must use origin "lecture" (or omit origin — lecture is assumed).
+- Prefer completeness over brevity: capture every academic detail, example, formula, and aside. A faster model will reconcile these later — your job is to not lose content.`;
 
-const COMPOSE_PROMPT = `You are finalizing a student's lecture notes. You are given the already-extracted, audio-grounded notes for each consecutive segment of one lecture, in order, plus the stitched transcript for context. Your ONLY job is to produce the lecture-level framing and light reconciliation. Do NOT invent any content, fact, figure, or quote not present in the provided segment notes/transcript.
+const COMPOSE_PROMPT = `You are finalizing a student's lecture notes. The per-segment notes were produced by a faster transcription model and may be slightly less polished — treat EVERY provided bullet and concept as authoritative lecture content unless it is clearly a transcription artifact.
 
-Return JSON with:
-- "title": a clean, descriptive title for the WHOLE lecture.
-- "subject": the course/subject if identifiable from the content, else "".
-- "summary": a 3-5 sentence overview of the whole lecture, written from the provided notes.
-- "sections": the provided sections, kept in order. You MAY merge two adjacent sections only when the later one is clearly a direct continuation of the previous (e.g. identical heading), preserving every point. Never drop points.
-- "keyConcepts": the provided key concepts, deduplicated.
+Your jobs, in order:
+1. PRESERVE CONTENT: Keep every lecture-grounded bullet from the input. You MAY merge two adjacent sections only when headings clearly continue the same topic, but NEVER delete, summarize away, or compress away points. If in doubt, keep the bullet.
+2. FRAMING: Write title, subject (if identifiable), and a 3-5 sentence summary from the provided material only.
+3. DEDUPE: Deduplicate keyConcepts by term without dropping definitions.
+4. OPTIONAL RESEARCH GAPS (strict): Only when the lecture clearly references something undefined or confusing (jargon without definition, formula without setup, named theorem without context), you MAY add at most a few supplementary bullets with origin "research". These must:
+   - Stay tightly scoped to the lecture topic — no tangents or full chapter digressions.
+   - Clarify or contextualize what the professor was teaching, not replace it.
+   - Use source_excerpt to briefly state what you looked up (e.g. "Background on X to clarify the professor's reference to …").
+   - Never contradict the lecture; never invent quotes; never mark lecture content as research.
 
-Do NOT echo the transcript back — it is reattached automatically, so spending output on it only risks truncating the notes. Use it only as context.
+Return JSON with title, subject, summary, sections (with origin on each point), keyConcepts.
 
-Insufficient-content rule (judged here, over the whole lecture): if the combined sections are empty and the transcript has no intelligible lecture words, return title "Not enough lecture content", subject "", summary "There was not enough lecture content to generate notes.", sections [], keyConcepts [].`;
+Do NOT echo the transcript — it is reattached automatically.
+
+Insufficient-content rule: if sections are empty and the transcript has no intelligible lecture words, return title "Not enough lecture content", subject "", summary "There was not enough lecture content to generate notes.", sections [], keyConcepts [].`;
+
+const RESEARCH_ENRICH_PROMPT = `You supplement lecture notes after a faster model transcribed the audio. Review the notes and transcript excerpt. Identify ONLY genuine gaps where a student would be lost (undefined term, missing prerequisite, symbol without definition). For each gap, add ONE concise bullet tightly scoped to the lecture topic.
+
+Use Google Search to ground facts. Every added bullet MUST have origin "research" and a source_excerpt explaining what was looked up.
+
+Rules:
+- Do NOT duplicate existing bullets.
+- Do NOT add broad background chapters or off-syllabus tangents.
+- Do NOT contradict the lecture.
+- Prefer zero additions over speculative ones.`;
 
 /**
  * Compose output schema — the whole-lecture framing only. Deliberately omits
@@ -308,6 +332,159 @@ export async function transcribeSegment({
   return parsed;
 }
 
+const researchEnrichSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    additions: {
+      type: Type.ARRAY,
+      description: "Supplementary bullets to append; empty array if no gaps.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          section_heading: {
+            type: Type.STRING,
+            description:
+              "Heading of the existing section to append under (best match).",
+          },
+          point: pointSchema,
+        },
+        required: ["section_heading", "point"],
+        propertyOrdering: ["section_heading", "point"],
+      },
+    },
+  },
+  required: ["additions"],
+  propertyOrdering: ["additions"],
+};
+
+function defaultLectureOrigin(sections: NoteSection[]): NoteSection[] {
+  return sections.map((section) => ({
+    ...section,
+    points: section.points.map((p) => ({
+      ...p,
+      origin: p.origin ?? "lecture",
+    })),
+    subsections: section.subsections?.map((sub) => ({
+      ...sub,
+      points: sub.points.map((p) => ({
+        ...p,
+        origin: p.origin ?? "lecture",
+      })),
+    })),
+  }));
+}
+
+function applyResearchAdditions(
+  sections: NoteSection[],
+  additions: { section_heading: string; point: NotePoint }[]
+): NoteSection[] {
+  if (additions.length === 0) return sections;
+
+  const out = sections.map((s) => ({
+    ...s,
+    points: [...s.points],
+    subsections: s.subsections?.map((sub) => ({
+      ...sub,
+      points: [...sub.points],
+    })),
+  }));
+
+  for (const { section_heading, point } of additions) {
+    const researchPoint: NotePoint = {
+      ...point,
+      origin: "research",
+      source_excerpt:
+        point.source_excerpt ??
+        "Supplementary context from web research to clarify the lecture.",
+    };
+    const needle = section_heading.trim().toLowerCase();
+    const target =
+      out.find((s) => s.heading.trim().toLowerCase() === needle) ??
+      out.find(
+        (s) =>
+          s.heading.trim().toLowerCase().includes(needle) ||
+          needle.includes(s.heading.trim().toLowerCase())
+      );
+
+    if (target) {
+      target.points.push(researchPoint);
+      continue;
+    }
+
+    let extra = out.find((s) => s.heading === "Additional context");
+    if (!extra) {
+      extra = { heading: "Additional context", points: [] };
+      out.push(extra);
+    }
+    extra.points.push(researchPoint);
+  }
+
+  return out;
+}
+
+async function enrichNotesWithResearch(
+  notes: StructuredNotes,
+  transcript: string,
+  memoryContext?: string
+): Promise<StructuredNotes> {
+  if (process.env.GEMINI_COMPOSE_RESEARCH === "0") return notes;
+
+  const ai = getClient();
+  const systemInstruction = memoryContext
+    ? `${RESEARCH_ENRICH_PROMPT}\n\n--- About this student ---\n${memoryContext}`
+    : RESEARCH_ENRICH_PROMPT;
+
+  const transcriptExcerpt = transcript.slice(0, 12_000);
+
+  async function run(withSearch: boolean) {
+    return callGemini(() =>
+      ai.models.generateContent({
+        model: MODEL,
+        contents: createUserContent([
+          JSON.stringify({
+            title: notes.title,
+            subject: notes.subject ?? "",
+            summary: notes.summary,
+            sections: notes.sections,
+            keyConcepts: notes.keyConcepts,
+            transcript_excerpt: transcriptExcerpt,
+          }),
+        ]),
+        config: {
+          systemInstruction,
+          responseMimeType: "application/json",
+          responseSchema: researchEnrichSchema,
+          temperature: 0,
+          ...(withSearch ? { tools: [{ googleSearch: {} }] } : {}),
+        },
+      })
+    );
+  }
+
+  let response;
+  try {
+    response = await run(true);
+  } catch {
+    response = await run(false);
+  }
+
+  ensureComplete(response, "research-enrich");
+  const text = response.text;
+  if (!text) return notes;
+
+  const parsed = JSON.parse(text) as {
+    additions: { section_heading: string; point: NotePoint }[];
+  };
+  if (!Array.isArray(parsed.additions) || parsed.additions.length === 0) {
+    return notes;
+  }
+
+  return {
+    ...notes,
+    sections: applyResearchAdditions(notes.sections, parsed.additions),
+  };
+}
+
 interface ComposeArgs {
   segments: SegmentNotes[];
   memoryContext?: string;
@@ -353,12 +530,22 @@ export async function composeNotes({
   ensureComplete(response, "compose");
   const text = response.text;
   if (!text) throw new Error("Gemini returned an empty compose response.");
-  const parsed = JSON.parse(text) as StructuredNotes;
+  let parsed = JSON.parse(text) as StructuredNotes;
   if (!parsed.title || !Array.isArray(parsed.sections)) {
     throw new Error("Gemini returned composed notes in an unexpected format.");
   }
-  // The transcript is never echoed by the model (see composeSchema) — always
-  // reattach the deterministically stitched one.
+
+  const preserved = preserveMergedPoints(parsed, merged);
+  parsed.sections = defaultLectureOrigin(preserved.sections);
+  parsed.keyConcepts = preserved.keyConcepts;
+
+  try {
+    parsed = await enrichNotesWithResearch(parsed, merged.transcript, memoryContext);
+  } catch (err) {
+    console.warn("Research enrich failed; returning compose-only notes:", err);
+  }
+
+  parsed.sections = defaultLectureOrigin(parsed.sections);
   parsed.transcript = merged.transcript;
   if (!parsed.keyConcepts?.length) parsed.keyConcepts = merged.keyConcepts;
   parsed.status = "ready";

@@ -18,7 +18,7 @@ export function SourceBullet({
 }: {
   text: string;
   excerpt?: string;
-  status?: "lecture" | "edited";
+  status?: "lecture" | "edited" | "research";
   children?: React.ReactNode;
 }) {
   const [show, setShow] = useState(false);
@@ -27,7 +27,7 @@ export function SourceBullet({
   const ref = useRef<HTMLSpanElement>(null);
 
   function onEnter() {
-    if (!excerpt) return;
+    if (!showBubble) return;
     timer.current = setTimeout(() => {
       const rect = ref.current?.getBoundingClientRect();
       if (rect) {
@@ -44,16 +44,34 @@ export function SourceBullet({
     setShow(false);
   }
 
-  if (!excerpt) return <span className="text-pretty">{children ?? text}</span>;
+  const research = status === "research";
+  const showBubble = !!excerpt || research;
 
-  const label = status === "edited" ? "Lecture-based, edited" : "From the lecture";
+  if (!showBubble) return <span className="text-pretty">{children ?? text}</span>;
+
+  const label =
+    status === "research"
+      ? "Researched online"
+      : status === "edited"
+        ? "Lecture-based, edited"
+        : "From the lecture";
+
+  const bubbleBody =
+    status === "research"
+      ? excerpt ??
+        "Supplementary context from web research. Verify important details against your course materials."
+      : excerpt;
 
   return (
     <span
       ref={ref}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
-      className="relative cursor-help text-pretty underline decoration-primary/25 decoration-dotted underline-offset-4 transition hover:decoration-primary/60"
+      className={`relative cursor-help text-pretty underline decoration-dotted underline-offset-4 transition ${
+        research
+          ? "decoration-amber-500/50 hover:decoration-amber-500/80"
+          : "decoration-primary/25 hover:decoration-primary/60"
+      }`}
     >
       {children ?? text}
       <AnimatePresence>
@@ -67,12 +85,25 @@ export function SourceBullet({
               side === "right" ? "left-full ml-3" : "right-full mr-3"
             }`}
           >
-            <span className="mb-1.5 flex items-center gap-1.5 font-mono text-[0.65rem] uppercase tracking-wider text-primary">
+            <span
+              className={`mb-1.5 flex items-center gap-1.5 font-mono text-[0.65rem] uppercase tracking-wider ${
+                research ? "text-amber-600 dark:text-amber-400" : "text-primary"
+              }`}
+            >
               <Quote className="size-3" />
               {label}
             </span>
-            <span className="block text-pretty italic leading-relaxed text-muted-foreground">
-              “{excerpt}”
+            <span className="block text-pretty leading-relaxed text-muted-foreground">
+              {research ? (
+                <>
+                  {bubbleBody}
+                  <span className="mt-2 block text-xs text-amber-700/90 dark:text-amber-300/90">
+                    Verify important details — this was not said in the lecture.
+                  </span>
+                </>
+              ) : (
+                <span className="italic">“{bubbleBody}”</span>
+              )}
             </span>
           </motion.span>
         )}

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { mergeSegmentNotes, dedupeKeyConcepts, joinTranscripts } from "./notes-compose";
+import {
+  countNotePoints,
+  mergeSegmentNotes,
+  dedupeKeyConcepts,
+  joinTranscripts,
+  preserveMergedPoints,
+} from "./notes-compose";
 import type { SegmentNotes } from "./types";
 
 const a: SegmentNotes = {
@@ -41,5 +47,28 @@ describe("mergeSegmentNotes", () => {
     expect(merged.sections.map((s) => s.heading)).toEqual(["Intro", "Body"]);
     expect(merged.keyConcepts).toHaveLength(2);
     expect(merged.transcript).toBe("Part one. Part two.");
+  });
+});
+
+describe("preserveMergedPoints", () => {
+  it("restores segment sections when compose drops bullets", () => {
+    const merged = mergeSegmentNotes([a, b]);
+    const composed = {
+      sections: [{ heading: "Summary only", points: [{ text: "one bullet" }] }],
+      keyConcepts: [] as typeof merged.keyConcepts,
+    };
+    const out = preserveMergedPoints(composed, merged);
+    expect(countNotePoints(out.sections)).toBe(countNotePoints(merged.sections));
+    expect(out.keyConcepts).toEqual(merged.keyConcepts);
+  });
+
+  it("keeps composed sections when nothing was dropped", () => {
+    const merged = mergeSegmentNotes([a, b]);
+    const composed = {
+      sections: merged.sections,
+      keyConcepts: merged.keyConcepts,
+    };
+    const out = preserveMergedPoints(composed, merged);
+    expect(out.sections).toEqual(merged.sections);
   });
 });
