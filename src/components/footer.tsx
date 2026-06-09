@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { MarketingThemeToggle } from "@/components/marketing-theme-toggle";
 
 /** Instagram glyph (lucide dropped brand icons, so we inline it). */
 function InstagramIcon({ className }: { className?: string }) {
@@ -151,7 +152,10 @@ export function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs text-muted-foreground sm:flex-row">
-          <p>© {new Date().getFullYear()}. Atlas Co. Made with Love in Toronto 🇨🇦</p>
+          <div className="flex items-center gap-2">
+            <p>© {new Date().getFullYear()}. Atlas Co. Made with Love in Toronto 🇨🇦</p>
+            <MarketingThemeToggle />
+          </div>
           <div className="flex items-center gap-2 font-mono">
             <span className="relative flex size-2">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />
