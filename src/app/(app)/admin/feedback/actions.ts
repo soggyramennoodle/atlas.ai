@@ -12,6 +12,8 @@ type ActionResult = { ok: boolean; error?: string };
 function revalidateFeedback() {
   revalidatePath("/admin/feedback");
   revalidatePath("/admin");
+  // Refresh the app shell sidebar badge after triage.
+  revalidatePath("/dashboard", "layout");
 }
 
 async function requireAdmin() {

@@ -9,6 +9,7 @@ export function AppShell({
   name,
   avatarR2Key,
   isAdmin,
+  adminUnreadReports = 0,
   showUiTour,
   children,
 }: {
@@ -16,6 +17,7 @@ export function AppShell({
   name?: string;
   avatarR2Key?: string | null;
   isAdmin?: boolean;
+  adminUnreadReports?: number;
   showUiTour: boolean;
   children: React.ReactNode;
 }) {
@@ -28,6 +30,7 @@ export function AppShell({
         name={name}
         avatarR2Key={avatarR2Key}
         isAdmin={isAdmin}
+        adminUnreadReports={adminUnreadReports}
         mobileOpen={mobileOpen}
         onMobileOpenChange={setMobileOpen}
       />

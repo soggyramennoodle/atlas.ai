@@ -56,11 +56,26 @@ const BASE_NAV: NavItem[] = [
   },
 ];
 
+function NavUnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  const label = count > 99 ? "99+" : String(count);
+  return (
+    <span
+      aria-hidden
+      className="ml-auto flex h-[1.125rem] min-w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[0.6875rem] font-semibold tabular-nums leading-none text-white"
+    >
+      {label}
+    </span>
+  );
+}
+
 function NavLinks({
   isAdmin,
+  adminUnreadReports = 0,
   onNavigate,
 }: {
   isAdmin?: boolean;
+  adminUnreadReports?: number;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
@@ -81,12 +96,19 @@ function NavLinks({
         const active =
           pathname === item.href ||
           (item.href !== "/dashboard" && pathname.startsWith(item.href));
+        const unreadBadge =
+          item.href === "/admin" ? adminUnreadReports : 0;
+        const ariaLabel =
+          unreadBadge > 0
+            ? `${item.label}, ${unreadBadge} unread report${unreadBadge === 1 ? "" : "s"}`
+            : item.label;
         return (
           <Link
             key={item.href}
             href={item.href}
             data-tour={item.tourId}
             onClick={onNavigate}
+            aria-label={ariaLabel}
             className={cn(
               "group icon-animate relative flex items-center gap-3 rounded-[4px] px-3 py-2.5 text-sm font-medium transition-colors",
               active
@@ -102,7 +124,8 @@ function NavLinks({
               />
             )}
             <item.icon className="size-[1.15rem] shrink-0" />
-            {item.label}
+            <span className="min-w-0 flex-1">{item.label}</span>
+            <NavUnreadBadge count={unreadBadge} />
           </Link>
         );
       })}
@@ -148,12 +171,14 @@ function SidebarBody({
   name,
   avatarR2Key,
   isAdmin,
+  adminUnreadReports = 0,
   onNavigate,
 }: {
   email: string;
   name?: string;
   avatarR2Key?: string | null;
   isAdmin?: boolean;
+  adminUnreadReports?: number;
   onNavigate?: () => void;
 }) {
   return (
@@ -166,7 +191,11 @@ function SidebarBody({
         <Logo beta />
       </Link>
 
-      <NavLinks isAdmin={isAdmin} onNavigate={onNavigate} />
+      <NavLinks
+        isAdmin={isAdmin}
+        adminUnreadReports={adminUnreadReports}
+        onNavigate={onNavigate}
+      />
 
       <div className="mt-auto space-y-4">
         <ReportButton context="general" size="default" fullWidth />
@@ -206,6 +235,7 @@ export function AppSidebar({
   name,
   avatarR2Key,
   isAdmin,
+  adminUnreadReports = 0,
   mobileOpen,
   onMobileOpenChange,
 }: {
@@ -213,6 +243,7 @@ export function AppSidebar({
   name?: string;
   avatarR2Key?: string | null;
   isAdmin?: boolean;
+  adminUnreadReports?: number;
   mobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
 }) {
@@ -236,6 +267,7 @@ export function AppSidebar({
           name={name}
           avatarR2Key={avatarR2Key}
           isAdmin={isAdmin}
+          adminUnreadReports={adminUnreadReports}
         />
       </aside>
 
@@ -289,6 +321,7 @@ export function AppSidebar({
                   name={name}
                   avatarR2Key={avatarR2Key}
                   isAdmin={isAdmin}
+                  adminUnreadReports={adminUnreadReports}
                   onNavigate={() => setOpen(false)}
                 />
               </div>

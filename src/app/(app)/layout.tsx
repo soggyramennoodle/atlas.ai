@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { countUnreadFeedback } from "@/lib/admin-feedback-server";
 import { isNewsroomAdmin } from "@/lib/newsroom";
 import { parseThemePreference } from "@/lib/theme";
 import { AppShell } from "@/components/app/app-shell";
@@ -32,6 +33,8 @@ export default async function AppLayout({
   if (!profileError && !profile?.display_name) redirect("/onboarding");
 
   const savedTheme = parseThemePreference(profile?.theme_preference);
+  const isAdmin = isNewsroomAdmin(user.email);
+  const adminUnreadReports = isAdmin ? await countUnreadFeedback() : 0;
 
   return (
     <RecordingProvider userId={user.id}>
@@ -44,7 +47,8 @@ export default async function AppLayout({
           email={user.email ?? ""}
           name={profile?.display_name ?? ""}
           avatarR2Key={profile?.avatar_r2_key ?? null}
-          isAdmin={isNewsroomAdmin(user.email)}
+          isAdmin={isAdmin}
+          adminUnreadReports={adminUnreadReports}
           showUiTour={!profileError && !profile?.ui_tour_completed_at}
         >
           {children}
