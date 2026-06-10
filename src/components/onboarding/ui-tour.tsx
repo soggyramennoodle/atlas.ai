@@ -46,14 +46,25 @@ export function UiTour({
     }
 
     if (current.route && pathname !== current.route) {
-      setReady(false);
       router.push(current.route);
       return;
     }
 
-    setReady(false);
+    // Switch the settings tab (Profile/Memory share /settings, so a route push
+    // won't do it) before the target is highlighted.
+    if (current.settingsTab) {
+      window.dispatchEvent(
+        new CustomEvent("atlas:set-settings-tab", { detail: current.settingsTab })
+      );
+    }
+
     const t = window.setTimeout(() => setReady(true), stepDelay(current));
-    return () => window.clearTimeout(t);
+    // Hide the spotlight whenever the step or route changes (and on unmount),
+    // so it never lingers over a stale target while we navigate or switch tabs.
+    return () => {
+      window.clearTimeout(t);
+      setReady(false);
+    };
   }, [active, finishing, stepIndex, pathname, router, onMobileSidebarOpen]);
 
   async function complete() {

@@ -7,6 +7,8 @@ export type UiTourStep = {
   route?: string;
   /** Keep the mobile drawer open for sidebar targets. */
   sidebar?: boolean;
+  /** Settings tab to switch to before highlighting (for /settings steps). */
+  settingsTab?: string;
   placement?: "right" | "bottom" | "top" | "left";
 };
 
@@ -68,6 +70,16 @@ export const UI_TOUR_STEPS: UiTourStep[] = [
     title: "Your profile",
     body: "Atlas uses your program and year to personalize notes. Changes save automatically.",
     route: "/settings",
+    settingsTab: "profile",
+    placement: "bottom",
+  },
+  {
+    id: "settings-memory",
+    target: '[data-tour="settings-memory"]',
+    title: "Atlas learns how you study",
+    body: "Atlas remembers your courses, the concepts you cover, and how you like your notes — then adapts each new set to you. Something off? Just tell it here in plain language and it adjusts.",
+    route: "/settings",
+    settingsTab: "memory",
     placement: "bottom",
   },
   {

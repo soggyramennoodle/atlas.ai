@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Brain,
@@ -43,6 +43,16 @@ export function SettingsClient({
   memory: UserMemory | null;
 }) {
   const [tab, setTab] = useState<Tab>("profile");
+
+  // Let the onboarding tour drive the active tab when it reaches a /settings step.
+  useEffect(() => {
+    function onSetTab(e: Event) {
+      const next = (e as CustomEvent<string>).detail;
+      if (TABS.some((t) => t.id === next)) setTab(next as Tab);
+    }
+    window.addEventListener("atlas:set-settings-tab", onSetTab);
+    return () => window.removeEventListener("atlas:set-settings-tab", onSetTab);
+  }, []);
 
   return (
     <div className="mt-8">

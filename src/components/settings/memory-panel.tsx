@@ -109,7 +109,10 @@ export function MemoryPanel({
   return (
     <div className="space-y-4">
       {/* Intro / reassurance */}
-      <div className="ai-ring icon-animate relative isolate rounded-[4px] border border-border bg-card p-6">
+      <div
+        data-tour="settings-memory"
+        className="ai-ring icon-animate relative isolate rounded-[4px] border border-border bg-card p-6"
+      >
         <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
           <Brain className="size-3.5" />
           Atlas Memory
