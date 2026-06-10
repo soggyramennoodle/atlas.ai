@@ -28,30 +28,43 @@ function formatPasskeyDate(iso: string | undefined): string {
 export function PasskeysPanel() {
   const supported = browserSupportsPasskeys();
   const [passkeys, setPasskeys] = useState<PasskeyRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(supported);
   const [adding, setAdding] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!supported) {
-      setLoading(false);
-      return;
-    }
+    if (!supported) return;
     const supabase = createClient();
     const { data, error } = await supabase.auth.passkey.list();
     if (error) {
       console.error("Passkey list failed:", error);
       toast.error("Couldn't load your passkeys.");
-      setLoading(false);
       return;
     }
     setPasskeys((data as PasskeyRow[] | null) ?? []);
-    setLoading(false);
   }, [supported]);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    if (!supported) return;
+
+    let cancelled = false;
+    (async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.passkey.list();
+      if (cancelled) return;
+      if (error) {
+        console.error("Passkey list failed:", error);
+        toast.error("Couldn't load your passkeys.");
+      } else {
+        setPasskeys((data as PasskeyRow[] | null) ?? []);
+      }
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [supported]);
 
   async function addPasskey() {
     setAdding(true);
