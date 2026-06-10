@@ -50,12 +50,12 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
       initial={reduce ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="group hover-glow icon-animate rounded-[4px] border border-border bg-card p-5 transition-[transform,border-color,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-foreground/25 hover:bg-secondary/45 hover:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_14px_30px_-20px_rgba(0,0,0,0.34)] motion-reduce:hover:translate-y-0"
+      className="group hover-glow icon-animate rounded-[4px] border border-border bg-card p-4 transition-[transform,border-color,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-foreground/25 hover:bg-secondary/45 hover:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_14px_30px_-20px_rgba(0,0,0,0.34)] motion-reduce:hover:translate-y-0 sm:p-5"
     >
-      <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-background text-foreground transition-transform duration-200 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-y-0">
-        <Icon className="size-5" />
+      <span className="grid size-9 place-items-center rounded-[4px] border border-border bg-background text-foreground transition-transform duration-200 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-y-0 sm:size-10">
+        <Icon className="size-4 sm:size-5" />
       </span>
-      <p className="mt-4 text-4xl font-bold tabular-nums tracking-tight">
+      <p className="mt-3 text-3xl font-bold tabular-nums tracking-tight sm:mt-4 sm:text-4xl">
         {display}
         {stat.suffix && (
           <span className="ml-1 text-base font-medium text-muted-foreground">

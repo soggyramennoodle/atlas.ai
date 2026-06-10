@@ -122,7 +122,7 @@ export default async function DashboardPage() {
               </Link>
             )}
           </div>
-          <Button asChild size="lg" className="group shrink-0">
+          <Button asChild size="lg" className="group w-full shrink-0 sm:w-auto">
             <Link href="/upload">
               <Mic className="size-4" />
               Record a lecture
