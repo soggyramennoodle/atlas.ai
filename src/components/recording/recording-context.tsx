@@ -943,7 +943,14 @@ export function RecordingProvider({
           return;
         }
         stopMeter();
-        void finalizeSegment(blob).then(() => completeJobAndProcess());
+        // Finalize the last segment (persist + upload), then surface the review
+        // buffer so the student can play the take back and decide whether to
+        // Generate notes (which kicks off the processing pipeline via
+        // generate()) or Discard it — instead of auto-processing on stop.
+        void finalizeSegment(blob).then(async () => {
+          await restoreClipFromDraft();
+          setStage("idle");
+        });
         streamRef.current?.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
         sourceStreamsRef.current.forEach((s) => s.getTracks().forEach((t) => t.stop()));
@@ -978,7 +985,7 @@ export function RecordingProvider({
     draftPatch,
     enqueueDraftWrite,
     finalizeSegment,
-    completeJobAndProcess,
+    restoreClipFromDraft,
     stopMeter,
   ]);
   useEffect(() => {
@@ -1373,11 +1380,13 @@ export function RecordingProvider({
   const stop = useCallback(() => {
     const rec = mediaRecorderRef.current;
     if (!rec || rec.state === "inactive") return;
-    // Show the processing scrim immediately. Finalizing + uploading the last
-    // segment (and enqueueing the job) happens asynchronously in `onstop`; until
-    // it does, leaving the user on the live recording UI looks like a freeze.
+    // Show a brief "Saving your recording…" scrim while the last segment is
+    // finalized + uploaded in `onstop`; without it, leaving the user on the live
+    // recording UI looks like a freeze. Once finalizing finishes, `onstop` drops
+    // into the "recorded" review buffer (play back, then Generate or Discard)
+    // rather than auto-starting the processing pipeline.
     setProcessingSafeToLeave(false);
-    setStage("analyzing");
+    setStage("uploading");
     if (tickRef.current) clearInterval(tickRef.current);
     tickRef.current = null;
     if (transcriptKickoffRef.current) clearTimeout(transcriptKickoffRef.current);
