@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AvatarUpload } from "@/components/settings/avatar-upload";
 import { SettingsClient } from "@/components/settings/settings-client";
+import { SettingsIdentityCard } from "@/components/settings/settings-identity-card";
 import type { UserMemory, UserProfile } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -41,24 +41,11 @@ export default async function SettingsPage() {
           Settings
         </h1>
 
-        {/* Identity header */}
-        <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-          <div className="h-14 border-b border-border bg-secondary bg-hairlines" />
-          <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
-            <AvatarUpload
-              displayName={displayName}
-              avatarR2Key={profile?.avatar_r2_key ?? null}
-            />
-            <div className="min-w-0 sm:flex-1">
-              <h2 className="text-xl font-semibold tracking-tight">
-                {displayName}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {joined ? `Atlas member since ${joined}` : "Atlas member"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <SettingsIdentityCard
+          displayName={displayName}
+          joined={joined}
+          avatarR2Key={profile?.avatar_r2_key ?? null}
+        />
 
         <SettingsClient
           email={email}
