@@ -3,46 +3,52 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Loader2, Lock, Mail } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Fingerprint,
+  Loader2,
+  Mail,
+} from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { browserSupportsPasskeys } from "@/lib/passkeys";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { checkAccountLocked } from "@/app/login/actions";
+import { lookupAuthEmail } from "@/app/login/actions";
 import { authErrorMessage } from "@/lib/auth-errors";
+import { usePasskeySignIn } from "@/components/auth/use-passkey-sign-in";
 
-/** Where locked-out users are told to reach us. */
-const SUPPORT_EMAIL = "hello@atlasai.ca";
-
-// Apple OAuth is intentionally omitted until an Apple Developer account is
-// configured — showing a button that can't complete sign-in is worse than not
-// offering it.
 type OAuthProvider = "google";
 
-const RESEND_COOLDOWN = 90; // seconds — stay under Supabase's per-email OTP throttle
+type AuthStep =
+  | "main"
+  | "magic-sent"
+  | "no-account"
+  | "already-exists"
+  | "sign-in-choice";
+
+const RESEND_COOLDOWN = 90;
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/dashboard";
+  const isSignup = mode === "signup";
+  const passkeysSupported = browserSupportsPasskeys();
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => params.get("email")?.trim() ?? "");
+  const [step, setStep] = useState<AuthStep>("main");
   const [sending, setSending] = useState(false);
+  const [continuing, setContinuing] = useState(false);
   const [redirecting, setRedirecting] = useState<OAuthProvider | null>(null);
-  const [sent, setSent] = useState(false);
-  const [locked, setLocked] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
-  const isSignup = mode === "signup";
+  const { signIn: signInWithPasskey, signingIn: passkeySigningIn } =
+    usePasskeySignIn(next);
 
-  // The callback route appends `?locked=1` when it rejects a banned user (e.g.
-  // after Google OAuth). Derive the locked view from the URL so we don't have
-  // to set state inside an effect; `locked` state covers the email-submit path.
-  const showLocked = locked || params.get("locked") != null;
-
-  // Surface auth errors bounced back from the callback route.
   useEffect(() => {
     if (params.get("error")) {
       toast.error("That sign-in link didn't work. Please try again.");
@@ -50,7 +56,6 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     }
   }, [params, router, isSignup]);
 
-  // Tick down the resend cooldown.
   useEffect(() => {
     if (cooldown <= 0) return;
     const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
@@ -61,11 +66,14 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
   }
 
-  async function deliverLink(): Promise<boolean> {
+  async function deliverMagicLink(createUser: boolean): Promise<boolean> {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: redirectTo(), shouldCreateUser: true },
+      options: {
+        emailRedirectTo: redirectTo(),
+        shouldCreateUser: createUser,
+      },
     });
     if (error) {
       toast.error(authErrorMessage(error));
@@ -74,40 +82,56 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     return true;
   }
 
-  async function sendMagicLink(e: React.FormEvent) {
-    e.preventDefault();
+  async function sendMagicLink(createUser: boolean) {
     setSending(true);
     try {
-      // Show the locked screen instead of sending a link to a banned account.
-      const { locked: isLocked } = await checkAccountLocked(email);
-      if (isLocked) {
-        setLocked(true);
-        return;
-      }
-      if (await deliverLink()) {
-        setSent(true);
+      if (await deliverMagicLink(createUser)) {
+        setStep("magic-sent");
         setCooldown(RESEND_COOLDOWN);
       }
     } finally {
       setSending(false);
+    }
+  }
+
+  async function handleEmailContinue(e: React.FormEvent) {
+    e.preventDefault();
+    setContinuing(true);
+    try {
+      const lookup = await lookupAuthEmail(email);
+
+      if (isSignup) {
+        if (lookup.exists) {
+          setStep("already-exists");
+          return;
+        }
+        await sendMagicLink(true);
+        return;
+      }
+
+      if (!lookup.exists) {
+        setStep("no-account");
+        return;
+      }
+
+      if (lookup.hasPasskey && passkeysSupported) {
+        setStep("sign-in-choice");
+        return;
+      }
+
+      await sendMagicLink(false);
+    } finally {
+      setContinuing(false);
     }
   }
 
   async function resend() {
     if (cooldown > 0 || sending) return;
-    setSending(true);
-    try {
-      if (await deliverLink()) {
-        toast.success("Sent again. Check your inbox.");
-        setCooldown(RESEND_COOLDOWN);
-      }
-    } finally {
-      setSending(false);
-    }
+    await sendMagicLink(isSignup);
   }
 
   function goBack() {
-    setSent(false);
+    setStep("main");
     setCooldown(0);
   }
 
@@ -120,7 +144,6 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         options: { redirectTo: redirectTo() },
       });
       if (error) throw error;
-      // On success the browser is redirected to the provider.
     } catch (err) {
       setRedirecting(null);
       toast.error(
@@ -131,49 +154,9 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     }
   }
 
-  if (showLocked) {
-    return (
-      <div className="rounded-[4px] border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
-        <span className="mx-auto grid size-12 place-items-center rounded-[4px] border border-destructive/40 bg-destructive/10 text-destructive">
-          <Lock className="size-6" />
-        </span>
-        <h2 className="mt-5 text-2xl font-bold tracking-tight">
-          Account locked
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground text-pretty">
-          This account has been locked and can&apos;t sign in right now. If you
-          think this is a mistake, reach out and we&apos;ll help sort it out.
-        </p>
+  const authBusy = sending || continuing || !!redirecting || passkeySigningIn;
 
-        <div className="mt-6 flex flex-col items-center gap-3">
-          <a
-            href={`mailto:${SUPPORT_EMAIL}`}
-            className={cn(buttonVariants(), "w-full")}
-          >
-            <Mail className="size-4" />
-            Contact {SUPPORT_EMAIL}
-          </a>
-          <button
-            type="button"
-            onClick={() => {
-              setLocked(false);
-              setEmail("");
-              // Clear the `?locked=1` flag the callback may have appended.
-              if (params.get("locked") != null) {
-                router.replace(isSignup ? "/signup" : "/login");
-              }
-            }}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
-          >
-            <ArrowLeft className="size-3.5" />
-            Go back
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (sent) {
+  if (step === "magic-sent") {
     return (
       <div className="rounded-[4px] border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
         <span className="mx-auto grid size-12 place-items-center rounded-[4px] border border-border bg-background text-foreground">
@@ -193,7 +176,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         <div className="mt-6 flex flex-col items-center gap-3">
           <Button
             className="w-full"
-            onClick={resend}
+            onClick={() => void resend()}
             disabled={cooldown > 0 || sending}
           >
             {sending && <Loader2 className="size-4 animate-spin" />}
@@ -208,6 +191,107 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             Go back
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (step === "no-account") {
+    return (
+      <div className="rounded-[4px] border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
+        <h2 className="text-2xl font-bold tracking-tight">No account found</h2>
+        <p className="mt-2 text-sm text-muted-foreground text-pretty">
+          We couldn&apos;t find an Atlas account for <strong>{email}</strong>.
+        </p>
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <Link href="/signup" className={cn(buttonVariants(), "w-full")}>
+            Create an account
+          </Link>
+          <button
+            type="button"
+            onClick={goBack}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" />
+            Try a different email
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "already-exists") {
+    return (
+      <div className="rounded-[4px] border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
+        <h2 className="text-2xl font-bold tracking-tight">
+          You already have an account
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground text-pretty">
+          <strong>{email}</strong> is already registered with Atlas.
+        </p>
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <Link
+            href={`/login?email=${encodeURIComponent(email)}`}
+            className={cn(buttonVariants(), "w-full")}
+          >
+            Sign in instead
+          </Link>
+          <button
+            type="button"
+            onClick={goBack}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" />
+            Try a different email
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "sign-in-choice") {
+    return (
+      <div className="rounded-[4px] border border-border bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
+        <h2 className="text-2xl font-bold tracking-tight">Choose how to sign in</h2>
+        <p className="mt-2 text-sm text-muted-foreground text-pretty">
+          For <strong>{email}</strong>
+        </p>
+
+        <div className="mt-6 grid gap-3">
+          <Button
+            className="h-11 w-full gap-2"
+            onClick={() => void signInWithPasskey()}
+            disabled={authBusy}
+          >
+            {passkeySigningIn ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Fingerprint className="size-4" />
+            )}
+            Use passkey
+          </Button>
+          <Button
+            variant="outline"
+            className="h-11 w-full gap-2"
+            onClick={() => void sendMagicLink(false)}
+            disabled={authBusy}
+          >
+            {sending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Mail className="size-4" />
+            )}
+            Send magic link
+          </Button>
+        </div>
+
+        <button
+          type="button"
+          onClick={goBack}
+          className="mt-5 inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5" />
+          Go back
+        </button>
       </div>
     );
   }
@@ -228,7 +312,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           variant="outline"
           className="h-11 w-full"
           onClick={() => signInWith("google")}
-          disabled={!!redirecting}
+          disabled={authBusy}
         >
           {redirecting === "google" ? (
             <Loader2 className="size-4 animate-spin" />
@@ -237,6 +321,22 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           )}
           Continue with Google
         </Button>
+
+        {!isSignup && passkeysSupported && (
+          <Button
+            variant="outline"
+            className="h-11 w-full gap-2"
+            onClick={() => void signInWithPasskey()}
+            disabled={authBusy}
+          >
+            {passkeySigningIn ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Fingerprint className="size-4" />
+            )}
+            Sign in with passkey
+          </Button>
+        )}
       </div>
 
       <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
@@ -245,7 +345,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         <span className="h-px flex-1 bg-border" />
       </div>
 
-      <form onSubmit={sendMagicLink} className="space-y-4">
+      <form onSubmit={(e) => void handleEmailContinue(e)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -258,25 +358,25 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-        <Button
-          type="submit"
-          disabled={sending || !!redirecting}
-          className="h-11 w-full"
-        >
-          {sending && <Loader2 className="size-4 animate-spin" />}
-          Send magic link
+        <Button type="submit" disabled={authBusy} className="h-11 w-full">
+          {(continuing || sending) && <Loader2 className="size-4 animate-spin" />}
+          Continue
         </Button>
       </form>
 
       <p className="mt-5 text-center text-xs text-muted-foreground text-pretty">
-        We&apos;ll email you a secure link to sign in. No password to remember.
+        {isSignup
+          ? "We'll email you a secure link to finish creating your account."
+          : "Enter your email to sign in with a passkey or magic link."}
       </p>
 
-      <p className="mt-3 text-center text-xs text-muted-foreground text-pretty">
-        Institutional emails (e.g. @mcmaster.ca, @mail.utoronto.ca) may be
-        blocked by your school&apos;s security filters. Use a personal email for
-        the best experience.
-      </p>
+      {!isSignup && (
+        <p className="mt-3 text-center text-xs text-muted-foreground text-pretty">
+          Institutional emails (e.g. @mcmaster.ca, @mail.utoronto.ca) may be
+          blocked by your school&apos;s security filters. Use a personal email for
+          the best experience.
+        </p>
+      )}
 
       <p className="mt-2 text-center text-xs">
         <Link

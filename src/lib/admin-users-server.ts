@@ -46,9 +46,10 @@ export async function listAdminUsers(): Promise<ListUsersResult> {
   }
 
   const ids = users.map((u) => u.id);
-  const [notesCounts, recordingsCounts] = await Promise.all([
+  const [notesCounts, recordingsCounts, pendingBanIds] = await Promise.all([
     countByUser(db, "notes", ids),
     countByUser(db, "lecture_jobs", ids),
+    loadPendingBanUserIds(db, ids),
   ]);
 
   const rows: AdminUserRow[] = users.map((u) => {
@@ -61,7 +62,9 @@ export async function listAdminUsers(): Promise<ListUsersResult> {
       createdAt: u.created_at,
       lastSignInAt: u.last_sign_in_at ?? null,
       emailConfirmed: Boolean(u.email_confirmed_at),
-      banned: isBannedUntil((u as { banned_until?: string | null }).banned_until),
+      banned:
+        isBannedUntil((u as { banned_until?: string | null }).banned_until) ||
+        pendingBanIds.has(u.id),
       isAdmin: isNewsroomAdmin(u.email),
       notesCount: notesCounts.get(u.id) ?? 0,
       recordingsCount: recordingsCounts.get(u.id) ?? 0,
@@ -72,6 +75,25 @@ export async function listAdminUsers(): Promise<ListUsersResult> {
   rows.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
 
   return { rows, truncated };
+}
+
+/** Users with a pending in-app ban revocation (revocation-only ban model). */
+async function loadPendingBanUserIds(
+  db: ReturnType<typeof createAdminClient>,
+  ids: string[]
+): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+  const { data, error } = await db
+    .from("access_revocations")
+    .select("user_id")
+    .in("user_id", ids)
+    .eq("status", "pending")
+    .eq("kind", "banned");
+  if (error) {
+    console.error("Failed to load pending ban revocations:", error);
+    return new Set();
+  }
+  return new Set((data ?? []).map((row) => row.user_id as string));
 }
 
 /** Tally rows of a table that has a `user_id` column, scoped to the given ids. */

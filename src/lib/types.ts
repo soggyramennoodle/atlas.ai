@@ -205,6 +205,8 @@ export interface UserProfile {
   theme_preference: string | null;
   /** Cloudflare R2 object key for the user's profile picture. */
   avatar_r2_key: string | null;
+  /** When the user dismissed the one-time passkey enrollment prompt. */
+  passkey_prompt_dismissed_at: string | null;
   created_at: string;
 }
 

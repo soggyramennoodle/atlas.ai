@@ -17,9 +17,6 @@ import {
 } from "@/lib/loops";
 import { buildAdminMagicLinkUrl } from "@/lib/magic-link-url";
 
-// GoTrue treats a far-future ban as an indefinite suspension; "none" clears it.
-const BAN_DURATION = "876000h"; // ~100 years
-
 type ActionResult = { ok: boolean; error?: string };
 
 function revalidateUsers() {
@@ -111,24 +108,24 @@ export async function setUserBanned(
   if (!safe.ok) return safe;
 
   const db = createAdminClient();
-  const { error } = await db.auth.admin.updateUserById(id, {
-    ban_duration: banned ? BAN_DURATION : "none",
-  });
-
-  if (error) {
-    console.error("Ban toggle failed:", error);
-    return { ok: false, error: "Couldn't update the user." };
-  }
 
   try {
     if (banned) {
       await queueAccessRevocation(id, "banned");
     } else {
       await clearPendingRevocation(id);
+      // Clear any legacy GoTrue ban so sign-in is allowed again.
+      const { error } = await db.auth.admin.updateUserById(id, {
+        ban_duration: "none",
+      });
+      if (error) {
+        console.error("Legacy ban clear failed:", error);
+        return { ok: false, error: "Couldn't clear the user's ban." };
+      }
     }
   } catch (err) {
     console.error("Revocation queue failed:", err);
-    return { ok: false, error: "Ban saved but the in-app notice failed." };
+    return { ok: false, error: "Couldn't update the user's access." };
   }
 
   revalidateUsers();

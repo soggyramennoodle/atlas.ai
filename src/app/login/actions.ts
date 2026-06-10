@@ -2,34 +2,43 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export type AuthEmailLookup = {
+  exists: boolean;
+  hasPasskey: boolean;
+};
+
 /**
- * Returns whether the given email belongs to a currently-banned account, so the
- * login form can show the "account locked" screen instead of sending a magic
- * link.
+ * Looks up whether an email belongs to an existing account and whether that
+ * account has enrolled passkeys. Used by the login/signup form to route the
+ * user to passkey vs magic-link flows.
  *
- * Fails OPEN: if the lookup errors (e.g. the `is_account_banned` SQL function
- * hasn't been applied yet) we return `{ locked: false }` so legitimate sign-ins
- * are never blocked by an infra hiccup. Banned users are still stopped at the
- * auth callback regardless — this check is purely to improve the UX message.
+ * Fails open on infra errors so sign-in is never blocked by a lookup hiccup.
  */
-export async function checkAccountLocked(
-  email: string
-): Promise<{ locked: boolean }> {
+export async function lookupAuthEmail(email: string): Promise<AuthEmailLookup> {
   const trimmed = email.trim();
-  if (!trimmed) return { locked: false };
+  if (!trimmed) return { exists: false, hasPasskey: false };
 
   try {
     const db = createAdminClient();
-    const { data, error } = await db.rpc("is_account_banned", {
+    const { data: userId, error } = await db.rpc("get_auth_user_id_by_email", {
       p_email: trimmed,
     });
     if (error) {
-      console.error("is_account_banned rpc failed:", error);
-      return { locked: false };
+      console.error("get_auth_user_id_by_email rpc failed:", error);
+      return { exists: false, hasPasskey: false };
     }
-    return { locked: Boolean(data) };
+    if (!userId) return { exists: false, hasPasskey: false };
+
+    const { data: passkeys, error: passkeyError } =
+      await db.auth.admin.passkey.listPasskeys({ userId: userId as string });
+    if (passkeyError) {
+      console.error("listPasskeys failed:", passkeyError);
+      return { exists: true, hasPasskey: false };
+    }
+
+    return { exists: true, hasPasskey: (passkeys?.length ?? 0) > 0 };
   } catch (err) {
-    console.error("checkAccountLocked error:", err);
-    return { locked: false };
+    console.error("lookupAuthEmail error:", err);
+    return { exists: false, hasPasskey: false };
   }
 }

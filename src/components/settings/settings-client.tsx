@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { UserProfile } from "@/lib/types";
+import { PasskeysPanel } from "@/components/settings/passkeys-panel";
 
 type Tab = "profile" | "privacy" | "account";
 
@@ -250,6 +251,8 @@ function AccountPanel({
 }) {
   return (
     <div className="space-y-4">
+      <PasskeysPanel />
+
       <div className="rounded-[4px] border border-border bg-card p-6">
         <h2 className="font-semibold tracking-tight">Account</h2>
         <dl className="mt-5 grid gap-4 sm:grid-cols-2">

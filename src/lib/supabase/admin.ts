@@ -21,6 +21,10 @@ export function createAdminClient() {
   }
 
   return createClient(url, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      experimental: { passkey: true },
+    },
   });
 }

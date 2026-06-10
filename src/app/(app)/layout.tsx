@@ -9,6 +9,7 @@ import { RecordingDock } from "@/components/recording/recording-dock";
 import { MarketingBackground } from "@/components/marketing-background";
 import { ThemeSync } from "@/components/theme-sync";
 import { AccessRevocationGuard } from "@/components/access-revocation-guard";
+import { PasskeyEnrollmentPrompt } from "@/components/auth/passkey-enrollment-prompt";
 
 export default async function AppLayout({
   children,
@@ -28,7 +29,9 @@ export default async function AppLayout({
   // and we don't want to trap the user in a redirect loop.
   const { data: profile, error: profileError } = await supabase
     .from("user_profiles")
-    .select("display_name, ui_tour_completed_at, theme_preference, avatar_r2_key")
+    .select(
+      "display_name, ui_tour_completed_at, theme_preference, avatar_r2_key, passkey_prompt_dismissed_at"
+    )
     .maybeSingle();
   if (!profileError && !profile?.display_name) redirect("/onboarding");
 
@@ -40,6 +43,9 @@ export default async function AppLayout({
     <RecordingProvider userId={user.id}>
       <ThemeSync savedTheme={savedTheme} />
       <AccessRevocationGuard userId={user.id} />
+      <PasskeyEnrollmentPrompt
+        dismissedAt={profile?.passkey_prompt_dismissed_at ?? null}
+      />
       <div className="relative min-h-screen">
         {/* Clean rivo-light canvas, shared with the marketing surface. */}
         <MarketingBackground />

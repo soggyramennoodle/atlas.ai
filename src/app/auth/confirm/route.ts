@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isBannedAuthError, safeAuthNextPath } from "@/lib/auth-errors";
+import { safeAuthNextPath } from "@/lib/auth-errors";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -24,10 +24,6 @@ export async function GET(request: Request) {
 
   if (!error) {
     return NextResponse.redirect(`${origin}${next}`);
-  }
-
-  if (isBannedAuthError(error)) {
-    return NextResponse.redirect(`${origin}/login?locked=1`);
   }
 
   console.error("Magic link confirm failed:", error);
