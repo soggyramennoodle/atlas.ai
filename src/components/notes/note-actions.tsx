@@ -125,6 +125,12 @@ export function DeleteNoteButton({ id }: { id: string }) {
         toast.error("Couldn't delete this note. Please try again.");
         return;
       }
+      // Reassess what Atlas learned now that this note is gone — best-effort
+      // and non-blocking. `keepalive` lets it finish after we navigate away.
+      void fetch("/api/memory/reassess", {
+        method: "POST",
+        keepalive: true,
+      }).catch(() => {});
       toast.success("Note deleted.");
       router.push("/dashboard");
     });
