@@ -5,6 +5,7 @@ import { SubjectsMarquee } from "@/components/landing/subjects-marquee";
 import { UniversitiesMarquee } from "@/components/landing/universities-marquee";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { FeaturesBento } from "@/components/landing/features-bento";
+import { PersonalizationDemo } from "@/components/landing/personalization-demo";
 import { Faq } from "@/components/landing/faq";
 import { PrivacyTrust } from "@/components/landing/privacy-trust";
 import { FinalCta } from "@/components/landing/cta";
@@ -25,6 +26,7 @@ export default async function Home() {
       <UniversitiesMarquee />
       <HowItWorks />
       <FeaturesBento />
+      <PersonalizationDemo />
       <Faq />
       <PrivacyTrust />
       <FinalCta ctaHref={ctaHref} />
