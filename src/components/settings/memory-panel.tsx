@@ -219,8 +219,7 @@ export function MemoryPanel({
         <div className="rounded-[4px] border border-dashed border-border bg-card/60 p-5">
           <SectionHeader icon={Type} title="Note formatting" />
           <p className="mt-2 text-xs text-muted-foreground">
-            How your notes are presented — not part of what Atlas learns about
-            how you study.
+            How your notes are presented.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {formatting.map((f) => (
@@ -291,8 +290,7 @@ function RefineBox({
     <div className="rounded-[4px] border border-border bg-card p-6">
       <SectionHeader icon={Wand2} title="Correct what Atlas knows" />
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
-        Something off? Tell Atlas in plain language — it&apos;ll adjust. You
-        don&apos;t edit fields directly.
+        Something off? Tell Atlas in plain language — it&apos;ll adjust.
       </p>
       <Textarea
         value={value}

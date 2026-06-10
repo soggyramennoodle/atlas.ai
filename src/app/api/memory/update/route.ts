@@ -85,7 +85,7 @@ Populate each field carefully:
 - preferredTerminology: domain/conceptual terms or notation the student clearly prefers (e.g. "uses 'mitosis' not 'cell division'"). This is about meaning, NOT formatting.
 - contentPreferences: preferences about the SUBSTANCE and DEPTH of notes (e.g. "wants worked examples", "wants derivations shown", "more clinical detail"). NOT formatting.
 - formattingPreferences: purely presentational choices ONLY — plain text vs markdown, bullet length, line spacing, headings. Put ALL cosmetic changes here and NOWHERE else; they must never leak into the fields above.
-- correctionSummary: 1-2 sentences describing the CONTENT/LEARNING takeaway of the edit (what the student added or fixed conceptually and what it implies for future notes). If the edit was purely cosmetic, say so briefly and leave the learning fields empty.
+- correctionSummary: 1-2 sentences written directly TO the student in the second person ("you"), describing the CONTENT/LEARNING takeaway of the edit — what you added or fixed conceptually and what it implies for your future notes. Never refer to "the student" in the third person. If the edit was purely cosmetic, say so briefly and leave the learning fields empty.
 
 Rules: Prefer empty arrays over guesses. Never infer a course or code that isn't supported by the material. Distinguish a one-off lecture topic from an ongoing course.`;
 
