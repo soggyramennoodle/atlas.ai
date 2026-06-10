@@ -113,23 +113,41 @@ export interface NoteRecord {
  * Per-user AI memory. `memory_blob` accumulates context Atlas uses to
  * personalize future note generation. Stored in the `user_memory` table.
  */
+/** A course the student is taking, with an optional real course code. */
+export interface CourseEntry {
+  /** Course code if one is actually known, e.g. "BIO 101". Omitted when unknown — never invented. */
+  code?: string;
+  /** Human course/subject name, e.g. "Introductory Biology". */
+  name: string;
+}
+
 export interface UserMemory {
   /** Program / major, e.g. "BSc Computer Science". */
   program?: string;
   /** Institution name. */
   institution?: string;
-  /** Subjects/courses the student has recorded, most recent first. */
+  /** Broad fields of study, e.g. "Biology" (NOT a single lecture's topic). */
   subjects?: string[];
-  /** Recurring professors or course codes mentioned across notes. */
+  /** Structured ongoing courses the student takes, with optional codes. */
+  courses?: CourseEntry[];
+  /** @deprecated Legacy free-text course list; read for back-compat only. */
   recurringCourses?: string[];
-  /** Inferred stylistic / detail-level preferences from past edits. */
-  stylePreferences?: string[];
-  /** Domain terminology the student prefers, e.g. "uses 'big-O' not 'order'". */
-  preferredTerminology?: string[];
-  /** Structured log of meaningful corrections the student made to past notes. */
-  corrections?: MemoryCorrection[];
-  /** Concepts that recur across the student's notes. */
+  /** Concepts that recur across the student's notes (learning signal). */
   recurringConcepts?: string[];
+  /** Conceptual/domain terminology the student prefers, e.g. "uses 'mitosis' not 'cell division'". NOT formatting. */
+  preferredTerminology?: string[];
+  /** Preferences about the SUBSTANCE/DEPTH of notes, e.g. "wants worked examples". Shapes note content. */
+  contentPreferences?: string[];
+  /**
+   * Display-only note formatting preferences (plain text vs markdown, bullet
+   * length, spacing). Kept deliberately separate: these shape how notes are
+   * presented, never what Atlas claims to know about how the student learns.
+   */
+  formattingPreferences?: string[];
+  /** @deprecated Legacy mixed style prefs; treated as formatting on read. */
+  stylePreferences?: string[];
+  /** Structured log of meaningful CONTENT corrections the student made to past notes. */
+  corrections?: MemoryCorrection[];
 }
 
 export interface MemoryCorrection {
