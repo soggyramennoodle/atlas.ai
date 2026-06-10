@@ -298,7 +298,7 @@ function RefineBox({
         disabled={busy}
         rows={3}
         maxLength={1000}
-        placeholder="e.g. That’s just Biology, not a Cellular Reproduction course — the code is BIO 101."
+        placeholder="Tell Atlas what to fix or add — a course, a subject, a term, or how you like your notes…"
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
             e.preventDefault();
