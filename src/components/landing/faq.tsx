@@ -15,6 +15,10 @@ const FAQ = [
     a: "Very. Atlas is built for students who'd rather listen than scribble, so it captures the lecture in full: sections, examples, definitions and a summary, instead of a short recap.",
   },
   {
+    q: "Does Atlas learn how I study?",
+    a: "Yes — that's the point. Atlas builds a private profile of your courses, the terms you prefer, and how much detail you like, then tailors each new set of notes to fit. You can see everything it has learned, and correct it in plain language, from Settings.",
+  },
+  {
     q: "Is my data private?",
     a: "Yes. You need an account to record lectures, and every recording is deleted after notes are generated. Your notes and personal info stay secure with Atlas Enclave, our privacy solution.",
   },

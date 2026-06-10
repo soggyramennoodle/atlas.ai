@@ -14,8 +14,8 @@ const STEPS = [
   },
   {
     icon: NotebookPen,
-    title: "Get thorough notes",
-    body: "A clean summary, fully detailed sections, and key concepts, saved to your library and ready to study.",
+    title: "Get notes made for you",
+    body: "A clean summary, fully detailed sections, and key concepts, saved to your library — and every lecture teaches Atlas a little more about your courses and style.",
   },
 ];
 

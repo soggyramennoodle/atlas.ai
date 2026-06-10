@@ -41,7 +41,8 @@ export function Hero({
           <Reveal delay={0.12}>
             <p className="mt-6 max-w-[46ch] text-pretty text-lg leading-relaxed text-muted-foreground">
               Record any lecture in your browser and Atlas hands back thorough,
-              structured notes. We remember every word.
+              structured notes — and the more you use it, the more they fit the
+              way you study.
             </p>
           </Reveal>
 

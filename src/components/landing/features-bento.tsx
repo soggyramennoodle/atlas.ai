@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ListChecks, Layers, BookMarked, Clock } from "lucide-react";
+import { ListChecks, Layers, Brain, Clock } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
 import { cn } from "@/lib/utils";
 
@@ -227,14 +227,15 @@ export function FeaturesBento() {
             <Cell className="h-full w-full sm:flex-row sm:items-center sm:gap-10">
               <div className="sm:max-w-sm">
                 <IconChip>
-                  <BookMarked className="size-5" />
+                  <Brain className="size-5" />
                 </IconChip>
                 <h3 className="mt-4 text-lg font-semibold tracking-tight">
-                  Your personal library
+                  A library that learns you
                 </h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                  Every lecture saved and searchable, a notebook for the whole
-                  term.
+                  Every lecture saved and searchable. Atlas remembers your
+                  courses, the terms you use, and how you like your notes — so
+                  each new set arrives more like yours.
                 </p>
               </div>
               <div className="mt-2 flex-1 sm:mt-0">
