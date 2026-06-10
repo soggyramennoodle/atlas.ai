@@ -59,6 +59,14 @@ function formatDate(iso: string): string | null {
 }
 
 /**
+ * Chips here hold user/AI content of unbounded length (a concept, a full
+ * formatting sentence), not short tags. Override the Badge primitive's
+ * `whitespace-nowrap`/centering so long text wraps and breaks instead of
+ * overflowing the card — on any screen size.
+ */
+const CHIP = "h-auto max-w-full justify-start whitespace-normal break-words text-left text-[0.8rem]";
+
+/**
  * "What Atlas knows about you" — surfaces the per-user personalization that
  * drives note generation (the `user_memory` blob + profile). Students don't
  * edit fields directly; they correct Atlas conversationally via the refine box,
@@ -130,7 +138,7 @@ export function MemoryPanel({
         {who.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {who.map((w) => (
-              <Badge key={w} variant="secondary" className="text-[0.8rem]">
+              <Badge key={w} variant="secondary" className={CHIP}>
                 {w}
               </Badge>
             ))}
@@ -219,7 +227,7 @@ export function MemoryPanel({
               <Badge
                 key={f}
                 variant="ghost"
-                className="border-border text-[0.8rem] text-muted-foreground"
+                className={`${CHIP} border-border text-muted-foreground`}
               >
                 {f}
               </Badge>
@@ -369,7 +377,7 @@ function ChipCard({
       {items.length > 0 ? (
         <div className="mt-4 flex flex-wrap gap-2">
           {items.map((item) => (
-            <Badge key={item} variant="outline" className="text-[0.8rem]">
+            <Badge key={item} variant="outline" className={CHIP}>
               {item}
             </Badge>
           ))}
