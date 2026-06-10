@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AvatarUpload } from "@/components/settings/avatar-upload";
 import { SettingsClient } from "@/components/settings/settings-client";
-import type { UserProfile } from "@/lib/types";
+import type { UserMemory, UserProfile } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -14,11 +14,13 @@ export default async function SettingsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/settings");
 
-  const { data: profileRow } = await supabase
-    .from("user_profiles")
-    .select("*")
-    .maybeSingle();
+  const [{ data: profileRow }, { data: memoryRow }] = await Promise.all([
+    supabase.from("user_profiles").select("*").maybeSingle(),
+    supabase.from("user_memory").select("memory_blob").maybeSingle(),
+  ]);
   const profile = (profileRow as UserProfile | null) ?? null;
+  const memory =
+    ((memoryRow?.memory_blob as UserMemory | undefined) ?? null) || null;
 
   const email = user.email ?? "";
   const displayName = profile?.display_name?.trim() || email.split("@")[0];
@@ -58,7 +60,12 @@ export default async function SettingsPage() {
           </div>
         </div>
 
-        <SettingsClient email={email} joined={joined} profile={profile} />
+        <SettingsClient
+          email={email}
+          joined={joined}
+          profile={profile}
+          memory={memory}
+        />
       </div>
     </main>
   );

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
+  Brain,
   Check,
   Loader2,
   LogOut,
@@ -17,13 +18,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import type { UserProfile } from "@/lib/types";
+import type { UserMemory, UserProfile } from "@/lib/types";
 import { PasskeysPanel } from "@/components/settings/passkeys-panel";
+import { MemoryPanel } from "@/components/settings/memory-panel";
 
-type Tab = "profile" | "privacy" | "account";
+type Tab = "profile" | "memory" | "privacy" | "account";
 
 const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: "profile", label: "Profile", icon: User },
+  { id: "memory", label: "Memory", icon: Brain },
   { id: "privacy", label: "Privacy & Data", icon: ShieldCheck },
   { id: "account", label: "Account", icon: Mail },
 ];
@@ -32,10 +35,12 @@ export function SettingsClient({
   email,
   joined,
   profile,
+  memory,
 }: {
   email: string;
   joined: string | null;
   profile: UserProfile | null;
+  memory: UserMemory | null;
 }) {
   const [tab, setTab] = useState<Tab>("profile");
 
@@ -72,6 +77,13 @@ export function SettingsClient({
 
       <div className="mt-6">
         {tab === "profile" && <ProfileForm email={email} profile={profile} />}
+        {tab === "memory" && (
+          <MemoryPanel
+            memory={memory}
+            profile={profile}
+            onEditProfile={() => setTab("profile")}
+          />
+        )}
         {tab === "privacy" && <PrivacyPanel />}
         {tab === "account" && <AccountPanel email={email} joined={joined} />}
       </div>
