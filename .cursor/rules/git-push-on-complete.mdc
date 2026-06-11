@@ -1,0 +1,14 @@
+---
+description: Commit and push to main after completing changes
+alwaysApply: true
+---
+
+# Git workflow
+
+When you finish a change in this repo:
+
+1. Commit only the files related to the work you just completed (do not include unrelated local changes).
+2. Push to `main` on `origin` without being asked again.
+3. Use a concise commit message focused on why the change was made.
+
+Do not skip the push step after completing work unless the user explicitly says not to push.
