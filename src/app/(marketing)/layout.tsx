@@ -27,10 +27,10 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    // `dark` flips the semantic tokens for every marketing surface (newsroom,
-    // legal pages) so the shared shell stays coherent with the black landing.
+    // Light-first cinematic canvas: same Synergeus structure, inverted surface
+    // language. Semantic tokens stay light for every marketing surface.
     <div
-      className={`${interTight.variable} ${instrumentSerif.variable} dark font-heading relative flex min-h-svh flex-1 flex-col bg-[#000]`}
+      className={`${interTight.variable} ${instrumentSerif.variable} font-heading relative flex min-h-svh flex-1 flex-col bg-[#fafafa]`}
     >
       <MarketingThemeLock />
       <SiteHeader />

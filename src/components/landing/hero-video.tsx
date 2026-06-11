@@ -2,14 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-/* PLACEHOLDER ASSET — swap for the final Atlas ambient study/campus loop
-   before launch (same attributes and object-fit so the layout doesn't shift).
-   An HLS (.m3u8) source can be wired through Safari's native support; the
-   current placeholder is a plain MP4 so no hls.js dependency is needed. */
-const VIDEO_SRC =
-  "https://videos.pexels.com/video-files/853870/853870-hd_1920_1080_25fps.mp4";
-const POSTER_SRC =
-  "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=70";
+const VIDEO_SRC = "/landing/hero.mp4";
+const POSTER_SRC = "/landing/hero-poster.jpg";
 
 /**
  * Ambient cinematic background loop for the hero. Muted/inline flags are also

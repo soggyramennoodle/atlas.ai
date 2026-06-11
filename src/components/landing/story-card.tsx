@@ -8,12 +8,8 @@ import {
   useTransform,
   useReducedMotion,
 } from "framer-motion";
-import { Heart, MessageCircle } from "lucide-react";
 
-/* PLACEHOLDER ASSET — replace with a student-studying / lecture-hall image
-   cropped the same way (object-position "center 20%"). */
-const STORY_IMAGE =
-  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=720&q=80";
+const STORY_IMAGE = "/landing/story-student.jpg";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -196,14 +192,15 @@ export function StoryCard() {
           )}
         </motion.h3>
 
-        {/* Bottom action row */}
+        {/* Bottom row: a live-capture chip + note count, in Atlas's voice. */}
         <div
           className="absolute z-10 flex items-center"
           style={{ left: 24, right: 24, bottom: 24, gap: 10 }}
         >
           <span
-            className="font-heading"
+            className="font-heading flex items-center"
             style={{
+              gap: 8,
               background: "rgba(255,255,255,0.96)",
               color: "#0a0a0a",
               fontSize: 13,
@@ -214,26 +211,30 @@ export function StoryCard() {
                 "0 6px 18px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.9)",
             }}
           >
-            Top Rated
-          </span>
-          {[Heart, MessageCircle].map((Icon, i) => (
-            <span
-              key={i}
-              className="grid place-items-center"
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 14,
-                background: "rgba(20,20,20,0.45)",
-                backdropFilter: "blur(10px)",
-                WebkitBackdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.14)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
-              }}
-            >
-              <Icon size={18} color="#fff" strokeWidth={1.8} />
+            <span className="relative flex size-2 items-center justify-center">
+              <span className="absolute inline-flex size-2 animate-ping rounded-full bg-[#e5484d] opacity-60" />
+              <span className="relative inline-flex size-2 rounded-full bg-[#e5484d]" />
             </span>
-          ))}
+            Atlas is listening
+          </span>
+          <span
+            className="font-heading grid place-items-center"
+            style={{
+              height: 38,
+              padding: "0 14px",
+              borderRadius: 14,
+              background: "rgba(20,20,20,0.45)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.14)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 500,
+            }}
+          >
+            Notes in 12 sections
+          </span>
         </div>
       </motion.div>
     </div>

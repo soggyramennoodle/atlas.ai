@@ -25,7 +25,7 @@ export function SubjectsMarquee() {
   return (
     <section
       aria-label="Subjects Atlas works with"
-      className="relative overflow-hidden border-y border-white/10 bg-[#000] py-6"
+      className="relative overflow-hidden border-y border-black/10 bg-white py-6"
     >
       <div className="marquee-mask flex w-max animate-marquee will-change-transform">
         {[0, 1].map((track) => (
@@ -36,10 +36,10 @@ export function SubjectsMarquee() {
           >
             {SUBJECTS.map((s) => (
               <li key={`${track}-${s}`} className="flex items-center">
-                <span className="font-heading px-7 text-xl font-normal tracking-tight text-white/55 sm:text-2xl">
+                <span className="font-heading px-7 text-xl font-normal tracking-tight text-black/45 sm:text-2xl">
                   {s}
                 </span>
-                <span aria-hidden className="size-1 rounded-full bg-white/20" />
+                <span aria-hidden className="size-1 rounded-full bg-black/20" />
               </li>
             ))}
           </ul>

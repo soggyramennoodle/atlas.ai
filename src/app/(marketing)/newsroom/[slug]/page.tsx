@@ -77,39 +77,42 @@ export default async function ArticlePage({
   const bodyHtml = sanitizeNoteHtml(renderMarkdown(article.body));
 
   return (
-    <div className="px-4 pb-24 pt-28 sm:pt-32">
+    <div className="font-heading px-4 pb-24 pt-28 sm:pt-32">
       <article className="mx-auto w-full max-w-3xl">
         <Link
           href="/newsroom"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground"
+          className="inline-flex items-center gap-1.5 text-[13px] text-black/60 transition-colors hover:text-[#0d0d0d]"
         >
           <ArrowLeft className="size-4" />
           Newsroom
         </Link>
 
         {/* Header */}
-        <header className="mt-6 border-b pb-8">
+        <header className="mt-6 border-b border-black/[0.08] pb-8">
           <div className="flex flex-wrap items-center gap-2">
             <CategoryChip category={article.category} />
             {article.severity && <SeverityChip severity={article.severity} />}
             {article.version && (
-              <span className="rounded-[3px] border border-border bg-muted/40 px-2.5 py-0.5 font-mono text-[0.65rem] text-muted-foreground">
+              <span className="rounded-full border border-black/10 bg-black/[0.04] px-3 py-1 text-[11px] font-medium tracking-[1.5px] text-black/60">
                 {article.version}
               </span>
             )}
           </div>
 
-          <h1 className="mt-5 text-4xl font-extrabold leading-[0.95] text-balance sm:text-5xl">
+          <h1
+            className="font-heading mt-5 text-balance font-normal leading-[1.02] tracking-[-1.02px] text-[#0d0d0d]"
+            style={{ fontSize: "clamp(2.25rem, 5vw, 56px)" }}
+          >
             {article.title}
           </h1>
 
           {article.excerpt && (
-            <p className="mt-4 text-lg leading-relaxed text-muted-foreground text-pretty">
+            <p className="mt-4 text-pretty text-[17px] leading-[1.6] text-black/60">
               {article.excerpt}
             </p>
           )}
 
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <div className="mt-6 flex flex-wrap items-center gap-3 text-[13px] text-black/45">
             <time dateTime={article.published_at ?? undefined}>
               {formatArticleDate(article.published_at)}
             </time>
@@ -118,7 +121,7 @@ export default async function ArticlePage({
                 <span aria-hidden>·</span>
                 <span className="flex flex-wrap gap-2">
                   {article.tags.map((tag) => (
-                    <span key={tag} className="text-muted-foreground/80">
+                    <span key={tag} className="text-black/40">
                       #{tag}
                     </span>
                   ))}
@@ -135,10 +138,10 @@ export default async function ArticlePage({
         />
 
         {/* Back link */}
-        <div className="mt-12 border-t pt-8">
+        <div className="mt-12 border-t border-black/[0.08] pt-8">
           <Link
             href="/newsroom"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition hover:opacity-80"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#0d0d0d] transition-colors hover:text-black/70"
           >
             <ArrowLeft className="size-4" />
             Back to Newsroom
@@ -149,8 +152,13 @@ export default async function ArticlePage({
       {/* Related */}
       {related.length > 0 && (
         <section className="mx-auto mt-16 w-full max-w-5xl">
-          <h2 className="text-lg font-semibold tracking-tight">
-            More from the Newsroom
+          <h2 className="text-balance text-[#0d0d0d]">
+            <span className="font-heading text-lg font-medium tracking-tight">
+              More from the{" "}
+            </span>
+            <span className="font-instrument text-lg italic font-normal tracking-tight">
+              Newsroom
+            </span>
           </h2>
           <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((a) => (

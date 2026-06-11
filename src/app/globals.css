@@ -1176,10 +1176,10 @@
   transform-origin: left center;
 }
 
-/* Tighter, faster marquee used inside the hero's "Loved by students at"
-   block (the spec's 14s loop), reusing the duplicated-track mechanism. */
+/* Marquee used inside the hero's "Loved by students at" block, reusing the
+   duplicated-track mechanism at an unhurried pace. */
 .animate-marquee-hero {
-  animation: atlas-marquee 14s linear infinite;
+  animation: atlas-marquee 26s linear infinite;
 }
 
 /* University logos: muted at rest, but still detailed enough that crests do

@@ -56,13 +56,24 @@ const STEPS = [
   },
 ];
 
+/** Pill eyebrow in the cinematic light language. */
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="font-heading inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.04] px-3.5 py-1.5 text-[11px] font-medium tracking-[1.5px] text-black/60">
+      {children}
+    </span>
+  );
+}
+
+const H2_SIZE = { fontSize: "clamp(2rem, 4.5vw, 48px)" };
+
 export default function SignInHelpPage() {
   return (
-    <main className="relative overflow-hidden pb-28">
+    <main className="font-heading relative overflow-hidden pb-28">
       <div className="relative mx-auto max-w-[1080px] px-4 pt-28 sm:px-6 lg:pt-32">
         <Link
           href="/login"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:-translate-x-0.5 hover:text-foreground"
+          className="inline-flex items-center gap-1.5 text-[13px] text-black/60 transition-colors hover:text-[#0d0d0d]"
         >
           <ArrowLeft className="size-4" />
           Back to sign in
@@ -71,13 +82,22 @@ export default function SignInHelpPage() {
         {/* Hero — left-weighted asymmetric split, copy held to the left. */}
         <section className="mt-12 grid grid-cols-1 items-center gap-12 lg:mt-16 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-7">
-            <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-primary">
-              Sign-in &amp; deliverability
-            </p>
-            <h1 className="mt-5 max-w-[15ch] text-balance text-5xl font-bold leading-[0.98] tracking-[-0.03em] sm:text-6xl">
-              Why your school email can block the link.
+            <Eyebrow>SIGN-IN &amp; DELIVERABILITY</Eyebrow>
+            <h1 className="mt-5 max-w-[16ch] text-balance text-[#0d0d0d]">
+              <span
+                className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
+                style={{ fontSize: "clamp(2.5rem, 6vw, 72px)" }}
+              >
+                Why your school email can{" "}
+              </span>
+              <span
+                className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
+                style={{ fontSize: "clamp(2.5rem, 6vw, 72px)" }}
+              >
+                block the link.
+              </span>
             </h1>
-            <p className="mt-6 max-w-[52ch] text-pretty text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-[52ch] text-pretty text-[17px] leading-[1.6] text-black/60">
               Some university inboxes filter out sign-in links before they ever
               reach you. It isn’t your fault, and it isn’t Atlas. Here’s what’s
               happening, and the fastest way around it.
@@ -95,13 +115,22 @@ export default function SignInHelpPage() {
         {/* Why this happens */}
         <section>
           <div className="max-w-[680px]">
-            <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
-              Why this happens
-            </p>
-            <h2 className="mt-4 text-balance text-4xl font-extrabold sm:text-[2.75rem]">
-              Your inbox is trying to protect you.
+            <Eyebrow>WHY THIS HAPPENS</Eyebrow>
+            <h2 className="mt-4 text-balance text-[#0d0d0d]">
+              <span
+                className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
+                style={H2_SIZE}
+              >
+                Your inbox is trying to{" "}
+              </span>
+              <span
+                className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
+                style={H2_SIZE}
+              >
+                protect you.
+              </span>
             </h2>
-            <p className="mt-5 text-pretty text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-5 text-pretty text-[15px] leading-[1.7] text-black/60">
               School mail systems are tuned to be cautious. The same machinery
               that stops phishing can also stop a one-time sign-in link.
             </p>
@@ -110,13 +139,15 @@ export default function SignInHelpPage() {
             {WHY.map((w) => (
               <div
                 key={w.label}
-                className="hover-glow icon-animate rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-secondary/45"
+                className="rounded-[20px] border border-black/[0.08] bg-white p-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)] transition-colors hover:border-black/15"
               >
-                <span className="grid size-9 place-items-center rounded-[4px] border border-border bg-background text-foreground">
-                  <w.icon className="size-4.5" />
+                <span className="grid size-9 place-items-center rounded-[12px] border border-black/10 bg-white text-[#0d0d0d]">
+                  <w.icon className="size-4.5" strokeWidth={1.8} />
                 </span>
-                <h3 className="mt-4 font-semibold tracking-tight">{w.label}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
+                <h3 className="mt-4 font-medium tracking-tight text-[#0d0d0d]">
+                  {w.label}
+                </h3>
+                <p className="mt-2 text-pretty text-[13px] leading-[1.6] text-black/60">
                   {w.body}
                 </p>
               </div>
@@ -129,33 +160,44 @@ export default function SignInHelpPage() {
         {/* What to do */}
         <section>
           <div className="max-w-[680px]">
-            <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">
-              What to do
-            </p>
-            <h2 className="mt-4 text-balance text-4xl font-extrabold sm:text-[2.75rem]">
-              Four ways in, fastest first.
+            <Eyebrow>WHAT TO DO</Eyebrow>
+            <h2 className="mt-4 text-balance text-[#0d0d0d]">
+              <span
+                className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
+                style={H2_SIZE}
+              >
+                Four ways in,{" "}
+              </span>
+              <span
+                className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
+                style={H2_SIZE}
+              >
+                fastest first.
+              </span>
             </h2>
           </div>
           <ol className="mt-8 space-y-3">
             {STEPS.map((s, i) => (
               <li
                 key={s.label}
-                className="hover-glow icon-animate flex items-start gap-4 rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-secondary/45"
+                className="flex items-start gap-4 rounded-[20px] border border-black/[0.08] bg-white p-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)] transition-colors hover:border-black/15"
               >
-                <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-[3px] bg-primary/15 font-mono text-sm font-semibold text-primary">
+                <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-[12px] border border-black/10 bg-white text-sm font-medium text-[#0d0d0d]">
                   {i + 1}
                 </span>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-semibold tracking-tight">{s.label}</h3>
+                    <h3 className="font-medium tracking-tight text-[#0d0d0d]">
+                      {s.label}
+                    </h3>
                     {s.recommended && (
-                      <span className="inline-flex items-center gap-1 rounded-[3px] border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-primary">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-black/[0.04] px-2 py-0.5 text-[10px] uppercase tracking-[1.5px] text-black/60">
                         <Check className="size-3" />
                         Recommended
                       </span>
                     )}
                   </div>
-                  <p className="mt-1.5 text-pretty text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-1.5 text-pretty text-[13px] leading-[1.6] text-black/60">
                     {s.body}
                   </p>
                 </div>
@@ -167,28 +209,39 @@ export default function SignInHelpPage() {
         <Divider />
 
         {/* Closing — still stuck */}
-        <section className="relative overflow-hidden rounded-[4px] border bg-card p-8 shadow-[0_16px_44px_rgba(15,23,42,0.08)] sm:p-12">
-          <span className="grid size-10 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
-            <Mail className="size-5" />
+        <section className="relative overflow-hidden rounded-[24px] border border-black/[0.08] bg-white p-8 shadow-[0_8px_30px_rgba(0,0,0,0.05)] sm:p-12">
+          <span className="grid size-10 place-items-center rounded-[12px] border border-black/10 bg-white text-[#0d0d0d]">
+            <Mail className="size-5" strokeWidth={1.8} />
           </span>
-          <h2 className="mt-4 text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
-            Still locked out?
+          <h2 className="mt-4 text-balance text-[#0d0d0d]">
+            <span
+              className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
+              style={{ fontSize: "clamp(1.6rem, 3vw, 32px)" }}
+            >
+              Still{" "}
+            </span>
+            <span
+              className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
+              style={{ fontSize: "clamp(1.6rem, 3vw, 32px)" }}
+            >
+              locked out?
+            </span>
           </h2>
-          <p className="mt-4 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
-            If none of these get you in, email us and we’ll sort it out with you.
-            Tell us the address you tried and your school, it helps us spot what
-            your filter is doing.
+          <p className="mt-4 max-w-2xl text-pretty text-[15px] leading-[1.7] text-black/60">
+            If none of these get you in, email us and we’ll sort it out with
+            you. Tell us the address you tried and your school, it helps us spot
+            what your filter is doing.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-[13px]">
             <a
               href="mailto:hello@atlasai.ca"
-              className="font-medium text-primary hover:underline"
+              className="font-medium text-[#0d0d0d] underline hover:text-black/70"
             >
               hello@atlasai.ca
             </a>
             <Link
               href="/login"
-              className="inline-flex items-center gap-1 text-muted-foreground transition hover:text-foreground"
+              className="inline-flex items-center gap-1 text-black/60 transition-colors hover:text-[#0d0d0d]"
             >
               Back to sign in
               <ArrowRight className="size-3.5" />
@@ -205,28 +258,29 @@ export default function SignInHelpPage() {
 function InboxPreview() {
   return (
     <div className="relative mx-auto w-full max-w-[420px] lg:mx-0">
-      <div className="overflow-hidden rounded-[6px] border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
-        <div className="flex items-center gap-2 border-b border-border px-5 py-3.5">
-          <Inbox className="size-4 text-muted-foreground" />
-          <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="rounded-[20px] border border-black/[0.08] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center gap-2 border-b border-black/[0.06] px-5 py-3.5">
+          <Inbox className="size-4 text-black/45" />
+          <span className="text-[11px] uppercase tracking-[1.5px] text-black/45">
             Inbox
           </span>
         </div>
 
-        {/* Delivered — personal address. The AI edge-glow marks the live link. */}
-        <div className="ai-ring relative m-3 rounded-[6px] bg-card p-4">
+        {/* Delivered — personal address. The AI edge-glow marks the live link
+            (Atlas's multicolor signature; the one exception to monochrome). */}
+        <div className="ai-ring relative m-3 rounded-[12px] bg-white p-4">
           <div className="relative flex items-start gap-3">
-            <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-[4px] bg-primary/15 text-primary">
-              <Sparkles className="size-4" />
+            <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-[12px] border border-black/10 bg-white text-[#0d0d0d]">
+              <Sparkles className="size-4" strokeWidth={1.8} />
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold tracking-tight">
+              <p className="truncate text-sm font-medium tracking-tight text-[#0d0d0d]">
                 Your Atlas sign-in link
               </p>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              <p className="mt-0.5 truncate text-xs text-black/45">
                 to you@gmail.com
               </p>
-              <span className="mt-2 inline-flex items-center gap-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-primary">
+              <span className="mt-2 inline-flex items-center gap-1 text-[10.5px] uppercase tracking-[1.5px] text-[#0d0d0d]">
                 <Check className="size-3" />
                 Delivered
               </span>
@@ -235,19 +289,19 @@ function InboxPreview() {
         </div>
 
         {/* Held — school address. */}
-        <div className="mx-3 mb-3 rounded-[6px] border border-dashed border-border bg-secondary/40 p-4">
+        <div className="mx-3 mb-3 rounded-[12px] border border-dashed border-black/15 bg-[#fafafa] p-4">
           <div className="flex items-start gap-3">
-            <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-[4px] bg-muted text-muted-foreground">
-              <ShieldAlert className="size-4" />
+            <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-[12px] border border-black/10 bg-white text-black/45">
+              <ShieldAlert className="size-4" strokeWidth={1.8} />
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold tracking-tight text-muted-foreground">
+              <p className="truncate text-sm font-medium tracking-tight text-black/60">
                 Your Atlas sign-in link
               </p>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              <p className="mt-0.5 truncate text-xs text-black/45">
                 to you@university.edu
               </p>
-              <span className="mt-2 inline-flex items-center gap-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
+              <span className="mt-2 inline-flex items-center gap-1 text-[10.5px] uppercase tracking-[1.5px] text-black/45">
                 <Clock className="size-3" />
                 Held by security filter
               </span>
@@ -260,11 +314,5 @@ function InboxPreview() {
 }
 
 function Divider() {
-  return (
-    <div className="my-16 flex items-center gap-4" aria-hidden>
-      <span className="h-px flex-1 bg-gradient-to-r from-transparent to-border" />
-      <span className="size-1.5 rounded-full bg-primary/50" />
-      <span className="h-px flex-1 bg-gradient-to-l from-transparent to-border" />
-    </div>
-  );
+  return <div className="my-16 h-px bg-black/[0.08]" aria-hidden />;
 }

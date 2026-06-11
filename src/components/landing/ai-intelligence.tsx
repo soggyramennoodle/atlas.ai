@@ -12,13 +12,9 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { AtlasMark } from "@/components/logo";
 
-/* PLACEHOLDER ASSETS — swap for final Atlas media before launch. */
-const BACK_3_1 =
-  "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=75"; // dark moody
-const BACK_3_2 =
-  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=75"; // green-leaning
-const BACK_3_3 =
-  "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=900&q=75"; // textured
+const BACK_3_1 = "/landing/atlas-ai-1.jpg";
+const BACK_3_2 = "/landing/atlas-ai-2.jpg";
+const BACK_3_3 = "/landing/atlas-ai-3.jpg";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -86,7 +82,7 @@ export function AiIntelligence({ ctaHref }: { ctaHref: string }) {
     <section
       id="ai"
       className="overflow-hidden scroll-mt-20"
-      style={{ background: "#000", padding: "80px 24px" }}
+      style={{ background: "#fafafa", padding: "80px 24px" }}
     >
       {/* Header */}
       <div ref={ref} style={{ textAlign: "center", marginBottom: 64 }}>
@@ -96,17 +92,17 @@ export function AiIntelligence({ ctaHref }: { ctaHref: string }) {
             fontSize: 12,
             fontWeight: 500,
             letterSpacing: 2,
-            color: "rgba(255,255,255,0.50)",
+            color: "rgba(0,0,0,0.45)",
             marginBottom: 16,
           }}
         >
-          AI INTELLIGENCE
+          ATLAS AI
         </p>
         <motion.h2
           initial={{ opacity: 0, filter: "blur(12px)", y: 30 }}
           animate={isInView ? { opacity: 1, filter: "blur(0px)", y: 0 } : undefined}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          style={{ margin: 0, color: "#fff" }}
+          style={{ margin: 0, color: "#0d0d0d" }}
         >
           <span
             className="font-heading"
@@ -137,7 +133,7 @@ export function AiIntelligence({ ctaHref }: { ctaHref: string }) {
           style={{
             fontSize: 16,
             fontWeight: 400,
-            color: "rgba(255,255,255,0.60)",
+            color: "rgba(0,0,0,0.55)",
             lineHeight: 1.6,
             textAlign: "center",
             marginTop: 16,
@@ -307,7 +303,7 @@ export function AiIntelligence({ ctaHref }: { ctaHref: string }) {
           </div>
 
           <CardCaption
-            title="Natural Language Queries"
+            title="Ask Atlas anything."
             body="Ask questions about your lectures and notes in plain English and get instant, accurate answers."
           />
         </motion.div>
@@ -486,7 +482,7 @@ export function AiIntelligence({ ctaHref }: { ctaHref: string }) {
 
           <CardCaption
             title="Predictive Analysis"
-            body="AI analyzes your study patterns to forecast exam readiness and exactly what to review next."
+            body="Atlas analyzes your study patterns and understanding of material in order to determine what you're good at, and what you can improve on."
           />
         </motion.div>
 
@@ -518,7 +514,7 @@ export function AiIntelligence({ ctaHref }: { ctaHref: string }) {
 
           <CardCaption
             title="Smart Categorization"
-            body="Automatically organize your notes by subject and topic with machine learning that improves over time."
+            body="Automatically organize your notes by subject with Atlas, which learns with you, over time."
           />
         </motion.div>
       </div>

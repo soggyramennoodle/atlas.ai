@@ -18,7 +18,7 @@ export function Hero({
   announcement: SiteAnnouncement | null;
 }) {
   return (
-    <section className="relative overflow-hidden bg-[#000]" style={{ minHeight: "100svh" }}>
+    <section className="relative overflow-hidden bg-[#fafafa]" style={{ minHeight: "100svh" }}>
       <HeroVideo />
 
       {/* Dark overlay */}
@@ -27,7 +27,7 @@ export function Hero({
         className="absolute inset-0 z-[1]"
         style={{
           background:
-            "linear-gradient(to bottom, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.65) 100%)",
+            "linear-gradient(to bottom, rgba(250,250,250,0.92) 0%, rgba(250,250,250,0.55) 50%, rgba(250,250,250,0.94) 100%)",
         }}
       />
 
@@ -38,9 +38,9 @@ export function Hero({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: EASE }}
-            className="font-heading mb-6 inline-flex max-w-lg items-center gap-2 rounded-full border border-white/15 bg-[rgba(28,28,28,0.6)] px-4 py-2 text-[13px] font-medium leading-snug text-white/90 backdrop-blur-[12px]"
+            className="font-heading mb-6 inline-flex max-w-lg items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-2 text-[13px] font-medium leading-snug text-black/80 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur-[12px]"
           >
-            <Megaphone className="size-4 shrink-0 text-white/70" />
+            <Megaphone className="size-4 shrink-0 text-black/55" />
             <span className="text-pretty">{announcement.message}</span>
           </motion.div>
         ) : null}
@@ -49,7 +49,7 @@ export function Hero({
           initial={{ opacity: 0, y: -40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: EASE }}
-          className="text-center text-white"
+          className="text-center text-[#0d0d0d]"
           style={{
             margin: 0,
             fontSize: "clamp(2.9rem, 8.2vw, 102px)",
@@ -75,8 +75,8 @@ export function Hero({
             className="font-heading flex items-center"
             style={{
               marginTop: 32,
-              background: "#fff",
-              color: "#000",
+              background: "#0d0d0d",
+              color: "#fff",
               fontSize: 15,
               fontWeight: 500,
               paddingLeft: 24,
@@ -94,10 +94,10 @@ export function Hero({
                 width: 24,
                 height: 24,
                 borderRadius: 9999,
-                background: "#000",
+                background: "#fff",
               }}
             >
-              <ArrowUpRight size={14} color="#fff" strokeWidth={2.5} />
+              <ArrowUpRight size={14} color="#000" strokeWidth={2.5} />
             </span>
           </Link>
         </motion.div>
@@ -112,7 +112,7 @@ export function Hero({
           style={{
             fontSize: 21,
             lineHeight: 1.2,
-            color: "rgba(255,255,255,0.6)",
+            color: "rgba(13,13,13,0.55)",
             marginBottom: 18,
           }}
         >
@@ -140,7 +140,7 @@ export function Hero({
                     className="w-auto shrink-0 object-contain"
                     style={{
                       height: 30,
-                      filter: "brightness(0) invert(1) opacity(0.55)",
+                      filter: "brightness(0) opacity(0.5)",
                     }}
                   />
                 ))}
@@ -155,7 +155,7 @@ export function Hero({
         <p
           className="font-heading"
           style={{
-            color: "#fff",
+            color: "#0d0d0d",
             fontSize: 21,
             lineHeight: 1.4,
             marginBottom: 12,
@@ -167,7 +167,7 @@ export function Hero({
         <Link
           href="/#insights"
           className="font-heading underline"
-          style={{ color: "#fff", fontSize: 21 }}
+          style={{ color: "#0d0d0d", fontSize: 21 }}
         >
           Learn more
         </Link>

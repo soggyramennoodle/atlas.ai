@@ -5,14 +5,9 @@ import { motion, useInView } from "framer-motion";
 import { ArrowUpRight, FileText } from "lucide-react";
 import { AtlasMark } from "@/components/logo";
 
-/* PLACEHOLDER ASSETS — swap for final Atlas media before launch (same crops
-   and object-fit so the layout doesn't shift). */
-const BLOCK_1 =
-  "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1400&q=75";
-const BLOCK_2 =
-  "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=1000&q=75";
-const PERSON_2 =
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=75";
+const BLOCK_1 = "/landing/insights-1.jpg";
+const BLOCK_2 = "/landing/insights-2.jpg";
+const PERSON_2 = "/landing/lecture-hall.jpg";
 
 /** rAF count-up with cubic ease-out, formatted as a plain integer. */
 function useCountUp(active: boolean, from: number, to: number, ms = 1200) {
@@ -67,7 +62,7 @@ export function Insights() {
     <section
       id="insights"
       className="overflow-hidden scroll-mt-20"
-      style={{ background: "#000", padding: "80px 24px" }}
+      style={{ background: "#fafafa", padding: "80px 24px" }}
     >
       {/* Header */}
       <div ref={ref} style={{ textAlign: "center", marginBottom: 64 }}>
@@ -77,7 +72,7 @@ export function Insights() {
             fontSize: 12,
             fontWeight: 500,
             letterSpacing: 2,
-            color: "rgba(255,255,255,0.50)",
+            color: "rgba(0,0,0,0.45)",
             marginBottom: 16,
           }}
         >
@@ -87,7 +82,7 @@ export function Insights() {
           initial={{ opacity: 0, filter: "blur(12px)", y: 30 }}
           animate={isInView ? { opacity: 1, filter: "blur(0px)", y: 0 } : undefined}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          style={{ margin: 0, color: "#fff" }}
+          style={{ margin: 0, color: "#0d0d0d" }}
         >
           <span
             className="font-heading block"
@@ -120,7 +115,7 @@ export function Insights() {
           style={{
             fontSize: 16,
             fontWeight: 400,
-            color: "rgba(255,255,255,0.60)",
+            color: "rgba(0,0,0,0.55)",
             marginTop: 16,
           }}
         >
@@ -297,9 +292,10 @@ export function Insights() {
                 margin: 0,
               }}
             >
-              AI keeps your lectures, notes, and concepts effortlessly organized
-              — giving you a clearer view of what you&apos;ve learned, where
-              you&apos;re strong, and exactly what to review next.
+              Atlas keeps your lectures, notes, and concepts effortlessly
+              organized — giving you a clearer view of what you&apos;ve
+              learned, where you&apos;re strong, and exactly what to review
+              next.
             </p>
           </div>
         </motion.div>
@@ -492,8 +488,8 @@ export function Insights() {
                 margin: 0,
               }}
             >
-              Stay on top of every class with real-time notes that capture what
-              matters — automatically, the moment the lecture ends.
+              Stay on top of all your courses with Atlas with notes that
+              capture what matters, automatically.
             </p>
           </div>
         </motion.div>

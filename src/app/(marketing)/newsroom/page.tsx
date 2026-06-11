@@ -41,15 +41,26 @@ export default async function NewsroomPage() {
     <div className="px-4 pb-24 pt-28 sm:pt-32">
       <div className="mx-auto w-full max-w-5xl">
         {/* Header */}
-        <header className="max-w-2xl">
-          <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
+        <header className="font-heading max-w-2xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.04] px-3.5 py-1.5 text-[11px] font-medium tracking-[1.5px] text-black/60">
             <Newspaper className="size-3.5" />
-            Newsroom
+            NEWSROOM
           </span>
-          <h1 className="mt-5 text-5xl font-extrabold text-balance sm:text-6xl">
-            What&apos;s new at Atlas
+          <h1 className="mt-5 text-balance text-[#0d0d0d]">
+            <span
+              className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
+              style={{ fontSize: "clamp(2.5rem, 6vw, 72px)" }}
+            >
+              What&apos;s new at{" "}
+            </span>
+            <span
+              className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
+              style={{ fontSize: "clamp(2.5rem, 6vw, 72px)" }}
+            >
+              Atlas
+            </span>
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground text-pretty">
+          <p className="mt-4 text-pretty text-[17px] leading-[1.6] text-black/60">
             Product updates, release notes, announcements and service notices,
             straight from the team building Atlas.
           </p>
@@ -69,14 +80,19 @@ export default async function NewsroomPage() {
 
 function EmptyNewsroom() {
   return (
-    <div className="relative overflow-hidden rounded-[4px] border bg-card px-6 py-20 text-center shadow-[0_12px_34px_rgba(15,23,42,0.07)]">
-      <div className="relative mx-auto grid size-14 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
-        <Newspaper className="size-6" />
+    <div className="font-heading relative overflow-hidden rounded-[24px] border border-black/[0.08] bg-white px-6 py-20 text-center shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
+      <div className="relative mx-auto grid size-14 place-items-center rounded-[12px] border border-black/10 bg-white text-[#0d0d0d]">
+        <Newspaper className="size-6" strokeWidth={1.8} />
       </div>
-      <h2 className="relative mt-5 text-2xl font-bold tracking-tight">
-        No stories yet
+      <h2 className="relative mt-5 text-balance text-[#0d0d0d]">
+        <span className="font-heading text-2xl font-normal tracking-[-0.5px]">
+          No stories{" "}
+        </span>
+        <span className="font-instrument text-2xl italic font-normal tracking-[-0.5px]">
+          yet
+        </span>
       </h2>
-      <p className="relative mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+      <p className="relative mx-auto mt-2 max-w-sm text-[13px] leading-[1.6] text-black/60">
         We&apos;re just getting started. Product news and release notes will
         appear here soon.
       </p>

@@ -41,11 +41,11 @@ function SoonSocial({
 }) {
   return (
     <li className="group relative w-fit">
-      <span className="inline-flex cursor-default items-center gap-2 text-white/55 transition group-hover:text-white">
+      <span className="inline-flex cursor-default items-center gap-2 text-black/55 transition group-hover:text-black">
         <Icon className="size-4" />
         {label}
       </span>
-      <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 scale-90 rounded-full border border-white/15 bg-[rgba(28,28,28,0.9)] px-2.5 py-1 text-[0.65rem] font-medium text-white opacity-0 shadow-lg backdrop-blur transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
+      <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 scale-90 rounded-full border border-black/10 bg-white px-2.5 py-1 text-[0.65rem] font-medium text-[#0d0d0d] opacity-0 shadow-lg backdrop-blur transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
         Soon
       </span>
     </li>
@@ -54,18 +54,18 @@ function SoonSocial({
 
 export function Footer() {
   return (
-    <footer className="font-heading border-t border-white/10 bg-[#000]">
+    <footer className="font-heading border-t border-black/10 bg-white">
       <div className="mx-auto w-full max-w-[1200px] px-4 py-14 sm:px-6">
         <div className="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-xs">
             <span className="inline-flex items-center gap-2">
-              <AtlasMark className="size-7 text-white" />
-              <span className="text-[1.35rem] font-semibold leading-none tracking-tight text-white">
+              <AtlasMark className="size-7 text-[#0d0d0d]" />
+              <span className="text-[1.35rem] font-semibold leading-none tracking-tight text-[#0d0d0d]">
                 Atlas
               </span>
-              <BetaBadge className="border-white/30 from-white/25 to-white/5 text-white" />
+              <BetaBadge className="border-black/20 from-black/10 to-black/[0.02] text-black/70" />
             </span>
-            <p className="mt-3 text-sm text-pretty text-white/55">
+            <p className="mt-3 text-sm text-pretty text-black/55">
               A smart study assistant that turns lecture recordings into
               thorough, structured notes.
             </p>
@@ -73,82 +73,82 @@ export function Footer() {
 
           <div className="grid grid-cols-2 gap-10 text-sm sm:grid-cols-4 sm:gap-12">
             <div className="space-y-3">
-              <p className="font-medium text-white">Product</p>
-              <ul className="space-y-2 text-white/55">
+              <p className="font-medium text-[#0d0d0d]">Product</p>
+              <ul className="space-y-2 text-black/55">
                 <li>
-                  <Link href="/#how" className="transition hover:text-white">
+                  <Link href="/#how" className="transition hover:text-black">
                     How it works
                   </Link>
                 </li>
                 <li>
-                  <Link href="/#insights" className="transition hover:text-white">
+                  <Link href="/#insights" className="transition hover:text-black">
                     Insights
                   </Link>
                 </li>
                 <li>
-                  <Link href="/newsroom" className="transition hover:text-white">
+                  <Link href="/newsroom" className="transition hover:text-black">
                     Newsroom
                   </Link>
                 </li>
                 <li>
-                  <Link href="/upload" className="transition hover:text-white">
+                  <Link href="/upload" className="transition hover:text-black">
                     Record a lecture
                   </Link>
                 </li>
               </ul>
             </div>
             <div className="space-y-3">
-              <p className="font-medium text-white">Account</p>
-              <ul className="space-y-2 text-white/55">
+              <p className="font-medium text-[#0d0d0d]">Account</p>
+              <ul className="space-y-2 text-black/55">
                 <li>
-                  <Link href="/login" className="transition hover:text-white">
+                  <Link href="/login" className="transition hover:text-black">
                     Log in
                   </Link>
                 </li>
                 <li>
-                  <Link href="/signup" className="transition hover:text-white">
+                  <Link href="/signup" className="transition hover:text-black">
                     Start for free
                   </Link>
                 </li>
                 <li>
-                  <Link href="/dashboard" className="transition hover:text-white">
+                  <Link href="/dashboard" className="transition hover:text-black">
                     Dashboard
                   </Link>
                 </li>
               </ul>
             </div>
             <div className="space-y-3">
-              <p className="font-medium text-white">Legal</p>
-              <ul className="space-y-2 text-white/55">
+              <p className="font-medium text-[#0d0d0d]">Legal</p>
+              <ul className="space-y-2 text-black/55">
                 <li>
-                  <Link href="/privacy" className="transition hover:text-white">
+                  <Link href="/privacy" className="transition hover:text-black">
                     Privacy
                   </Link>
                 </li>
                 <li>
                   <Link
                     href="/privacy-policy"
-                    className="transition hover:text-white"
+                    className="transition hover:text-black"
                   >
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terms" className="transition hover:text-white">
+                  <Link href="/terms" className="transition hover:text-black">
                     Terms of Use
                   </Link>
                 </li>
               </ul>
             </div>
             <div className="space-y-3">
-              <p className="font-medium text-white">Socials</p>
+              <p className="font-medium text-[#0d0d0d]">Socials</p>
               <ul className="space-y-2">
                 <SoonSocial icon={InstagramIcon} label="Instagram" />
                 <SoonSocial icon={DiscordIcon} label="Discord" />
                 <li>
                   <a
                     href="mailto:hello@atlasai.ca"
-                    className="inline-flex items-center gap-2 text-white/55 transition hover:text-white"
+                    className="inline-flex items-center gap-2 text-black/55 transition hover:text-black"
                   >
                     <Mail className="size-4" />
                     Contact us
@@ -159,7 +159,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/45 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-black/10 pt-6 text-xs text-black/45 sm:flex-row">
           <p>© {new Date().getFullYear()}. Atlas Co. Made with Love in Toronto 🇨🇦</p>
           <div className="flex items-center gap-2 font-mono">
             <span className="relative flex size-2">

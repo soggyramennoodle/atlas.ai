@@ -17,7 +17,7 @@ import { UserAvatar } from "@/components/user-avatar";
 const LINKS = [
   { href: "/#insights", label: "Insights" },
   { href: "/#how", label: "How it works" },
-  { href: "/#ai", label: "AI Intelligence" },
+  { href: "/#ai", label: "Atlas AI" },
   { href: "/newsroom", label: "Newsroom" },
 ];
 
@@ -38,24 +38,24 @@ export function Nav({
         {/* Left: mark + wordmark */}
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          className="flex shrink-0 items-center gap-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40"
         >
-          <AtlasMark className="size-7 text-white" />
-          <span className="font-heading text-[1.25rem] font-semibold leading-none tracking-tight text-white">
+          <AtlasMark className="size-7 text-[#0d0d0d]" />
+          <span className="font-heading text-[1.25rem] font-semibold leading-none tracking-tight text-[#0d0d0d]">
             Atlas
           </span>
         </Link>
 
         {/* Center: frosted glass pill (desktop) */}
         <nav
-          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 rounded-full border border-white/10 bg-[rgba(28,28,28,0.75)] p-[6px] px-2 backdrop-blur-[12px] lg:flex"
+          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 rounded-full border border-black/10 bg-white/70 p-[6px] px-2 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur-[12px] lg:flex"
           aria-label="Primary"
         >
           {LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="font-heading rounded-full px-4 py-2 text-[14px] font-normal text-white/80 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              className="font-heading rounded-full px-4 py-2 text-[14px] font-normal text-black/70 transition-colors hover:bg-black/[0.06] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40"
             >
               {l.label}
             </Link>
@@ -68,7 +68,7 @@ export function Nav({
             <div className="hidden items-center gap-3 md:flex">
               <Link
                 href="/dashboard"
-                className="font-heading inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-[14px] font-medium text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                className="font-heading inline-flex items-center gap-1.5 rounded-full bg-[#0d0d0d] px-5 py-2.5 text-[14px] font-medium text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 Dashboard
                 <ArrowUpRight className="size-3.5" strokeWidth={2.5} />
@@ -83,13 +83,13 @@ export function Nav({
             <div className="hidden items-center gap-2 md:flex">
               <Link
                 href="/login"
-                className="font-heading rounded-full px-4 py-2 text-[14px] text-white/80 transition-colors hover:text-white"
+                className="font-heading rounded-full px-4 py-2 text-[14px] text-black/70 transition-colors hover:text-black"
               >
                 Log in
               </Link>
               <Link
                 href="/signup"
-                className="font-heading rounded-full bg-white px-5 py-2.5 text-[14px] font-medium text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                className="font-heading rounded-full bg-[#0d0d0d] px-5 py-2.5 text-[14px] font-medium text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 Start for free
               </Link>
@@ -98,7 +98,7 @@ export function Nav({
 
           <button
             onClick={() => setOpen((v) => !v)}
-            className="grid size-10 place-items-center rounded-full border border-white/10 bg-[rgba(28,28,28,0.75)] text-white backdrop-blur-[12px] transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:hidden"
+            className="grid size-10 place-items-center rounded-full border border-black/10 bg-white/70 text-[#0d0d0d] backdrop-blur-[12px] transition-colors hover:bg-black/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40 md:hidden"
             aria-label="Toggle menu"
             aria-expanded={open}
           >
@@ -109,29 +109,29 @@ export function Nav({
 
       {/* Mobile panel — detached dark glass sheet. */}
       {open && (
-        <div className="mt-3 rounded-[20px] border border-white/10 bg-[rgba(20,20,20,0.92)] p-2 backdrop-blur-xl md:hidden">
+        <div className="mt-3 rounded-[20px] border border-black/10 bg-white/95 p-2 shadow-[0_16px_50px_rgba(0,0,0,0.10)] backdrop-blur-xl md:hidden">
           {LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className="font-heading block rounded-[12px] px-3 py-2.5 text-[15px] text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+              className="font-heading block rounded-[12px] px-3 py-2.5 text-[15px] text-black/70 transition-colors hover:bg-black/[0.05] hover:text-black"
             >
               {l.label}
             </Link>
           ))}
-          <div className="my-2 h-px bg-white/10" />
+          <div className="my-2 h-px bg-black/10" />
           {email ? (
             <>
               <Link
                 href="/dashboard"
                 onClick={() => setOpen(false)}
-                className="font-heading block rounded-[12px] px-3 py-2.5 text-[15px] font-medium text-white transition-colors hover:bg-white/10"
+                className="font-heading block rounded-[12px] px-3 py-2.5 text-[15px] font-medium text-[#0d0d0d] transition-colors hover:bg-black/[0.05]"
               >
                 Dashboard
               </Link>
               <form action="/auth/signout" method="post">
-                <button className="font-heading w-full rounded-[12px] px-3 py-2.5 text-left text-[15px] text-white/70 transition-colors hover:bg-white/10">
+                <button className="font-heading w-full rounded-[12px] px-3 py-2.5 text-left text-[15px] text-black/60 transition-colors hover:bg-black/[0.05]">
                   Sign out
                 </button>
               </form>
@@ -141,14 +141,14 @@ export function Nav({
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="font-heading rounded-full border border-white/15 px-4 py-2.5 text-center text-[14px] text-white transition-colors hover:bg-white/10"
+                className="font-heading rounded-full border border-black/15 px-4 py-2.5 text-center text-[14px] text-[#0d0d0d] transition-colors hover:bg-black/[0.05]"
               >
                 Log in
               </Link>
               <Link
                 href="/signup"
                 onClick={() => setOpen(false)}
-                className="font-heading rounded-full bg-white px-4 py-2.5 text-center text-[14px] font-medium text-black"
+                className="font-heading rounded-full bg-[#0d0d0d] px-4 py-2.5 text-center text-[14px] font-medium text-white"
               >
                 Start for free
               </Link>
@@ -172,7 +172,7 @@ function UserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-white/60">
+        <button className="rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-black/40">
           <UserAvatar
             displayName={displayName}
             avatarR2Key={avatarR2Key}
