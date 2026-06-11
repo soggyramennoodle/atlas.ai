@@ -66,10 +66,7 @@ export function LandingFootnotes() {
     >
       <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6">
         <Reveal>
-          <p className="font-heading text-[11px] font-medium tracking-[2px] text-black/40">
-            FOOTNOTES
-          </p>
-          <ol className="mt-5 space-y-3">
+          <ol className="space-y-3">
             {FOOTNOTES.map((f) => (
               <li
                 key={f.id}
