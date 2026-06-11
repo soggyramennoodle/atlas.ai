@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { ArrowUpRight, FileText } from "lucide-react";
 import { AtlasMark } from "@/components/logo";
+import { FootnoteRef } from "@/components/landing/footnotes";
 
 const BLOCK_1 = "/landing/insights-1.jpg";
 const BLOCK_2 = "/landing/insights-2.jpg";
@@ -281,6 +282,7 @@ export function Insights() {
               }}
             >
               See your whole semester at a glance.
+              <FootnoteRef id="semester" />
             </h3>
             <p
               className="font-heading"
@@ -316,7 +318,16 @@ export function Insights() {
           />
           <div
             className="absolute inset-0 z-[1]"
-            style={{ background: "rgba(0,0,0,0.25)" }}
+            style={{ background: "rgba(0,0,0,0.32)" }}
+          />
+          {/* Bottom scrim so the white caption always reads cleanly. */}
+          <div
+            className="absolute inset-x-0 bottom-0 z-[1]"
+            style={{
+              height: "55%",
+              background:
+                "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0) 100%)",
+            }}
           />
 
           <span
@@ -333,9 +344,9 @@ export function Insights() {
             TODAY
           </span>
 
-          {/* White note card */}
-          <div
-            className="absolute z-[2]"
+          {/* White note card — lifts on hover so the capture feels live. */}
+          <motion.div
+            className="absolute z-[3] cursor-default"
             style={{
               top: 32,
               left: 32,
@@ -345,6 +356,12 @@ export function Insights() {
               padding: "16px 18px",
               boxShadow: "0 8px 32px rgba(0,0,0,0.20)",
             }}
+            whileHover={{
+              y: -6,
+              scale: 1.035,
+              boxShadow: "0 18px 48px rgba(0,0,0,0.32)",
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 22 }}
           >
             <div className="flex items-start justify-between">
               <span
@@ -406,25 +423,33 @@ export function Insights() {
                 <ArrowUpRight size={13} color="#fff" />
               </span>
             </button>
-          </div>
+          </motion.div>
 
-          {/* Student portrait */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={PERSON_2}
-            alt="A student"
+          {/* Student portrait — drifts gently and tilts up on hover. */}
+          <motion.div
             className="absolute z-[2]"
             style={{
               bottom: 140,
               left: "50%",
-              transform: "translateX(-50%)",
+              x: "-50%",
               width: 200,
               height: 240,
-              objectFit: "cover",
-              objectPosition: "top center",
               borderRadius: 16,
+              overflow: "hidden",
+              boxShadow: "0 12px 36px rgba(0,0,0,0.28)",
             }}
-          />
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
+            whileHover={{ scale: 1.04 }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={PERSON_2}
+              alt="A student"
+              className="h-full w-full"
+              style={{ objectFit: "cover", objectPosition: "top center" }}
+            />
+          </motion.div>
 
           {/* Brand bar */}
           <div

@@ -8,6 +8,7 @@ import { HowItWorks } from "@/components/landing/how-it-works";
 import { PersonalizationDemo } from "@/components/landing/personalization-demo";
 import { PrivacyTrust } from "@/components/landing/privacy-trust";
 import { FinalCta } from "@/components/landing/cta";
+import { LandingFootnotes } from "@/components/landing/footnotes";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -27,6 +28,7 @@ export default async function Home() {
       <PersonalizationDemo />
       <PrivacyTrust />
       <FinalCta ctaHref={ctaHref} />
+      <LandingFootnotes />
     </>
   );
 }

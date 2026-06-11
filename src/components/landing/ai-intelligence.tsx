@@ -11,6 +11,7 @@ import { AnimatePresence, motion, useInView } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { AtlasMark } from "@/components/logo";
+import { FootnoteRef } from "@/components/landing/footnotes";
 
 const BACK_3_1 = "/landing/atlas-ai-1.jpg";
 const BACK_3_2 = "/landing/atlas-ai-2.jpg";
@@ -34,7 +35,15 @@ const QUESTIONS = [
 ];
 
 /** Shared bottom title/description block, aligned across all three cards. */
-function CardCaption({ title, body }: { title: string; body: string }) {
+function CardCaption({
+  title,
+  body,
+  footnote,
+}: {
+  title: string;
+  body: string;
+  footnote?: string;
+}) {
   return (
     <div className="absolute z-[2]" style={{ bottom: 28, left: 24, right: 24 }}>
       <h3
@@ -42,6 +51,7 @@ function CardCaption({ title, body }: { title: string; body: string }) {
         style={{ fontSize: 26, fontWeight: 400, color: "#fff", marginBottom: 8 }}
       >
         {title}
+        {footnote ? <FootnoteRef id={footnote} /> : null}
       </h3>
       <p
         className="font-heading"
@@ -304,6 +314,7 @@ export function AiIntelligence({ ctaHref }: { ctaHref: string }) {
 
           <CardCaption
             title="Ask Atlas anything."
+            footnote="ask"
             body="Ask questions about your lectures and notes in plain English and get instant, accurate answers."
           />
         </motion.div>
@@ -482,6 +493,7 @@ export function AiIntelligence({ ctaHref }: { ctaHref: string }) {
 
           <CardCaption
             title="Predictive Analysis"
+            footnote="predictive"
             body="Atlas analyzes your study patterns and understanding of material in order to determine what you're good at, and what you can improve on."
           />
         </motion.div>
@@ -514,6 +526,7 @@ export function AiIntelligence({ ctaHref }: { ctaHref: string }) {
 
           <CardCaption
             title="Smart Categorization"
+            footnote="categorization"
             body="Automatically organize your notes by subject with Atlas, which learns with you, over time."
           />
         </motion.div>

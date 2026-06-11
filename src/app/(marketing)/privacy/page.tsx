@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Check, Lock, X } from "lucide-react";
+import { ArrowLeft, Check, Lock, ShieldCheck, X } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Privacy",
@@ -112,12 +112,11 @@ export default function PrivacyPhilosophyPage() {
           Back
         </Link>
 
-        {/* Opening statement — left-weighted asymmetric split, copy held to the
-            left with the enclave panel balancing the right. */}
+        {/* Opening statement — copy left, the Enclave panel balancing the right. */}
         <section className="mt-12 grid grid-cols-1 items-center gap-12 lg:mt-14 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-7">
             <Eyebrow icon={<Lock className="size-3.5" />}>ATLAS ENCLAVE</Eyebrow>
-            <h1 className="mt-8 max-w-[14ch] text-balance text-[#0d0d0d]">
+            <h1 className="mt-8 max-w-[20ch] text-balance text-[#0d0d0d]">
               <span
                 className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
                 style={{ fontSize: "clamp(2.5rem, 6vw, 72px)" }}
@@ -142,18 +141,17 @@ export default function PrivacyPhilosophyPage() {
           </div>
         </section>
 
-        {/* Body — held to a left-weighted column for the off-center rhythm. */}
-        <div className="max-w-[760px]">
-          <Divider />
+        <Divider />
 
-          {/* What Atlas Enclave means */}
-          <section>
+        {/* What Atlas Enclave means — text left, vault visual right for balance. */}
+        <section className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-10">
+          <div className="lg:col-span-7">
             <Eyebrow>ATLAS ENCLAVE</Eyebrow>
             <SectionH2
               upright="A private space that "
               italic="belongs to you."
             />
-            <div className="mt-5 space-y-4 text-pretty text-[15px] leading-[1.7] text-black/60">
+            <div className="mt-5 max-w-[52ch] space-y-4 text-pretty text-[15px] leading-[1.7] text-black/60">
               <p>
                 Everything you bring to Atlas lives inside Atlas Enclave, our
                 system made to protect your account, so that no one, not even
@@ -165,130 +163,146 @@ export default function PrivacyPhilosophyPage() {
                 notes, period. The work you do here stays here.
               </p>
             </div>
-          </section>
+          </div>
 
-          <Divider />
+          <div className="lg:col-span-5">
+            <VaultVisual />
+          </div>
+        </section>
 
-          {/* What we collect */}
-          <section>
-            <Eyebrow>WHAT WE COLLECT</Eyebrow>
-            <SectionH2
-              upright="Only what it takes to write "
-              italic="your notes."
-            />
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              {COLLECT.map((c) => (
-                <div
-                  key={c.label}
-                  className="rounded-[20px] border border-black/[0.08] bg-white p-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)] transition-colors hover:border-black/15"
-                >
-                  <h3 className="font-medium tracking-tight text-[#0d0d0d]">
-                    {c.label}
-                  </h3>
-                  <p className="mt-2 text-pretty text-[13px] leading-[1.6] text-black/60">
-                    {c.body}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
+        <Divider />
 
-          <Divider />
-
-          {/* What we never do */}
-          <section>
-            <Eyebrow>WHAT WE NEVER DO</Eyebrow>
-            <SectionH2 upright="Some lines we will " italic="never" after=" cross." />
-            <ul className="mt-8 space-y-3">
-              {NEVER.map((n) => (
-                <li
-                  key={n}
-                  className="flex items-start gap-3 rounded-[20px] border border-black/[0.08] bg-[#fafafa] p-5"
-                >
-                  <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-[12px] border border-black/10 bg-white text-[#0d0d0d]">
-                    <X className="size-3.5" />
-                  </span>
-                  <span className="text-pretty font-medium leading-relaxed text-[#0d0d0d]">
-                    {n}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <Divider />
-
-          {/* Your controls */}
-          <section>
-            <Eyebrow>YOUR CONTROLS</Eyebrow>
-            <SectionH2 upright="You’re always " italic="in charge." />
-            <div className="mt-8 space-y-3">
-              {CONTROLS.map((c) => (
-                <div
-                  key={c.label}
-                  className="flex items-start gap-4 rounded-[20px] border border-black/[0.08] bg-white p-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)] transition-colors hover:border-black/15"
-                >
-                  <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-[12px] border border-black/10 bg-white text-[#0d0d0d]">
-                    <Check className="size-4" />
-                  </span>
-                  <div>
-                    <h3 className="font-medium tracking-tight text-[#0d0d0d]">
-                      {c.label}
-                    </h3>
-                    <p className="mt-1 text-pretty text-[13px] leading-[1.6] text-black/60">
-                      {c.body}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <Divider />
-
-          {/* Closing sign-off */}
-          <section className="relative overflow-hidden rounded-[24px] border border-black/[0.08] bg-white p-8 shadow-[0_8px_30px_rgba(0,0,0,0.05)] sm:p-12">
-            <div className="relative">
-              <span className="grid size-10 place-items-center rounded-[12px] border border-black/10 bg-white text-[#0d0d0d]">
-                <Lock className="size-5" strokeWidth={1.8} />
-              </span>
-              <h2 className="mt-4 text-balance text-[#0d0d0d]">
-                <span
-                  className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
-                  style={{ fontSize: "clamp(1.6rem, 3vw, 32px)" }}
-                >
-                  A note from{" "}
-                </span>
-                <span
-                  className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
-                  style={{ fontSize: "clamp(1.6rem, 3vw, 32px)" }}
-                >
-                  the team
-                </span>
-              </h2>
-              <p className="mt-4 max-w-2xl text-pretty text-[15px] leading-[1.7] text-black/60">
-                We started Atlas because we wanted to be present in class
-                without losing a word. Privacy isn’t a feature we bolted on.
-                It’s the reason we trust this tool with our own lectures. We’ll
-                keep it that way for you, too.
-              </p>
-              <p className="mt-6 text-[15px] font-medium text-[#0d0d0d]">
-                The Atlas team
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-4 text-[13px]">
-                <Link
-                  href="/privacy-policy"
-                  className="text-[#0d0d0d] underline hover:text-black/70"
-                >
-                  Read the full Privacy Policy →
-                </Link>
-                <Link href="/terms" className="text-black/60 hover:text-[#0d0d0d]">
-                  Terms of Use
-                </Link>
+        {/* What we collect — full-width card grid. */}
+        <section>
+          <Eyebrow>WHAT WE COLLECT</Eyebrow>
+          <SectionH2
+            upright="Only what it takes to write "
+            italic="your notes."
+          />
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {COLLECT.map((c) => (
+              <div
+                key={c.label}
+                className="rounded-[20px] border border-black/[0.08] bg-white p-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)] transition-colors hover:border-black/15"
+              >
+                <h3 className="font-medium tracking-tight text-[#0d0d0d]">
+                  {c.label}
+                </h3>
+                <p className="mt-2 text-pretty text-[13px] leading-[1.6] text-black/60">
+                  {c.body}
+                </p>
               </div>
+            ))}
+          </div>
+        </section>
+
+        <Divider />
+
+        {/* What we never do — faint red glow marks the hard lines. */}
+        <section>
+          <Eyebrow>WHAT WE NEVER DO</Eyebrow>
+          <SectionH2 upright="Some lines we will " italic="never" after=" cross." />
+          <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+            {NEVER.map((n) => (
+              <li
+                key={n}
+                className="flex items-start gap-3 rounded-[20px] border border-red-500/20 bg-red-500/[0.03] p-5"
+                style={{
+                  boxShadow:
+                    "0 0 0 1px rgba(239,68,68,0.06), 0 10px 34px -16px rgba(239,68,68,0.45)",
+                }}
+              >
+                <span
+                  className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-[12px] border border-red-500/25 bg-white text-red-500"
+                  style={{ boxShadow: "0 0 12px -2px rgba(239,68,68,0.5)" }}
+                >
+                  <X className="size-3.5" />
+                </span>
+                <span className="text-pretty font-medium leading-relaxed text-[#0d0d0d]">
+                  {n}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <Divider />
+
+        {/* Your controls — faint green glow for what you're free to do. */}
+        <section>
+          <Eyebrow>YOUR CONTROLS</Eyebrow>
+          <SectionH2 upright="You’re always " italic="in charge." />
+          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            {CONTROLS.map((c) => (
+              <div
+                key={c.label}
+                className="rounded-[20px] border border-emerald-500/20 bg-emerald-500/[0.03] p-5"
+                style={{
+                  boxShadow:
+                    "0 0 0 1px rgba(16,185,129,0.06), 0 10px 34px -16px rgba(16,185,129,0.4)",
+                }}
+              >
+                <span
+                  className="grid size-7 place-items-center rounded-[12px] border border-emerald-500/25 bg-white text-emerald-600"
+                  style={{ boxShadow: "0 0 12px -2px rgba(16,185,129,0.5)" }}
+                >
+                  <Check className="size-4" />
+                </span>
+                <h3 className="mt-3 font-medium tracking-tight text-[#0d0d0d]">
+                  {c.label}
+                </h3>
+                <p className="mt-1 text-pretty text-[13px] leading-[1.6] text-black/60">
+                  {c.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <Divider />
+
+        {/* Closing sign-off */}
+        <section className="relative overflow-hidden rounded-[24px] border border-black/[0.08] bg-white p-8 shadow-[0_8px_30px_rgba(0,0,0,0.05)] sm:p-12">
+          <div className="relative">
+            <span className="grid size-10 place-items-center rounded-[12px] border border-black/10 bg-white text-[#0d0d0d]">
+              <Lock className="size-5" strokeWidth={1.8} />
+            </span>
+            <h2 className="mt-4 text-balance text-[#0d0d0d]">
+              <span
+                className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
+                style={{ fontSize: "clamp(1.6rem, 3vw, 32px)" }}
+              >
+                A note from{" "}
+              </span>
+              <span
+                className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
+                style={{ fontSize: "clamp(1.6rem, 3vw, 32px)" }}
+              >
+                the team
+              </span>
+            </h2>
+            <p className="mt-4 max-w-2xl text-pretty text-[15px] leading-[1.7] text-black/60">
+              We started Atlas because we wanted to be present in class
+              without losing a word. Privacy isn’t a feature we bolted on.
+              It’s the reason we trust this tool with our own lectures. We’ll
+              keep it that way for you, too.
+            </p>
+            <p className="mt-6 text-[15px] font-medium text-[#0d0d0d]">
+              The Atlas team
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-4 text-[13px]">
+              <Link
+                href="/privacy-policy"
+                className="text-[#0d0d0d] underline hover:text-black/70"
+              >
+                Read the full Privacy Policy →
+              </Link>
+              <Link href="/terms" className="text-black/60 hover:text-[#0d0d0d]">
+                Terms of Use
+              </Link>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
     </main>
   );
@@ -331,6 +345,33 @@ function EnclavePreview() {
             </li>
           ))}
         </ul>
+      </div>
+    </div>
+  );
+}
+
+/** Concentric-ring "vault" mockup: your data sealed at the center of Atlas
+    Enclave. Monochrome, in the cinematic-light language. */
+function VaultVisual() {
+  return (
+    <div className="relative mx-auto w-full max-w-[420px] lg:mx-0">
+      <div className="relative grid aspect-[4/3] place-items-center overflow-hidden rounded-[20px] border border-black/[0.08] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
+        {/* Concentric rings */}
+        {[260, 200, 140].map((s) => (
+          <span
+            key={s}
+            className="absolute rounded-full border border-black/[0.07]"
+            style={{ width: s, height: s }}
+            aria-hidden
+          />
+        ))}
+        {/* Sealed core */}
+        <span className="relative grid size-[88px] place-items-center rounded-full border border-black/10 bg-[#0d0d0d] text-white shadow-[0_12px_40px_-12px_rgba(0,0,0,0.6)]">
+          <ShieldCheck className="size-8" strokeWidth={1.6} />
+        </span>
+        <p className="font-heading absolute bottom-5 left-0 right-0 text-center text-[12px] tracking-[0.2px] text-black/55">
+          Your data, sealed inside Atlas Enclave
+        </p>
       </div>
     </div>
   );
