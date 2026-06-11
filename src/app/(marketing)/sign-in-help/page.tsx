@@ -59,7 +59,7 @@ const STEPS = [
 export default function SignInHelpPage() {
   return (
     <main className="relative overflow-hidden pb-28">
-      <div className="relative mx-auto max-w-[1080px] px-4 pt-16 sm:px-6 lg:pt-24">
+      <div className="relative mx-auto max-w-[1080px] px-4 pt-28 sm:px-6 lg:pt-32">
         <Link
           href="/login"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:-translate-x-0.5 hover:text-foreground"

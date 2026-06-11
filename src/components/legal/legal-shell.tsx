@@ -19,7 +19,7 @@ export function LegalShell({
   sections: LegalSection[];
 }) {
   return (
-    <main className="relative px-4 pb-24 pt-16 lg:pt-24">
+    <main className="relative px-4 pb-24 pt-28 lg:pt-32">
       <article className="relative mx-auto max-w-2xl">
         <Link
           href="/"

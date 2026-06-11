@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
-import { Logo } from "@/components/logo";
-import { MarketingThemeToggle } from "@/components/marketing-theme-toggle";
+import { AtlasMark, BetaBadge } from "@/components/logo";
 
 /** Instagram glyph (lucide dropped brand icons, so we inline it). */
 function InstagramIcon({ className }: { className?: string }) {
@@ -42,11 +41,11 @@ function SoonSocial({
 }) {
   return (
     <li className="group relative w-fit">
-      <span className="inline-flex cursor-default items-center gap-2 text-muted-foreground transition group-hover:text-foreground">
+      <span className="inline-flex cursor-default items-center gap-2 text-white/55 transition group-hover:text-white">
         <Icon className="size-4" />
         {label}
       </span>
-      <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 scale-90 rounded-full border bg-popover px-2.5 py-1 text-[0.65rem] font-medium text-popover-foreground opacity-0 shadow-lg transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
+      <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 scale-90 rounded-full border border-white/15 bg-[rgba(28,28,28,0.9)] px-2.5 py-1 text-[0.65rem] font-medium text-white opacity-0 shadow-lg backdrop-blur transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
         Soon
       </span>
     </li>
@@ -55,12 +54,18 @@ function SoonSocial({
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-border bg-secondary">
+    <footer className="font-heading border-t border-white/10 bg-[#000]">
       <div className="mx-auto w-full max-w-[1200px] px-4 py-14 sm:px-6">
         <div className="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-xs">
-            <Logo beta />
-            <p className="mt-3 text-sm text-muted-foreground text-pretty">
+            <span className="inline-flex items-center gap-2">
+              <AtlasMark className="size-7 text-white" />
+              <span className="text-[1.35rem] font-semibold leading-none tracking-tight text-white">
+                Atlas
+              </span>
+              <BetaBadge className="border-white/30 from-white/25 to-white/5 text-white" />
+            </span>
+            <p className="mt-3 text-sm text-pretty text-white/55">
               A smart study assistant that turns lecture recordings into
               thorough, structured notes.
             </p>
@@ -68,79 +73,82 @@ export function Footer() {
 
           <div className="grid grid-cols-2 gap-10 text-sm sm:grid-cols-4 sm:gap-12">
             <div className="space-y-3">
-              <p className="font-medium">Product</p>
-              <ul className="space-y-2 text-muted-foreground">
+              <p className="font-medium text-white">Product</p>
+              <ul className="space-y-2 text-white/55">
                 <li>
-                  <Link href="/#how" className="hover:text-foreground">
+                  <Link href="/#how" className="transition hover:text-white">
                     How it works
                   </Link>
                 </li>
                 <li>
-                  <Link href="/#features" className="hover:text-foreground">
-                    Features
+                  <Link href="/#insights" className="transition hover:text-white">
+                    Insights
                   </Link>
                 </li>
                 <li>
-                  <Link href="/newsroom" className="hover:text-foreground">
+                  <Link href="/newsroom" className="transition hover:text-white">
                     Newsroom
                   </Link>
                 </li>
                 <li>
-                  <Link href="/upload" className="hover:text-foreground">
+                  <Link href="/upload" className="transition hover:text-white">
                     Record a lecture
                   </Link>
                 </li>
               </ul>
             </div>
             <div className="space-y-3">
-              <p className="font-medium">Account</p>
-              <ul className="space-y-2 text-muted-foreground">
+              <p className="font-medium text-white">Account</p>
+              <ul className="space-y-2 text-white/55">
                 <li>
-                  <Link href="/login" className="hover:text-foreground">
+                  <Link href="/login" className="transition hover:text-white">
                     Log in
                   </Link>
                 </li>
                 <li>
-                  <Link href="/signup" className="hover:text-foreground">
-                    Get started
+                  <Link href="/signup" className="transition hover:text-white">
+                    Start for free
                   </Link>
                 </li>
                 <li>
-                  <Link href="/dashboard" className="hover:text-foreground">
+                  <Link href="/dashboard" className="transition hover:text-white">
                     Dashboard
                   </Link>
                 </li>
               </ul>
             </div>
             <div className="space-y-3">
-              <p className="font-medium">Legal</p>
-              <ul className="space-y-2 text-muted-foreground">
+              <p className="font-medium text-white">Legal</p>
+              <ul className="space-y-2 text-white/55">
                 <li>
-                  <Link href="/privacy" className="hover:text-foreground">
+                  <Link href="/privacy" className="transition hover:text-white">
                     Privacy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/privacy-policy" className="hover:text-foreground">
+                  <Link
+                    href="/privacy-policy"
+                    className="transition hover:text-white"
+                  >
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terms" className="hover:text-foreground">
+                  <Link href="/terms" className="transition hover:text-white">
                     Terms of Use
                   </Link>
                 </li>
               </ul>
             </div>
             <div className="space-y-3">
-              <p className="font-medium">Socials</p>
+              <p className="font-medium text-white">Socials</p>
               <ul className="space-y-2">
                 <SoonSocial icon={InstagramIcon} label="Instagram" />
                 <SoonSocial icon={DiscordIcon} label="Discord" />
                 <li>
                   <a
                     href="mailto:hello@atlasai.ca"
-                    className="inline-flex items-center gap-2 text-muted-foreground transition hover:text-foreground"
+                    className="inline-flex items-center gap-2 text-white/55 transition hover:text-white"
                   >
                     <Mail className="size-4" />
                     Contact us
@@ -151,11 +159,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs text-muted-foreground sm:flex-row">
-          <div className="flex items-center gap-2">
-            <p>© {new Date().getFullYear()}. Atlas Co. Made with Love in Toronto 🇨🇦</p>
-            <MarketingThemeToggle />
-          </div>
+        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/45 sm:flex-row">
+          <p>© {new Date().getFullYear()}. Atlas Co. Made with Love in Toronto 🇨🇦</p>
           <div className="flex items-center gap-2 font-mono">
             <span className="relative flex size-2">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />

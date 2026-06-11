@@ -17,7 +17,7 @@ const LOGO_SIZE_CLASS = {
 
 type LogoSize = keyof typeof LOGO_SIZE_CLASS;
 
-const UNIVERSITIES = [
+export const UNIVERSITIES = [
   { src: "/universities/toronto.png", name: "University of Toronto" },
   { src: "/universities/waterloo.png", name: "University of Waterloo", size: "focus" },
   { src: "/universities/mcgill.png", name: "McGill University" },

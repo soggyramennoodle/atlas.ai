@@ -1144,6 +1144,44 @@
   mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
 }
 
+/* ── Cinematic landing (Synergeus-derived spec) ────────────────────────────
+   Inter Tight drives headings/UI, Instrument Serif the italic accents. The
+   vars are provided by next/font on the marketing layout wrapper, with system
+   fallbacks elsewhere. */
+.font-heading {
+  font-family: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+}
+.font-instrument {
+  font-family: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+}
+
+/* Story-card progress bars: bar 1 fills over the first half of a 6s cycle,
+   bar 2 over the second half, both looping with the slide rotation. */
+@keyframes story-fill-1 {
+  0% { transform: scaleX(0); }
+  50% { transform: scaleX(1); }
+  100% { transform: scaleX(1); }
+}
+@keyframes story-fill-2 {
+  0% { transform: scaleX(0); }
+  50% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+.story-bar-1 .story-bar-fill {
+  animation: story-fill-1 6s linear infinite;
+  transform-origin: left center;
+}
+.story-bar-2 .story-bar-fill {
+  animation: story-fill-2 6s linear infinite;
+  transform-origin: left center;
+}
+
+/* Tighter, faster marquee used inside the hero's "Loved by students at"
+   block (the spec's 14s loop), reusing the duplicated-track mechanism. */
+.animate-marquee-hero {
+  animation: atlas-marquee 14s linear infinite;
+}
+
 /* University logos: muted at rest, but still detailed enough that crests do
    not collapse into a flat silhouette. The marquee itself never pauses on hover
    — only the colour reveals. */

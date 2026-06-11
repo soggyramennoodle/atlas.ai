@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Lock, ShieldCheck, Trash2, EyeOff } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
-import { AiGlow } from "@/components/ui/ai-glow";
 
 const POINTS = [
   {
@@ -24,57 +23,73 @@ const POINTS = [
 /** Landing privacy trust block tied to Atlas Enclave branding. */
 export function PrivacyTrust() {
   return (
-    <section className="mx-auto w-full max-w-[1200px] px-4 sm:px-6">
-      <Reveal className="ai-ring relative isolate overflow-hidden rounded-[4px] border border-border bg-card p-8 sm:p-12">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 opacity-35 [mask-image:radial-gradient(70%_70%_at_22%_18%,black,transparent_78%)] animate-breathe"
-        >
-          <AiGlow density="lean" blur={72} />
-        </div>
+    <section className="overflow-hidden bg-[#000] px-6 py-20">
+      <Reveal
+        className="relative mx-auto w-full max-w-[1200px] overflow-hidden rounded-[24px] border border-white/[0.12] p-8 sm:p-12"
+        style={{
+          background: "rgba(255,255,255,0.06)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+        }}
+      >
         <div className="max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-[4px] border border-border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+          <span className="font-heading inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[11px] font-medium tracking-[1.5px] text-white/70">
             <Lock className="size-3.5" />
-            Atlas Enclave
+            ATLAS ENCLAVE
           </span>
-          <h2 className="mt-5 text-balance text-3xl font-bold leading-[1.03] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
-            Your lectures are private.{" "}
-            <span className="text-primary">Always.</span>
+          <h2 className="mt-6 text-balance text-white">
+            <span
+              className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
+              style={{ fontSize: "clamp(2.25rem, 5vw, 60px)" }}
+            >
+              Your lectures are private.{" "}
+            </span>
+            <span
+              className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
+              style={{ fontSize: "clamp(2.25rem, 5vw, 60px)" }}
+            >
+              Always.
+            </span>
           </h2>
-          <p className="mt-3 max-w-[64ch] text-pretty text-muted-foreground">
+          <p className="font-heading mt-4 max-w-[64ch] text-pretty text-[15px] leading-[1.6] text-white/60">
             Everything you record lives inside the Atlas Enclave, a private,
             encrypted space that belongs to you and no one else.
           </p>
         </div>
 
-        <div className="mt-10 grid overflow-hidden rounded-[4px] border border-border sm:grid-cols-3">
+        <div className="mt-10 grid gap-4 sm:grid-cols-3">
           {POINTS.map((p) => (
             <div
               key={p.title}
-              className="group hover-glow-inside icon-animate border-t border-border bg-background p-6 first:border-t-0 sm:border-l sm:border-t-0 sm:first:border-l-0"
+              className="rounded-[20px] border border-white/10 bg-black/30 p-6"
             >
-              <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-card text-foreground">
-                <p.icon className="size-5" />
+              <span className="grid size-10 place-items-center rounded-[12px] border border-white/15 bg-white/10 text-white">
+                <p.icon className="size-5" strokeWidth={1.8} />
               </span>
-              <h3 className="mt-3 font-semibold tracking-tight">{p.title}</h3>
-              <p className="mt-1.5 text-pretty text-sm leading-relaxed text-muted-foreground">
+              <h3 className="font-heading mt-4 font-medium tracking-tight text-white">
+                {p.title}
+              </h3>
+              <p className="font-heading mt-1.5 text-pretty text-[13px] leading-[1.6] text-white/65">
                 {p.body}
               </p>
             </div>
           ))}
         </div>
 
-        <p className="mt-7 text-sm text-muted-foreground">
+        <p className="font-heading mt-8 text-[13px] text-white/60">
           Read about{" "}
-          <Link href="/privacy" className="text-primary hover:underline">
+          <Link href="/privacy" className="text-white underline hover:text-white/80">
             our approach to privacy
           </Link>
           , our{" "}
-          <Link href="/privacy-policy" className="text-primary hover:underline">
+          <Link
+            href="/privacy-policy"
+            className="text-white underline hover:text-white/80"
+          >
             Privacy Policy
           </Link>{" "}
           and{" "}
-          <Link href="/terms" className="text-primary hover:underline">
+          <Link href="/terms" className="text-white underline hover:text-white/80">
             Terms of Use
           </Link>
           .
