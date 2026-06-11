@@ -72,32 +72,16 @@ export function Hero({
         >
           <Link
             href={ctaHref}
-            className="font-heading flex items-center"
-            style={{
-              marginTop: 32,
-              background: "#0d0d0d",
-              color: "#fff",
-              fontSize: 15,
-              fontWeight: 500,
-              paddingLeft: 24,
-              paddingRight: 8,
-              paddingTop: 6,
-              paddingBottom: 6,
-              borderRadius: 9999,
-              gap: 8,
-            }}
+            className="font-heading group mt-8 flex items-center gap-2 rounded-full bg-[#0d0d0d] py-1.5 pl-4 pr-1.5 text-[15px] font-medium text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
             Start for free
-            <span
-              className="grid place-items-center"
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: 9999,
-                background: "#fff",
-              }}
-            >
-              <ArrowUpRight size={14} color="#000" strokeWidth={2.5} />
+            <span className="grid size-6 place-items-center rounded-full bg-white">
+              <ArrowUpRight
+                size={14}
+                color="#000"
+                strokeWidth={2.5}
+                className="transition-transform duration-300 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              />
             </span>
           </Link>
         </motion.div>
@@ -137,11 +121,7 @@ export function Hero({
                     src={u.src}
                     alt={u.name}
                     loading="lazy"
-                    className="w-auto shrink-0 object-contain"
-                    style={{
-                      height: 30,
-                      filter: "brightness(0) opacity(0.5)",
-                    }}
+                    className="uni-logo h-[30px] w-auto shrink-0 object-contain"
                   />
                 ))}
               </div>

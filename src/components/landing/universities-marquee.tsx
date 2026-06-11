@@ -5,8 +5,7 @@ import { cn } from "@/lib/utils";
 /**
  * An endless strip of Canadian university logos, mirroring the SubjectsMarquee
  * mechanism (one compositor-only translate of a duplicated track). Logos stay
- * muted at rest but preserve crest detail, then reveal their true colour on
- * hover. The strip never pauses on hover.
+ * muted at rest but preserve crest colour, then reveal full colour on hover.
  */
 
 const LOGO_SIZE_CLASS = {

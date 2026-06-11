@@ -1182,18 +1182,22 @@
   animation: atlas-marquee 26s linear infinite;
 }
 
-/* University logos: muted at rest, but still detailed enough that crests do
-   not collapse into a flat silhouette. The marquee itself never pauses on hover
-   — only the colour reveals. */
+/* University logos: slightly muted at rest but keep crest colours visible.
+   The marquee itself never pauses on hover — only saturation/opacity reveal. */
 .uni-logo {
-  filter: grayscale(1) saturate(0.18) contrast(0.95) opacity(0.72);
-  transition: filter 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0.62;
+  filter: saturate(0.55);
+  transition:
+    opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .dark .uni-logo {
-  filter: grayscale(1) saturate(0.18) brightness(1.32) contrast(0.9) opacity(0.76);
+  opacity: 0.7;
+  filter: saturate(0.6) brightness(1.08);
 }
 .uni-logo:hover,
 .dark .uni-logo:hover {
+  opacity: 1;
   filter: none;
 }
 
