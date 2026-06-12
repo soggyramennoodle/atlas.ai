@@ -38,7 +38,7 @@ export function Nav({
       {/* Top fade: keeps the logo legible over scrolled content without a hard bar. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-28 bg-gradient-to-b from-[#fafafa] from-35% via-[#fafafa]/65 to-[#fafafa]/0"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-24 bg-gradient-to-b from-[#fafafa]/65 to-[#fafafa]/0 backdrop-blur-[10px] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_40%,transparent_100%)] [mask-image:linear-gradient(to_bottom,black_0%,black_40%,transparent_100%)]"
       />
       <div className="relative flex h-12 items-center">
         {/* Left: mark + wordmark */}
