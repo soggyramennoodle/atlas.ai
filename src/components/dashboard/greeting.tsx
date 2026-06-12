@@ -48,17 +48,14 @@ export function Greeting({ name }: { name: string }) {
 
   return (
     <div data-tour="dashboard-greeting">
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
-        {local?.date || " "}
+      <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
+        {local?.date || " "}
       </p>
-      <h1 className="mt-2 inline-block text-4xl font-bold leading-[0.98] tracking-[-0.02em] sm:text-5xl">
+      <h1 className="mt-2 inline-block text-3xl font-normal leading-[1.05] tracking-[-0.02em] sm:text-4xl">
         {local?.greeting ?? "Welcome back"},{" "}
-        <span className="relative">
-          <span className="text-primary">{name}</span>
-          <span className="absolute -bottom-1 left-0 h-[2px] w-full bg-primary/50" />
-        </span>
+        <span className="font-instrument italic">{name}</span>
       </h1>
-      <p className="mt-3 text-muted-foreground">{local?.line ?? " "}</p>
+      <p className="mt-2.5 text-sm text-[#0d0d0d]/60">{local?.line ?? " "}</p>
     </div>
   );
 }

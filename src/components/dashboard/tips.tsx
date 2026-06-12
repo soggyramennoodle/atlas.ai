@@ -9,17 +9,22 @@ const TIPS = [
 
 export function Tips() {
   return (
-    <div className="rounded-[4px] border border-border bg-card p-6">
-      <div className="flex items-center gap-2">
-        <span className="grid size-8 place-items-center rounded-[4px] border border-border bg-background text-foreground">
+    <div className="rounded-3xl border border-black/[0.08] bg-white p-6">
+      <div className="flex items-center gap-2.5">
+        <span className="grid size-8 place-items-center rounded-full border border-black/[0.12] text-[#0d0d0d]/70">
           <Lightbulb className="size-4" />
         </span>
-        <h3 className="font-semibold tracking-tight">Tips for better notes</h3>
+        <h3 className="text-lg font-normal tracking-tight">
+          Tips for better <span className="font-instrument italic">notes</span>
+        </h3>
       </div>
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-4 divide-y divide-black/[0.06]">
         {TIPS.map((tip) => (
-          <li key={tip} className="flex gap-3 text-sm text-muted-foreground">
-            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary/60" />
+          <li
+            key={tip}
+            className="flex gap-3 py-3 text-sm leading-relaxed text-[#0d0d0d]/60 first:pt-0 last:pb-0"
+          >
+            <span className="mt-[0.55rem] size-1 shrink-0 rounded-full bg-[#0d0d0d]/40" />
             <span className="text-pretty">{tip}</span>
           </li>
         ))}

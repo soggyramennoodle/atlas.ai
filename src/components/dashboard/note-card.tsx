@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, BookOpen, Clock, Loader2, TriangleAlert } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import type { NoteRecord } from "@/lib/types";
 
 type NoteCardData = Pick<
@@ -32,11 +31,14 @@ function formatDuration(s: number | null) {
  */
 type GlowPhase = "active" | "winding-down" | "off";
 
+const STATUS_CHIP_BASE =
+  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.65rem] font-medium uppercase tracking-[0.12em]";
+
 /**
  * A dashboard recording card. When the note is processing it wears the AI edge
- * glow; spend-cap holds get a breathing orange border instead. When processing
- * finishes the multicolor glow doesn't cut out abruptly — it lets the current
- * hue loop complete, then fades out cleanly.
+ * glow (the brand's one color moment); spend-cap holds get a breathing orange
+ * border instead. When processing finishes the multicolor glow doesn't cut out
+ * abruptly — it lets the current hue loop complete, then fades out cleanly.
  */
 export function NoteCard({
   note,
@@ -111,7 +113,7 @@ export function NoteCard({
   return (
     <Link
       href={`/notes/${note.id}`}
-      className="group hover-glow icon-animate relative flex flex-col rounded-[4px] border border-border bg-card p-5 transition-[transform,border-color,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-foreground/25 hover:bg-secondary/55 hover:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_16px_34px_-20px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/35 active:translate-y-0 motion-reduce:hover:translate-y-0"
+      className="group relative flex flex-col rounded-3xl border border-black/[0.08] bg-white p-5 outline-none transition-[border-color,box-shadow] duration-300 hover:border-black/20 hover:shadow-[0_18px_50px_-32px_rgba(0,0,0,0.35)] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
     >
       {atCapacity ? <span aria-hidden className="capacity-glow" /> : null}
       {glowing && (
@@ -124,56 +126,59 @@ export function NoteCard({
         />
       )}
       <div className="relative z-[1] flex flex-col">
-      <div className="flex items-center justify-between">
-        <span className="grid size-10 place-items-center rounded-[4px] border border-border bg-background text-foreground transition-[transform,border-color] duration-200 group-hover:-translate-y-0.5 group-hover:border-foreground/25 motion-reduce:group-hover:translate-y-0">
-          {failed ? (
-            <AlertCircle className="size-5 text-destructive" />
-          ) : atCapacity ? (
-            <TriangleAlert className="size-5 text-orange-500" />
-          ) : processing ? (
-            <Loader2 className="size-5 animate-spin" />
-          ) : (
-            <BookOpen className="size-5" />
-          )}
-        </span>
-        <span
-          className={
-            failed
-              ? "inline-flex items-center gap-1.5 rounded-[4px] border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-destructive"
-              : atCapacity
-                ? "inline-flex items-center gap-1.5 rounded-[4px] border border-orange-500/35 bg-orange-500/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-orange-600 dark:text-orange-400"
-                : processing
-                  ? "inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-secondary px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground"
-                  : "inline-flex items-center gap-1.5 rounded-[4px] border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-primary"
-          }
-        >
-          <span className="size-1.5 rounded-full bg-current" />
-          {failed ? "Failed" : atCapacity ? "At capacity" : processing ? "Processing" : "Ready"}
-        </span>
-      </div>
-      <h3 className="mt-4 line-clamp-2 text-lg font-bold leading-snug tracking-tight">
-        {note.title}
-      </h3>
-      <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-        {note.content?.summary}
-      </p>
-      <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
-        <span>{formatDate(note.created_at)}</span>
-        {formatDuration(note.duration_seconds) && (
-          <span className="inline-flex items-center gap-1">
-            <Clock className="size-3" />
-            {formatDuration(note.duration_seconds)}
+        <div className="flex items-center justify-between">
+          <span className="grid size-10 place-items-center rounded-full border border-black/[0.1] text-[#0d0d0d]/80 transition-colors duration-200 group-hover:border-black/25">
+            {failed ? (
+              <AlertCircle className="size-5" />
+            ) : atCapacity ? (
+              <TriangleAlert className="size-5 text-orange-500" />
+            ) : processing ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : (
+              <BookOpen className="size-5" />
+            )}
           </span>
-        )}
-        {note.subject && (
-          <Badge
-            variant="secondary"
-            className="ml-auto font-normal transition-colors group-hover:border-foreground/20"
+          <span
+            className={
+              failed
+                ? `${STATUS_CHIP_BASE} bg-[#0d0d0d] text-white`
+                : atCapacity
+                  ? `${STATUS_CHIP_BASE} border border-orange-500/35 bg-orange-500/10 text-orange-600`
+                  : processing
+                    ? `${STATUS_CHIP_BASE} border border-black/[0.12] bg-black/[0.03] text-[#0d0d0d]/60`
+                    : `${STATUS_CHIP_BASE} border border-black/[0.12] text-[#0d0d0d]/70`
+            }
           >
-            {note.subject}
-          </Badge>
-        )}
-      </div>
+            <span className="size-1.5 rounded-full bg-current" />
+            {failed
+              ? "Failed"
+              : atCapacity
+                ? "At capacity"
+                : processing
+                  ? "Processing"
+                  : "Ready"}
+          </span>
+        </div>
+        <h3 className="mt-4 line-clamp-2 text-lg font-medium leading-snug tracking-tight">
+          {note.title}
+        </h3>
+        <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-[#0d0d0d]/55">
+          {note.content?.summary}
+        </p>
+        <div className="mt-4 flex items-center gap-3 text-xs text-[#0d0d0d]/50">
+          <span>{formatDate(note.created_at)}</span>
+          {formatDuration(note.duration_seconds) && (
+            <span className="inline-flex items-center gap-1">
+              <Clock className="size-3" />
+              {formatDuration(note.duration_seconds)}
+            </span>
+          )}
+          {note.subject && (
+            <span className="ml-auto inline-flex max-w-[45%] items-center truncate rounded-full border border-black/[0.1] px-2.5 py-0.5 text-[0.7rem] text-[#0d0d0d]/60 transition-colors group-hover:border-black/20">
+              {note.subject}
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );

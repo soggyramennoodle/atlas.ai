@@ -5,25 +5,24 @@ export function QuickRecord() {
   return (
     <Link
       href="/upload"
-      className="group hover-glow icon-animate block rounded-[4px] border border-border bg-card p-6 transition-[transform,border-color,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-foreground/25 hover:bg-secondary/55 hover:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_16px_34px_-20px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/35 active:translate-y-0 motion-reduce:hover:translate-y-0"
+      className="group flex items-center gap-5 rounded-3xl border border-black/[0.08] bg-white p-6 outline-none transition-[border-color,box-shadow] duration-300 hover:border-black/20 hover:shadow-[0_18px_50px_-32px_rgba(0,0,0,0.35)] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
     >
-      <div className="flex items-center gap-5">
-        <span className="grid size-14 shrink-0 place-items-center rounded-[4px] bg-primary text-primary-foreground transition-transform duration-200 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-y-0">
-          <Mic className="size-6" />
-        </span>
-        <div className="min-w-0">
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            Quick action
-          </p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight">
-            Start recording a lecture
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Capture audio in your browser. Notes are ready when it ends.
-          </p>
-        </div>
-        <ArrowRight className="ml-auto hidden size-5 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 sm:block" />
+      <span className="grid size-14 shrink-0 place-items-center rounded-full bg-[#0d0d0d] text-white transition-transform duration-300 ease-out group-hover:scale-[1.04] motion-reduce:group-hover:scale-100">
+        <Mic className="size-6" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/45">
+          Quick action
+        </p>
+        <h2 className="mt-1 text-xl font-normal tracking-tight">
+          Start recording a{" "}
+          <span className="font-instrument italic">lecture</span>
+        </h2>
+        <p className="mt-1 text-sm text-[#0d0d0d]/55">
+          Capture audio in your browser. Notes are ready when it ends.
+        </p>
       </div>
+      <ArrowRight className="ml-auto hidden size-5 shrink-0 text-[#0d0d0d]/40 transition-transform duration-300 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0 sm:block" />
     </Link>
   );
 }

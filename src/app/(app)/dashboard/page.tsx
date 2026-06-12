@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Mic } from "lucide-react";
+import { ArrowRight, Mic } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
+import { GlassPanel, HeroBand } from "@/components/app/glass";
 import { Greeting } from "@/components/dashboard/greeting";
 import { StatCards, type Stat } from "@/components/dashboard/stat-cards";
 import { QuickRecord } from "@/components/dashboard/quick-record";
@@ -78,6 +78,7 @@ export default async function DashboardPage() {
     0
   );
   const streak = computeStreak(readyNotes.map((n) => n.created_at));
+  const hours = totalSeconds / 3600;
 
   const name =
     profile?.display_name?.trim() || (user.email ?? "there").split("@")[0];
@@ -89,49 +90,63 @@ export default async function DashboardPage() {
     !profile?.year ||
     !profile?.grad_year;
 
+  // Hours headlines the ink chip in the hero band; the pill row carries the rest.
   const stats: Stat[] = [
-    { icon: "mic", label: "Recordings", value: readyNotes.length },
-    {
-      icon: "clock",
-      label: "Hours captured",
-      value: totalSeconds / 3600,
-      decimals: 1,
-    },
-    { icon: "sparkles", label: "Key concepts", value: keyConcepts },
-    { icon: "flame", label: "Day streak", value: streak },
+    { icon: "mic", label: "recordings", value: readyNotes.length },
+    { icon: "sparkles", label: "key concepts", value: keyConcepts },
+    { icon: "flame", label: "day streak", value: streak },
   ];
 
   return (
-    <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
+    <main className="px-4 pb-24 pt-6 lg:px-8 lg:pt-6">
       <DashboardStaleRefresh />
       <RealtimeRefresh userId={user.id} hasProcessing={hasProcessing} />
       <div className="mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <Greeting name={name} />
-            {profileIncomplete && (
+        {/* Hero band: the page's single imagery moment, glass floating on mist. */}
+        <HeroBand priority>
+          <div className="flex flex-col gap-4 p-4 sm:p-6 lg:flex-row lg:items-stretch lg:justify-between">
+            <GlassPanel
+              variant="light"
+              className="flex flex-col justify-between px-6 py-5 lg:max-w-xl lg:flex-1"
+            >
+              <Greeting name={name} />
+              {profileIncomplete && (
+                <Link
+                  href="/settings"
+                  className="group mt-4 inline-flex items-center gap-1 text-sm text-[#0d0d0d]/60 transition hover:text-[#0d0d0d]"
+                >
+                  Complete your profile for a personalized experience
+                  <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              )}
+            </GlassPanel>
+            <GlassPanel
+              variant="ink"
+              className="flex flex-col justify-between gap-5 px-6 py-5 lg:w-72"
+            >
+              <div>
+                <p className="text-3xl font-normal tabular-nums tracking-tight sm:text-4xl">
+                  {hours.toFixed(1)}
+                  <span className="ml-1.5 text-base text-white/60">hrs</span>
+                </p>
+                <p className="mt-1 text-sm text-white/60">
+                  of lectures{" "}
+                  <span className="font-instrument italic">captured</span>
+                </p>
+              </div>
               <Link
-                href="/settings"
-                className="group mt-3 inline-flex items-center gap-1 text-sm text-primary/90 transition hover:text-primary"
+                href="/upload"
+                className="group flex h-11 items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-[#0d0d0d] outline-none transition hover:scale-[1.02] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 motion-reduce:hover:scale-100"
               >
-                Complete your profile for a personalized experience
-                <span className="transition-transform group-hover:translate-x-0.5">
-                  →
-                </span>
+                <Mic className="size-4" />
+                Record a lecture
               </Link>
-            )}
+            </GlassPanel>
           </div>
-          <Button asChild size="lg" className="group w-full shrink-0 sm:w-auto">
-            <Link href="/upload">
-              <Mic className="size-4" />
-              Record a lecture
-            </Link>
-          </Button>
-        </div>
+        </HeroBand>
 
         {/* Stats */}
-        <div className="mt-8">
+        <div className="mt-6">
           <StatCards stats={stats} />
         </div>
 
@@ -150,11 +165,12 @@ export default async function DashboardPage() {
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
           <section>
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold tracking-tight">
-                Recent recordings
+              <h2 className="text-2xl font-normal tracking-tight">
+                Recent{" "}
+                <span className="font-instrument italic">recordings</span>
               </h2>
               {notes.length > 0 && (
-                <span className="font-mono text-xs text-muted-foreground">
+                <span className="rounded-full border border-black/[0.1] px-2.5 py-1 text-xs tabular-nums text-[#0d0d0d]/55">
                   {notes.length} total
                 </span>
               )}

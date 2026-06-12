@@ -41,38 +41,37 @@ function useCountUp(target: number, decimals = 0) {
   return value.toFixed(decimals);
 }
 
-function StatCard({ stat, index }: { stat: Stat; index: number }) {
+/** One stat as a hairline pill — the editorial counterpart of the old boxy card. */
+function StatPill({ stat, index }: { stat: Stat; index: number }) {
   const reduce = useReducedMotion();
   const Icon = ICONS[stat.icon];
   const display = useCountUp(stat.value, stat.decimals ?? 0);
   return (
     <motion.div
-      initial={reduce ? false : { opacity: 0, y: 12 }}
+      initial={reduce ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="group hover-glow icon-animate rounded-[4px] border border-border bg-card p-4 transition-[transform,border-color,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-foreground/25 hover:bg-secondary/45 hover:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_14px_30px_-20px_rgba(0,0,0,0.34)] motion-reduce:hover:translate-y-0 sm:p-5"
+      className="flex items-center gap-2.5 rounded-full border border-black/[0.12] bg-white px-4 py-2.5 transition-colors hover:border-black/25"
     >
-      <span className="grid size-9 place-items-center rounded-[4px] border border-border bg-background text-foreground transition-transform duration-200 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-y-0 sm:size-10">
-        <Icon className="size-4 sm:size-5" />
-      </span>
-      <p className="mt-3 text-3xl font-bold tabular-nums tracking-tight sm:mt-4 sm:text-4xl">
+      <Icon className="size-4 shrink-0 text-[#0d0d0d]/50" />
+      <span className="text-base font-medium tabular-nums tracking-tight">
         {display}
         {stat.suffix && (
-          <span className="ml-1 text-base font-medium text-muted-foreground">
+          <span className="ml-0.5 text-sm font-normal text-[#0d0d0d]/55">
             {stat.suffix}
           </span>
         )}
-      </p>
-      <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
+      </span>
+      <span className="text-sm text-[#0d0d0d]/55">{stat.label}</span>
     </motion.div>
   );
 }
 
 export function StatCards({ stats }: { stats: Stat[] }) {
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="flex flex-wrap gap-2.5">
       {stats.map((s, i) => (
-        <StatCard key={s.label} stat={s} index={i} />
+        <StatPill key={s.label} stat={s} index={i} />
       ))}
     </div>
   );
