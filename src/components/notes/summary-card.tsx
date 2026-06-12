@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type CSSProperties } from "react";
 import { motion } from "framer-motion";
 import { Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
  * longer hand-edit it. Instead, a single "Regenerate summary" capsule re-derives
  * a fresh 4–6 sentence overview from the full notes/transcript on the server.
  *
- * While regenerating, the card lifts into its "active" AI glow, a soft pulsing
- * border breathes around it, and the new summary streams in token by token
- * (ChatGPT-style) with a blinking caret — never popping in all at once.
+ * While regenerating, the card keeps Atlas's AI glow on the outline only and
+ * streams the new summary token by token (ChatGPT-style) with a blinking caret —
+ * never popping in all at once.
  */
 export function SummaryCard({
   noteId,
@@ -86,10 +86,18 @@ export function SummaryCard({
   return (
     <section
       className={cn(
-        "ai-ring relative isolate rounded-3xl border border-black/[0.08] bg-white p-6 sm:p-7",
-        regenerating && "ai-ring--active"
+        "relative isolate rounded-3xl border border-black/[0.08] bg-white p-6 shadow-[0_24px_70px_-52px_rgba(13,13,13,0.45)] sm:p-7"
       )}
     >
+      <span
+        aria-hidden
+        className="processing-glow"
+        style={
+          {
+            "--ai-ring-flow": regenerating ? "5.5s" : "11s",
+          } as CSSProperties
+        }
+      />
       <div className="relative">
         <div className="flex items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
