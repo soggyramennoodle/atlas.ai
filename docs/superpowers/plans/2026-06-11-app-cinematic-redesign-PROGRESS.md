@@ -18,10 +18,19 @@ Full cinematic conversion of the user app (Inter Tight + Instrument Serif, no gr
 | 3 | Note view | DONE | aad041e0 |
 | 4 | Settings | DONE | 13917864 |
 | 5 | Onboarding + UI tour + passkey prompt | DONE | b9672635 |
-| 6 | Admin (7 pages) | todo | — |
+| 6 | Admin (7 pages + admin/newsroom components) | DONE | (this commit) |
 | 7 | Final sweep (theme files, rivo tokens, dead styles) | todo | — |
 
-## ➜ RESUME HERE: Phase 6 (admin) is next
+## ➜ RESUME HERE: Phase 7 (final sweep) is next
+
+**2026-06-12 Phase 6 DONE (admin):** All 7 admin pages + `src/components/admin/` + admin-side newsroom tooling converted to the polish-pass contract. New shared kit at `src/components/admin/admin-kit.tsx` (ADMIN_EYEBROW chip, ADMIN_BTN/_PRIMARY/_GHOST pills, ADMIN_INPUT/_TEXTAREA, ADMIN_BADGE, AdminHeader, AdminEmpty; re-exports CARD/cn). shadcn Button/Input/Label/Textarea removed from all admin components. Status tone systems kept functional-color (sky/violet/amber/emerald) but light-mode-correct (`-700` text, no `dark:` variants); **failed = ink chip** (`bg-[#0d0d0d] text-white`), destructive confirmations = **amber attention panels + ink primary buttons**, never red blocks. `JOB_STATUS_TONES` (lib/admin-jobs.ts) and `StatusChip` (newsroom/chips.tsx — admin-only chip; public chips were already mono) updated accordingly. Jobs table = CARD shell + hairline rows; dropdown content restyled (rounded-2xl white); article editor fully pill/cinematic with same save/publish flows. All actions preserved verbatim: ban/unban/delete (incl. type-email confirm), magic-link resend, gemini restore (confirm + alert flows), logout-all (typed phrase), announcements save, newsroom CRUD/publish/archive/delete, feedback status/notes/mark-all-read + unread tinting, processing monitor polling/clock-skew/stop, jobs requeue/stop/auto-delete countdowns, 15s jobs auto-refresh. One scoped eslint-disable added in jobs/page.tsx (`react-hooks/purity` on `Date.now()` — pre-existing, server snapshot is intentional). Verified: eslint clean, tsc clean, 95/95 tests, banned-token grep clean across admin+newsroom, all 8 admin routes compile (auth 307). NOT visually verified in a browser.
+
+### Phase 7 remaining (final sweep)
+- Delete theme-provider/theme-sync/theme-selector — but FIRST check root layout's ThemeProvider (marketing may need it; MarketingThemeLock exists for a reason).
+- Remove rivo tokens/dead CSS from globals.css only if genuinely unused by marketing/auth (they share globals.css; `.next` wipe after token edits).
+- Delete unused shadcn components only if nothing imports them (Button/Input/Label/Textarea still used by marketing/auth surfaces — check before deleting).
+- Sweep `dark:` variants in app surfaces (app is light-only).
+- Optional follow-up logged earlier: exporters still emit raw `$...$` LaTeX (PDF/docx math rendering).
 
 **2026-06-12 DEPTH & POLISH PASS (user-directed audit of phases 3–5):** The user reviewed the live app and found the conversions on-contract but flat — blinding white-on-white, hairline-divider soup in settings, no texture, no moments. A full polish pass shipped on top, and it CHANGES THE CONTRACT for Phase 6+:
 

@@ -14,15 +14,21 @@ import {
   Trash2,
   Undo2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  ADMIN_BADGE,
+  ADMIN_BTN,
+  ADMIN_BTN_GHOST,
+  ADMIN_BTN_PRIMARY,
+  ADMIN_INPUT,
+  CARD,
+  cn,
+} from "@/components/admin/admin-kit";
 import { formatUserDate, type AdminUserRow } from "@/lib/admin-users";
 import {
   deleteUserAccount,
   resendMagicLink,
   setUserBanned,
 } from "@/app/(app)/admin/users/actions";
-import { cn } from "@/lib/utils";
 
 type Dialog = "none" | "resend" | "ban" | "delete";
 
@@ -36,11 +42,11 @@ function Badge({
   return (
     <span
       className={cn(
-        "rounded-[3px] border px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wider",
-        tone === "alert" && "border-destructive/40 bg-destructive/10 text-destructive",
-        tone === "neutral" && "border-border bg-secondary text-muted-foreground",
-        tone === "ok" && "border-primary/35 bg-primary/10 text-primary",
-        tone === "brand" && "border-foreground/30 bg-foreground/10 text-foreground"
+        ADMIN_BADGE,
+        tone === "alert" && "border-amber-500/40 bg-amber-500/10 text-amber-700",
+        tone === "neutral" && "border-black/[0.1] bg-black/[0.03] text-[#0d0d0d]/55",
+        tone === "ok" && "border-emerald-500/35 bg-emerald-500/10 text-emerald-700",
+        tone === "brand" && "border-[#0d0d0d] bg-[#0d0d0d] text-white"
       )}
     >
       {children}
@@ -122,21 +128,23 @@ export function UserRow({
     !!user.email && confirmEmail.trim().toLowerCase() === user.email.toLowerCase();
 
   return (
-    <div className="rounded-[4px] border bg-card p-4">
+    <div className={cn(CARD, "rounded-2xl p-4 sm:p-5")}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate font-medium">{user.email ?? "—"}</span>
+            <span className="truncate font-medium text-[#0d0d0d]">
+              {user.email ?? "—"}
+            </span>
             {isSelf && <Badge tone="brand">You</Badge>}
             {user.isAdmin && (
               <Badge tone="brand">
-                <ShieldCheck className="mr-0.5 inline size-2.5" />
+                <ShieldCheck className="size-2.5" />
                 Admin
               </Badge>
             )}
             {user.banned && (
               <Badge tone="alert">
-                <Ban className="mr-0.5 inline size-2.5" />
+                <Ban className="size-2.5" />
                 Banned
               </Badge>
             )}
@@ -147,25 +155,23 @@ export function UserRow({
             )}
           </div>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <button
-                type="button"
-                onClick={copyId}
-                className="inline-flex items-center gap-1 font-mono transition hover:text-foreground"
-                title="Copy user ID"
-              >
-                {copied ? (
-                  <Check className="size-3 text-primary" />
-                ) : (
-                  <Copy className="size-3" />
-                )}
-                {user.id}
-              </button>
-            </span>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#0d0d0d]/50">
+            <button
+              type="button"
+              onClick={copyId}
+              className="inline-flex items-center gap-1 font-mono outline-none transition hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
+              title="Copy user ID"
+            >
+              {copied ? (
+                <Check className="size-3 text-emerald-600" />
+              ) : (
+                <Copy className="size-3" />
+              )}
+              {user.id}
+            </button>
           </div>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#0d0d0d]/50">
             <span>{user.methodLabel}</span>
             <span>Joined {formatUserDate(user.createdAt)}</span>
             <span>
@@ -182,36 +188,36 @@ export function UserRow({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <Button
-            variant="secondary"
-            size="xs"
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            className={ADMIN_BTN}
             onClick={() => setDialog("resend")}
             disabled={pending || !user.email}
           >
-            <Mail />
+            <Mail className="size-3.5" />
             Magic link
-          </Button>
-          <Button
-            variant="secondary"
-            size="xs"
+          </button>
+          <button
+            type="button"
+            className={ADMIN_BTN}
             onClick={() => setDialog("ban")}
             disabled={pending || protectedTarget}
             title={protectedTarget ? "Protected account" : undefined}
           >
-            {user.banned ? <Undo2 /> : <Ban />}
+            {user.banned ? <Undo2 className="size-3.5" /> : <Ban className="size-3.5" />}
             {user.banned ? "Unban" : "Ban"}
-          </Button>
-          <Button
-            variant="destructive"
-            size="xs"
+          </button>
+          <button
+            type="button"
+            className={cn(ADMIN_BTN, "text-[#0d0d0d]/60")}
             onClick={() => setDialog("delete")}
             disabled={pending || protectedTarget}
             title={protectedTarget ? "Protected account" : undefined}
           >
-            <Trash2 />
+            <Trash2 className="size-3.5" />
             Delete
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -258,70 +264,88 @@ function ConfirmPanel({
   return (
     <div
       className={cn(
-        "mt-4 rounded-[4px] border p-4",
-        isDelete ? "border-destructive/40 bg-destructive/5" : "border-border bg-secondary/40"
+        "mt-4 rounded-2xl border p-4",
+        isDelete
+          ? "border-amber-500/35 bg-amber-500/[0.06]"
+          : "border-black/[0.08] bg-black/[0.02]"
       )}
     >
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-2.5">
         {isDelete && (
-          <ShieldAlert className="mt-0.5 size-4 shrink-0 text-destructive" />
+          <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-700" />
         )}
         <div className="min-w-0 flex-1">
           {dialog === "resend" && (
-            <p className="text-sm text-pretty">
-              Email a fresh sign-in link to <strong>{user.email}</strong>?
+            <p className="text-pretty text-sm text-[#0d0d0d]/80">
+              Email a fresh sign-in link to{" "}
+              <strong className="font-medium text-[#0d0d0d]">{user.email}</strong>?
             </p>
           )}
           {dialog === "ban" && (
-            <p className="text-sm text-pretty">
+            <p className="text-pretty text-sm text-[#0d0d0d]/80">
               {user.banned ? (
                 <>
-                  Unban <strong>{user.email}</strong>? They&apos;ll be able to
-                  sign in again.
+                  Unban{" "}
+                  <strong className="font-medium text-[#0d0d0d]">
+                    {user.email}
+                  </strong>
+                  ? They&apos;ll be able to sign in again.
                 </>
               ) : (
                 <>
-                  Ban <strong>{user.email}</strong>? They won&apos;t be able to
-                  sign in until you unban them.
+                  Ban{" "}
+                  <strong className="font-medium text-[#0d0d0d]">
+                    {user.email}
+                  </strong>
+                  ? They won&apos;t be able to sign in until you unban them.
                 </>
               )}
             </p>
           )}
           {isDelete && (
             <>
-              <p className="text-sm text-pretty">
-                Permanently delete <strong>{user.email}</strong> and purge all
-                their notes, recordings and stored audio. This cannot be undone.
+              <p className="text-pretty text-sm text-[#0d0d0d]/80">
+                Permanently delete{" "}
+                <strong className="font-medium text-[#0d0d0d]">
+                  {user.email}
+                </strong>{" "}
+                and purge all their notes, recordings and stored audio. This
+                cannot be undone.
               </p>
-              <label className="mt-3 block text-xs font-medium text-muted-foreground">
+              <label className="mt-3 block text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45">
                 Type the email to confirm
               </label>
-              <Input
+              <input
                 value={confirmEmail}
                 onChange={(e) => setConfirmEmail(e.target.value)}
                 placeholder={user.email ?? ""}
                 autoComplete="off"
-                className="mt-1.5 max-w-sm"
+                className={`${ADMIN_INPUT} mt-1.5 max-w-sm`}
                 disabled={pending}
               />
             </>
           )}
 
           <div className="mt-4 flex items-center gap-2">
-            <Button
-              variant={isDelete ? "destructive" : "default"}
-              size="sm"
+            <button
+              type="button"
+              className={ADMIN_BTN_PRIMARY}
               onClick={onConfirm}
               disabled={confirmDisabled}
             >
-              {pending && <Loader2 className="animate-spin" />}
+              {pending && <Loader2 className="size-3.5 animate-spin" />}
               {dialog === "resend" && "Send link"}
               {dialog === "ban" && (user.banned ? "Unban user" : "Ban user")}
               {isDelete && "Delete account"}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onCancel} disabled={pending}>
+            </button>
+            <button
+              type="button"
+              className={ADMIN_BTN_GHOST}
+              onClick={onCancel}
+              disabled={pending}
+            >
               Cancel
-            </Button>
+            </button>
           </div>
         </div>
       </div>

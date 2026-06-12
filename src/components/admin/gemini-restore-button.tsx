@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ShieldCheck, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ADMIN_BTN } from "@/components/admin/admin-kit";
 
 interface Status {
   active: boolean;
@@ -65,21 +65,21 @@ export function GeminiRestoreButton({ onResolved }: { onResolved?: () => void })
   const active = status?.active === true;
 
   const button = (
-    <Button
+    <button
+      type="button"
       onClick={resolve}
       disabled={!active || busy}
       className={
         active
-          ? "h-10 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-          : "h-10 gap-2"
+          ? "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 text-xs font-medium text-white outline-none transition hover:bg-emerald-700 disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-black/25"
+          : `${ADMIN_BTN} h-10`
       }
-      variant={active ? "default" : "outline"}
     >
       {busy ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
       {active
         ? `Gemini at capacity — ${status?.affectedJobs ?? 0} held · Mark restored`
         : "Gemini processing — healthy"}
-    </Button>
+    </button>
   );
 
   if (active) return button;

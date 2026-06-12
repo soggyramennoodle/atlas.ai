@@ -39,19 +39,19 @@ export function StatusChip({
 }) {
   const tone =
     status === "published"
-      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+      ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-700"
       : status === "draft"
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
-        : "border-border bg-muted/40 text-muted-foreground";
+        ? "border-amber-500/35 bg-amber-500/10 text-amber-700"
+        : "border-black/[0.08] bg-black/[0.03] text-black/45";
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-[3px] border px-2.5 py-0.5 font-mono text-[0.65rem] font-medium uppercase tracking-wider",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-[0.12em]",
         tone,
         className
       )}
     >
-      <span className="size-1.5 bg-current" />
+      <span className="size-1.5 rounded-full bg-current" />
       {STATUS_META[status]?.label ?? status}
     </span>
   );

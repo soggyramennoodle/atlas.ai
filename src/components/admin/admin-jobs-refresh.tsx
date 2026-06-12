@@ -10,8 +10,8 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { GeminiRestoreButton } from "@/components/admin/gemini-restore-button";
+import { ADMIN_BTN } from "@/components/admin/admin-kit";
 
 type AdminJobsRefreshContextValue = {
   refresh: () => void;
@@ -52,12 +52,11 @@ export function AdminJobsToolbar() {
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2">
       <GeminiRestoreButton onResolved={refresh} />
-      <Button
+      <button
         type="button"
-        variant="outline"
         onClick={refresh}
         disabled={isRefreshing}
-        className="h-10 gap-2"
+        className={`${ADMIN_BTN} h-10`}
         title="Reload job rows from the database"
       >
         {isRefreshing ? (
@@ -66,7 +65,7 @@ export function AdminJobsToolbar() {
           <RefreshCw className="size-4" />
         )}
         Reload jobs
-      </Button>
+      </button>
     </div>
   );
 }

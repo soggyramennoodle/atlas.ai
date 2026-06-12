@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Copy, Check, RefreshCcw, Loader2, OctagonX } from "lucide-react";
 import { isJobCancellable } from "@/lib/admin-jobs";
 import { cn } from "@/lib/utils";
+import { ADMIN_BADGE } from "@/components/admin/admin-kit";
 import {
   JOB_STATUS_LABELS,
   JOB_STATUS_TONES,
@@ -18,14 +19,18 @@ const HEALTH_DOT: Record<JobHealthKey, string> = {
   held: "bg-orange-500",
   running: "bg-emerald-500",
   stuck: "bg-amber-500",
-  failed: "bg-rose-500",
+  failed: "bg-[#0d0d0d]",
   ready: "bg-emerald-500",
-  idle: "bg-muted-foreground/40",
+  idle: "bg-black/25",
 };
+
+/* Tiny row-action pill (dense table context). */
+const ROW_BTN =
+  "inline-flex items-center gap-1 rounded-full border border-black/[0.12] bg-white px-2.5 py-0.5 text-xs text-[#0d0d0d]/70 outline-none transition hover:bg-black/[0.03] hover:text-[#0d0d0d] disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-black/25";
 
 function CopyId({ label, value }: { label: string; value: string | null }) {
   const [copied, setCopied] = useState(false);
-  if (!value) return <span className="text-muted-foreground">{label} —</span>;
+  if (!value) return <span className="text-[#0d0d0d]/45">{label} —</span>;
   return (
     <button
       type="button"
@@ -36,11 +41,11 @@ function CopyId({ label, value }: { label: string; value: string | null }) {
           setTimeout(() => setCopied(false), 1200);
         });
       }}
-      className="inline-flex items-center gap-1 text-foreground hover:text-primary"
+      className="inline-flex items-center gap-1 text-[#0d0d0d]/80 outline-none transition hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
     >
       {label} {formatAdminId(value)}
       {copied ? (
-        <Check className="size-3 text-emerald-500" />
+        <Check className="size-3 text-emerald-600" />
       ) : (
         <Copy className="size-3 opacity-50" />
       )}
@@ -90,25 +95,20 @@ export function JobRow({ job }: { job: AdminJobRow }) {
   }
 
   return (
-    <tr className="align-top transition hover:bg-secondary/40">
+    <tr className="align-top transition hover:bg-black/[0.02]">
       {/* Job column */}
       <td className="px-4 py-3.5">
         <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-[3px] border px-2.5 py-0.5 font-mono text-[0.65rem] font-medium uppercase tracking-wider",
-              JOB_STATUS_TONES[job.status]
-            )}
-          >
-            <span className="size-1.5 bg-current" />
+          <span className={cn(ADMIN_BADGE, JOB_STATUS_TONES[job.status])}>
+            <span className="size-1.5 rounded-full bg-current" />
             {JOB_STATUS_LABELS[job.status]}
           </span>
-          <span className="inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.12em] text-[#0d0d0d]/50">
             <span className={cn("size-1.5 rounded-full", HEALTH_DOT[job.health])} />
             {job.healthLabel}
           </span>
           {job.error && job.health !== "held" ? (
-            <span className="font-mono text-[0.65rem] uppercase tracking-wider text-rose-500">
+            <span className="font-mono text-[0.65rem] uppercase tracking-wider text-[#0d0d0d]/70">
               {job.error}
             </span>
           ) : null}
@@ -122,9 +122,9 @@ export function JobRow({ job }: { job: AdminJobRow }) {
       {/* Owner column */}
       <td className="px-4 py-3.5">
         {job.userEmail ? (
-          <p className="text-sm text-foreground">{job.userEmail}</p>
+          <p className="text-sm text-[#0d0d0d]">{job.userEmail}</p>
         ) : (
-          <p className="text-sm text-muted-foreground">—</p>
+          <p className="text-sm text-[#0d0d0d]/45">—</p>
         )}
         <div className="mt-0.5">
           <CopyId label="user" value={job.userId} />
@@ -132,7 +132,7 @@ export function JobRow({ job }: { job: AdminJobRow }) {
       </td>
 
       {/* Segments column */}
-      <td className="px-4 py-3.5 text-muted-foreground">
+      <td className="px-4 py-3.5 text-[#0d0d0d]/55">
         <p>
           {job.segmentRows}
           {job.segmentCount != null ? ` / ${job.segmentCount}` : ""} uploaded
@@ -143,14 +143,14 @@ export function JobRow({ job }: { job: AdminJobRow }) {
       </td>
 
       {/* Last activity column */}
-      <td className="px-4 py-3.5 text-muted-foreground">
+      <td className="px-4 py-3.5 text-[#0d0d0d]/55">
         <p>{formatTimestamp(job.lastActivityAt)}</p>
         <p
           className={cn(
             "mt-0.5 font-mono text-[0.65rem]",
             !job.heartbeatAt && job.health === "held"
-              ? "text-orange-600 dark:text-orange-400"
-              : "text-muted-foreground"
+              ? "text-orange-600"
+              : "text-[#0d0d0d]/45"
           )}
           title={
             job.heartbeatAt
@@ -164,18 +164,16 @@ export function JobRow({ job }: { job: AdminJobRow }) {
 
       {/* Auto-delete column */}
       <td className="px-4 py-3.5">
-        <p className="font-medium">{formatAutoDeleteCountdown(Date.parse(job.autoDeleteAt))}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{formatTimestamp(job.autoDeleteAt)}</p>
-        <p className="mt-0.5 text-[0.65rem] text-muted-foreground">
+        <p className="font-medium text-[#0d0d0d]">
+          {formatAutoDeleteCountdown(Date.parse(job.autoDeleteAt))}
+        </p>
+        <p className="mt-0.5 text-xs text-[#0d0d0d]/55">{formatTimestamp(job.autoDeleteAt)}</p>
+        <p className="mt-0.5 text-[0.65rem] text-[#0d0d0d]/45">
           {job.autoDeleteKind === "stale" ? "Abandoned job cleanup" : "Job record retention"}
         </p>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
           {canStop ? (
-            <button
-              onClick={stopJob}
-              disabled={stopping}
-              className="inline-flex items-center gap-1 rounded-[3px] border border-destructive/40 px-2 py-0.5 text-xs text-destructive hover:bg-destructive/10"
-            >
+            <button onClick={stopJob} disabled={stopping} className={ROW_BTN}>
               {stopping ? (
                 <Loader2 className="size-3 animate-spin" />
               ) : (
@@ -185,11 +183,7 @@ export function JobRow({ job }: { job: AdminJobRow }) {
             </button>
           ) : null}
           {canRequeue ? (
-            <button
-              onClick={requeue}
-              disabled={requeuing}
-              className="inline-flex items-center gap-1 rounded-[3px] border px-2 py-0.5 text-xs hover:bg-secondary"
-            >
+            <button onClick={requeue} disabled={requeuing} className={ROW_BTN}>
               {requeuing ? (
                 <Loader2 className="size-3 animate-spin" />
               ) : (

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { countUnreadFeedback } from "@/lib/admin-feedback-server";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
+import { ADMIN_EYEBROW, CARD, cn } from "@/components/admin/admin-kit";
 
 export const metadata: Metadata = { title: "Admin" };
 export const dynamic = "force-dynamic";
@@ -72,14 +73,14 @@ export default async function AdminHubPage() {
     <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
       <div className="mx-auto max-w-4xl">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
+          <span className={ADMIN_EYEBROW}>
             <ShieldCheck className="size-3.5" />
             Admin
           </span>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight">
-            Admin console
+          <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+            Admin <span className="font-instrument italic">console</span>
           </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-[#0d0d0d]/60">
             Choose an area to manage.
           </p>
         </div>
@@ -92,24 +93,27 @@ export default async function AdminHubPage() {
               <Link
                 key={action.href}
                 href={action.href}
-                className="group flex items-start gap-4 rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition hover:border-foreground/25 hover:bg-secondary/40"
+                className={cn(
+                  CARD,
+                  "group flex items-start gap-4 p-5 outline-none transition-[border-color,box-shadow] duration-300 hover:border-black/20 focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
+                )}
               >
-                <div className="grid size-10 shrink-0 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
+                <div className="grid size-10 shrink-0 place-items-center rounded-full border border-black/[0.1] bg-black/[0.03] text-[#0d0d0d]">
                   <action.icon className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <h2 className="font-medium">{action.title}</h2>
+                      <h2 className="font-medium text-[#0d0d0d]">{action.title}</h2>
                       {unread > 0 && (
-                        <span className="rounded-[3px] border border-destructive/40 bg-destructive/10 px-1.5 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-destructive">
+                        <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-[0.12em] text-amber-700">
                           {unread} unread
                         </span>
                       )}
                     </div>
-                    <ChevronRight className="size-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
+                    <ChevronRight className="size-4 shrink-0 text-[#0d0d0d]/40 transition group-hover:translate-x-0.5 group-hover:text-[#0d0d0d]" />
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-1 text-sm leading-6 text-[#0d0d0d]/55">
                     {action.description}
                   </p>
                 </div>

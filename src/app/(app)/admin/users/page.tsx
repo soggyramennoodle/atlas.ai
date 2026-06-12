@@ -5,6 +5,7 @@ import { AdminBackLink } from "@/components/admin/admin-back-link";
 import { UserList } from "@/components/admin/user-list";
 import { listAdminUsers } from "@/lib/admin-users-server";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
+import { ADMIN_EYEBROW } from "@/components/admin/admin-kit";
 
 export const metadata: Metadata = { title: "Users · Admin" };
 export const dynamic = "force-dynamic";
@@ -21,12 +22,12 @@ export default async function AdminUsersPage() {
         <AdminBackLink fallbackHref="/admin" label="Back" />
 
         <div className="mt-4">
-          <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
+          <span className={ADMIN_EYEBROW}>
             <Users className="size-3.5" />
             Admin
           </span>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight">Users</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground text-pretty">
+          <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">Users</h1>
+          <p className="mt-2 max-w-3xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
             Every signed-up account, by email and sign-in method. Resend a magic
             link, suspend an account, or delete it entirely (which also purges
             their notes, recordings and stored audio).

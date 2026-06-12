@@ -5,10 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, Eye, ExternalLink, Pencil, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  ADMIN_BTN,
+  ADMIN_BTN_GHOST,
+  ADMIN_BTN_PRIMARY,
+  ADMIN_INPUT,
+  ADMIN_TEXTAREA,
+  CARD,
+} from "@/components/admin/admin-kit";
 import { CategoryChip, SeverityChip } from "@/components/newsroom/chips";
 import {
   CATEGORY_ORDER,
@@ -27,7 +31,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const SELECT_CLASS =
-  "h-9 w-full rounded-[4px] border border-input bg-transparent px-3 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30";
+  "h-10 w-full rounded-full border border-black/[0.12] bg-white px-4 text-sm text-[#0d0d0d] outline-none transition focus:border-black/30 focus-visible:ring-2 focus-visible:ring-black/25";
+
+const LABEL_CLASS =
+  "text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45";
 
 /** Convert an ISO timestamp to a `datetime-local` input value (local time). */
 function toLocalInput(iso: string | null): string {
@@ -111,49 +118,65 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/admin/newsroom"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground"
+          className="inline-flex items-center gap-1.5 rounded-full text-sm text-[#0d0d0d]/55 outline-none transition hover:-translate-x-0.5 hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
         >
           <ArrowLeft className="size-4" />
           All articles
         </Link>
         <div className="flex items-center gap-2">
           {article?.status === "published" && (
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`/newsroom/${article.slug}`} target="_blank">
-                View <ExternalLink className="size-3.5" />
-              </Link>
-            </Button>
+            <Link
+              href={`/newsroom/${article.slug}`}
+              target="_blank"
+              className={ADMIN_BTN_GHOST}
+            >
+              View <ExternalLink className="size-3.5" />
+            </Link>
           )}
           {status !== "published" && (
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              type="button"
+              className={ADMIN_BTN}
               disabled={pending}
               onClick={() => submit("published")}
             >
               Publish now
-            </Button>
+            </button>
           )}
-          <Button size="sm" disabled={pending} onClick={() => submit()}>
+          <button
+            type="button"
+            className={ADMIN_BTN_PRIMARY}
+            disabled={pending}
+            onClick={() => submit()}
+          >
             {pending && <Loader2 className="size-4 animate-spin" />}
             Save
-          </Button>
+          </button>
         </div>
       </div>
 
-      <h1 className="mt-6 text-3xl font-extrabold">
-        {article ? "Edit article" : "New article"}
+      <h1 className="mt-6 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+        {article ? (
+          <>
+            Edit <span className="font-instrument italic">article</span>
+          </>
+        ) : (
+          <>
+            New <span className="font-instrument italic">article</span>
+          </>
+        )}
       </h1>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.7fr_1fr]">
         {/* Main column */}
         <div className="space-y-6">
           <Field label="Title" htmlFor="title">
-            <Input
+            <input
               id="title"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder="A clear, specific headline"
+              className={ADMIN_INPUT}
             />
           </Field>
 
@@ -163,10 +186,10 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
             hint="Auto-generated from the title. Edit to customize."
           >
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-muted-foreground">
+              <span className="font-mono text-xs text-[#0d0d0d]/50">
                 /newsroom/
               </span>
-              <Input
+              <input
                 id="slug"
                 value={slug}
                 onChange={(e) => {
@@ -175,7 +198,7 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
                 }}
                 onBlur={() => setSlug((s) => slugify(s))}
                 placeholder="my-article"
-                className="font-mono"
+                className={cn(ADMIN_INPUT, "font-mono")}
               />
             </div>
           </Field>
@@ -185,28 +208,29 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
             htmlFor="excerpt"
             hint="A short dek shown on cards and at the top of the article."
           >
-            <Textarea
+            <textarea
               id="excerpt"
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
               rows={2}
               placeholder="One or two sentences summarizing the story."
+              className={ADMIN_TEXTAREA}
             />
           </Field>
 
           {/* Body with write/preview tabs */}
           <div>
             <div className="flex items-center justify-between">
-              <Label>Body</Label>
-              <div className="flex rounded-[4px] border bg-card p-0.5 text-xs">
+              <span className={LABEL_CLASS}>Body</span>
+              <div className="flex rounded-full border border-black/[0.1] bg-white p-0.5 text-xs">
                 <button
                   type="button"
                   onClick={() => setTab("write")}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-[3px] px-2.5 py-1 font-medium transition",
+                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-black/25",
                     tab === "write"
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "bg-[#0d0d0d] text-white"
+                      : "text-[#0d0d0d]/55 hover:text-[#0d0d0d]"
                   )}
                 >
                   <Pencil className="size-3" /> Write
@@ -215,32 +239,35 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
                   type="button"
                   onClick={() => setTab("preview")}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-[3px] px-2.5 py-1 font-medium transition",
+                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-black/25",
                     tab === "preview"
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "bg-[#0d0d0d] text-white"
+                      : "text-[#0d0d0d]/55 hover:text-[#0d0d0d]"
                   )}
                 >
                   <Eye className="size-3" /> Preview
                 </button>
               </div>
             </div>
-            <p className="mt-1.5 text-xs text-muted-foreground">
+            <p className="mt-1.5 text-xs text-[#0d0d0d]/50">
               Markdown supported: <code>#</code> headings, <code>**bold**</code>,{" "}
               <code>- lists</code>, <code>&gt; quotes</code>, <code>`code`</code>,{" "}
               <code>[links](url)</code>.
             </p>
             {tab === "write" ? (
-              <Textarea
+              <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 rows={18}
-                className="mt-2 font-mono text-sm leading-relaxed"
+                className={cn(
+                  ADMIN_TEXTAREA,
+                  "mt-2 bg-white font-mono text-sm leading-relaxed"
+                )}
                 placeholder={"## Section heading\n\nWrite your update here…"}
               />
             ) : (
               <div
-                className="article-prose mt-2 min-h-[24rem] rounded-[4px] border bg-card p-5"
+                className="article-prose mt-2 min-h-[24rem] rounded-2xl border border-black/[0.08] bg-white p-5"
                 dangerouslySetInnerHTML={{ __html: previewHtml }}
               />
             )}
@@ -248,7 +275,7 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
         </div>
 
         {/* Sidebar: metadata */}
-        <aside className="space-y-6 rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] lg:sticky lg:top-8 lg:self-start">
+        <aside className={cn(CARD, "space-y-6 p-5 lg:sticky lg:top-8 lg:self-start")}>
           <Field label="Status" htmlFor="status">
             <select
               id="status"
@@ -310,12 +337,12 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
             htmlFor="version"
             hint="Optional, e.g. v0.4.1"
           >
-            <Input
+            <input
               id="version"
               value={version}
               onChange={(e) => setVersion(e.target.value)}
               placeholder="v0.4.1"
-              className="font-mono"
+              className={cn(ADMIN_INPUT, "font-mono")}
             />
           </Field>
 
@@ -324,11 +351,12 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
             htmlFor="tags"
             hint="Comma-separated."
           >
-            <Input
+            <input
               id="tags"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="launch, notes"
+              className={ADMIN_INPUT}
             />
           </Field>
 
@@ -337,24 +365,25 @@ export function ArticleEditor({ article }: { article: NewsroomArticle | null }) 
             htmlFor="published_at"
             hint="Defaults to now when first published."
           >
-            <Input
+            <input
               id="published_at"
               type="datetime-local"
               value={publishedAt}
               onChange={(e) => setPublishedAt(e.target.value)}
+              className={ADMIN_INPUT}
             />
           </Field>
 
-          <label className="flex cursor-pointer items-center gap-3 rounded-[4px] border bg-card p-3 transition hover:border-primary/30 hover:bg-secondary/45">
+          <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-black/[0.1] bg-white p-3 transition hover:border-black/25">
             <input
               type="checkbox"
               checked={featured}
               onChange={(e) => setFeatured(e.target.checked)}
-              className="size-4 accent-primary"
+              className="size-4 accent-[#0d0d0d]"
             />
-            <span className="text-sm">
+            <span className="text-sm text-[#0d0d0d]">
               <span className="font-medium">Featured</span>
-              <span className="block text-xs text-muted-foreground">
+              <span className="block text-xs text-[#0d0d0d]/55">
                 Pin as the lead story on the Newsroom.
               </span>
             </span>
@@ -378,8 +407,10 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={htmlFor}>{label}</Label>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      <label htmlFor={htmlFor} className={LABEL_CLASS}>
+        {label}
+      </label>
+      {hint && <p className="text-xs text-[#0d0d0d]/50">{hint}</p>}
       {children}
     </div>
   );

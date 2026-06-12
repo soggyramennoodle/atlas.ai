@@ -5,6 +5,7 @@ import { AdminBackLink } from "@/components/admin/admin-back-link";
 import { FeedbackInbox } from "@/components/admin/feedback-inbox";
 import { listAdminFeedback } from "@/lib/admin-feedback-server";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
+import { ADMIN_EYEBROW } from "@/components/admin/admin-kit";
 
 export const metadata: Metadata = { title: "Feedback · Admin" };
 export const dynamic = "force-dynamic";
@@ -21,14 +22,14 @@ export default async function AdminFeedbackPage() {
         <AdminBackLink fallbackHref="/admin" label="Back" />
 
         <div className="mt-4">
-          <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
+          <span className={ADMIN_EYEBROW}>
             <Flag className="size-3.5" />
             Admin
           </span>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight">
-            User reports
+          <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+            User <span className="font-instrument italic">reports</span>
           </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground text-pretty">
+          <p className="mt-2 max-w-3xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
             Reports from note pages and the sidebar feedback button. Mark items
             read when triaged, resolve when addressed, and leave internal notes
             for your team.

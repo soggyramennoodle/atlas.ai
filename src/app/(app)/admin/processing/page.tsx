@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Activity } from "lucide-react";
 import { AdminBackLink } from "@/components/admin/admin-back-link";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
+import { ADMIN_EYEBROW } from "@/components/admin/admin-kit";
 import { getProcessingSnapshot } from "@/lib/processing-server";
 import { ProcessingMonitor } from "@/components/admin/processing-monitor";
 
@@ -22,14 +23,14 @@ export default async function AdminProcessingPage() {
         <AdminBackLink fallbackHref="/admin" label="Back" />
 
         <div className="mt-4">
-          <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
+          <span className={ADMIN_EYEBROW}>
             <Activity className="size-3.5" />
             Admin
           </span>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight">
+          <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
             Processing
           </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm leading-6 text-[#0d0d0d]/60">
             Live status of recordings and uploads moving through the pipeline.
             Owner email and pipeline state — no lecture content.
           </p>

@@ -3,9 +3,12 @@
 import { useState, useTransition } from "react";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  ADMIN_BTN_PRIMARY,
+  ADMIN_INPUT,
+  CARD,
+  cn,
+} from "@/components/admin/admin-kit";
 import type { SiteAnnouncement } from "@/lib/types";
 
 export function SiteAnnouncementForm({
@@ -34,39 +37,50 @@ export function SiteAnnouncementForm({
   }
 
   return (
-    <div className="rounded-[4px] border bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-      <h2 className="font-medium">Landing status pill</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
+    <div className={cn(CARD, "p-6 sm:p-7")}>
+      <h2 className="font-medium text-[#0d0d0d]">Landing status pill</h2>
+      <p className="mt-1 text-sm leading-6 text-[#0d0d0d]/60">
         Shown above the hero on the marketing page. Use it for beta notices,
         downtime, or anything everyone should see.
       </p>
 
       <div className="mt-5 space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="announcement-message">Message</Label>
-          <Input
+          <label
+            htmlFor="announcement-message"
+            className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45"
+          >
+            Message
+          </label>
+          <input
             id="announcement-message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Atlas is now in beta! Get started now."
             maxLength={240}
+            className={ADMIN_INPUT}
           />
         </div>
 
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-[#0d0d0d]/80">
           <input
             type="checkbox"
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
-            className="size-4 rounded-[3px] border border-border"
+            className="size-4 rounded-full border border-black/[0.18] accent-[#0d0d0d]"
           />
           Show on landing page
         </label>
 
-        <Button onClick={save} disabled={pending || !message.trim()}>
+        <button
+          type="button"
+          className={`${ADMIN_BTN_PRIMARY} h-10`}
+          onClick={save}
+          disabled={pending || !message.trim()}
+        >
           {pending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
           Save status
-        </Button>
+        </button>
       </div>
     </div>
   );

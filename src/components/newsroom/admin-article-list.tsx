@@ -20,6 +20,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  ADMIN_BTN,
+  ADMIN_BTN_GHOST,
+  ADMIN_BTN_PRIMARY,
+  CARD,
+  cn,
+} from "@/components/admin/admin-kit";
 import { CategoryChip, StatusChip } from "@/components/newsroom/chips";
 import { formatShortDate, type NewsroomArticle } from "@/lib/newsroom";
 import {
@@ -42,7 +49,7 @@ type Row = Pick<
 
 export function AdminArticleList({ articles }: { articles: Row[] }) {
   return (
-    <ul className="divide-y rounded-[4px] border bg-card shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+    <ul className={cn(CARD, "divide-y divide-black/[0.06] overflow-hidden")}>
       {articles.map((a) => (
         <ArticleRow key={a.id} article={a} />
       ))}
@@ -68,29 +75,29 @@ function ArticleRow({ article }: { article: Row }) {
   }
 
   return (
-    <li className="flex items-center gap-4 px-4 py-3.5 transition duration-300 ease-out hover:bg-secondary/55">
+    <li className="flex items-center gap-4 px-5 py-4 transition duration-300 ease-out hover:bg-black/[0.02]">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <StatusChip status={article.status} />
           <CategoryChip category={article.category} />
           {article.featured && (
-            <span className="font-mono text-[0.65rem] uppercase tracking-wider text-primary">
+            <span className="text-[0.65rem] font-medium uppercase tracking-[0.12em] text-[#0d0d0d]">
               ★ Featured
             </span>
           )}
           {article.version && (
-            <span className="font-mono text-[0.65rem] text-muted-foreground">
+            <span className="font-mono text-[0.65rem] text-[#0d0d0d]/50">
               {article.version}
             </span>
           )}
         </div>
         <Link
           href={`/admin/newsroom/${article.id}`}
-          className="mt-1.5 block truncate font-medium leading-snug transition hover:text-primary"
+          className="mt-1.5 block truncate font-medium leading-snug text-[#0d0d0d] outline-none transition hover:opacity-70 focus-visible:ring-2 focus-visible:ring-black/25"
         >
           {article.title}
         </Link>
-        <p className="mt-0.5 text-xs text-muted-foreground">
+        <p className="mt-0.5 text-xs text-[#0d0d0d]/50">
           {article.status === "published" && article.published_at
             ? `Published ${formatShortDate(article.published_at)}`
             : `Updated ${formatShortDate(article.updated_at)}`}
@@ -99,7 +106,7 @@ function ArticleRow({ article }: { article: Row }) {
 
       <Link
         href={`/admin/newsroom/${article.id}`}
-        className="hidden shrink-0 items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-foreground/25 hover:bg-accent hover:text-foreground sm:inline-flex"
+        className={cn(ADMIN_BTN, "hidden sm:inline-flex")}
       >
         <Pencil className="size-3.5" /> Edit
       </Link>
@@ -109,12 +116,15 @@ function ArticleRow({ article }: { article: Row }) {
           <button
             disabled={pending}
             aria-label="Article actions"
-            className="grid size-8 shrink-0 place-items-center rounded-[4px] text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-50"
+            className="grid size-8 shrink-0 place-items-center rounded-full text-[#0d0d0d]/45 outline-none transition hover:bg-black/[0.05] hover:text-[#0d0d0d] disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-black/25"
           >
             <MoreHorizontal className="size-4" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent
+          align="end"
+          className="w-48 rounded-2xl border-black/[0.08] bg-white text-[#0d0d0d] shadow-[0_1px_2px_rgba(13,13,13,0.05),0_24px_60px_-32px_rgba(13,13,13,0.4)]"
+        >
           <DropdownMenuItem asChild>
             <Link href={`/admin/newsroom/${article.id}`}>
               <Pencil className="size-4" /> Edit
@@ -157,7 +167,6 @@ function ArticleRow({ article }: { article: Row }) {
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            variant="destructive"
             onSelect={(e) => {
               e.preventDefault();
               setConfirmDelete(true);
@@ -195,26 +204,26 @@ function ConfirmDelete({
   onConfirm: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-background/70 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-[4px] border bg-card p-6 shadow-xl">
-        <h2 className="text-xl font-bold tracking-tight">
-          Delete this article?
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#0d0d0d]/30 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-3xl border border-black/[0.08] bg-white p-6 text-[#0d0d0d] shadow-[0_1px_2px_rgba(13,13,13,0.05),0_36px_90px_-40px_rgba(13,13,13,0.45)]">
+        <h2 className="text-xl font-normal tracking-[-0.01em]">
+          Delete this <span className="font-instrument italic">article?</span>
         </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm leading-6 text-[#0d0d0d]/60">
           “{title}” will be permanently removed. This can&apos;t be undone.
         </p>
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={onCancel}
             disabled={pending}
-            className="rounded-[4px] px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            className={ADMIN_BTN_GHOST}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={pending}
-            className="rounded-[4px] bg-destructive px-4 py-2 text-sm font-medium text-white transition hover:bg-destructive/90 disabled:opacity-50"
+            className={ADMIN_BTN_PRIMARY}
           >
             Delete
           </button>

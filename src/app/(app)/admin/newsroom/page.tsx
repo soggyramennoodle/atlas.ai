@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Plus, Newspaper, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { AdminArticleList } from "@/components/newsroom/admin-article-list";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
+import {
+  ADMIN_BTN,
+  ADMIN_BTN_PRIMARY,
+  ADMIN_EYEBROW,
+  AdminEmpty,
+} from "@/components/admin/admin-kit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { NewsroomArticle } from "@/lib/newsroom";
 
@@ -53,50 +58,44 @@ export default async function AdminNewsroomPage() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
+            <span className={ADMIN_EYEBROW}>
               <Newspaper className="size-3.5" />
               Admin
             </span>
-            <h1 className="mt-4 text-2xl font-semibold tracking-tight">
+            <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
               Newsroom
             </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm leading-6 text-[#0d0d0d]/60">
               {articles.length === 0
                 ? "Publish announcements, product updates and notices."
                 : `${counts.published ?? 0} published · ${counts.draft ?? 0} draft · ${counts.archived ?? 0} archived`}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/newsroom" target="_blank">
-                View public <ExternalLink className="size-3.5" />
-              </Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/admin/newsroom/new">
-                <Plus className="size-4" /> New article
-              </Link>
-            </Button>
+            <Link href="/newsroom" target="_blank" className={ADMIN_BTN}>
+              View public <ExternalLink className="size-3.5" />
+            </Link>
+            <Link href="/admin/newsroom/new" className={ADMIN_BTN_PRIMARY}>
+              <Plus className="size-4" /> New article
+            </Link>
           </div>
         </div>
 
         {/* List */}
         <div className="mt-8">
           {articles.length === 0 ? (
-            <div className="rounded-[4px] border border-dashed bg-card px-6 py-16 text-center shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-              <div className="mx-auto grid size-12 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
-                <Newspaper className="size-5" />
-              </div>
-              <h2 className="mt-4 font-medium">No articles yet</h2>
-              <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">
-                Create your first story to start the Newsroom.
-              </p>
-              <Button asChild className="mt-5" size="sm">
-                <Link href="/admin/newsroom/new">
-                  <Plus className="size-4" /> New article
-                </Link>
-              </Button>
-            </div>
+            <AdminEmpty
+              icon={Newspaper}
+              title="No articles yet"
+              body="Create your first story to start the Newsroom."
+            >
+              <Link
+                href="/admin/newsroom/new"
+                className={` mt-5`}
+              >
+                <Plus className="size-4" /> New article
+              </Link>
+            </AdminEmpty>
           ) : (
             <AdminArticleList articles={articles} />
           )}

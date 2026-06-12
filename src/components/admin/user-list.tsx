@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Search, Users } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { ADMIN_INPUT, AdminEmpty } from "@/components/admin/admin-kit";
 import { UserRow } from "@/components/admin/user-row";
 import type { AdminUserRow } from "@/lib/admin-users";
 
@@ -29,26 +29,29 @@ export function UserList({
   return (
     <div>
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
+        <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#0d0d0d]/40" />
+        <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by email or user ID…"
-          className="pl-9"
+          className={`${ADMIN_INPUT} h-11 pl-10`}
           autoComplete="off"
         />
       </div>
 
-      <p className="mt-3 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+      <p className="mt-3 text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45">
         {filtered.length} of {users.length}{" "}
         {users.length === 1 ? "user" : "users"}
         {truncated && " · showing first 5000"}
       </p>
 
       {filtered.length === 0 ? (
-        <div className="mt-6 grid place-items-center rounded-[4px] border border-dashed py-16 text-center">
-          <Users className="size-6 text-muted-foreground" />
-          <p className="mt-3 text-sm text-muted-foreground">No users match.</p>
+        <div className="mt-6">
+          <AdminEmpty
+            icon={Users}
+            title="No users match"
+            body="Try a different email or user ID."
+          />
         </div>
       ) : (
         <div className="mt-4 space-y-3">

@@ -11,8 +11,14 @@ import {
   Loader2,
   MessageSquareText,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  ADMIN_BADGE,
+  ADMIN_BTN,
+  ADMIN_BTN_GHOST,
+  ADMIN_TEXTAREA,
+  AdminEmpty,
+  CARD,
+} from "@/components/admin/admin-kit";
 import {
   FEEDBACK_CATEGORIES,
   FEEDBACK_CATEGORY_LABELS,
@@ -37,11 +43,11 @@ function StatusBadge({ status }: { status: FeedbackStatus }) {
   return (
     <span
       className={cn(
-        "rounded-[3px] border px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider",
-        tone === "alert" && "border-destructive/40 bg-destructive/10 text-destructive",
-        tone === "neutral" && "border-border bg-secondary text-foreground",
-        tone === "ok" && "border-primary/35 bg-primary/10 text-primary",
-        tone === "muted" && "border-border bg-muted/40 text-muted-foreground"
+        ADMIN_BADGE,
+        tone === "alert" && "border-amber-500/40 bg-amber-500/10 text-amber-700",
+        tone === "neutral" && "border-black/[0.12] bg-white text-[#0d0d0d]/70",
+        tone === "ok" && "border-emerald-500/35 bg-emerald-500/10 text-emerald-700",
+        tone === "muted" && "border-black/[0.08] bg-black/[0.03] text-[#0d0d0d]/45"
       )}
     >
       {FEEDBACK_STATUS_LABELS[status]}
@@ -51,7 +57,7 @@ function StatusBadge({ status }: { status: FeedbackStatus }) {
 
 function CategoryBadge({ category }: { category: FeedbackCategory }) {
   return (
-    <span className="rounded-[3px] border border-border bg-background px-2 py-0.5 text-[0.7rem] font-medium text-muted-foreground">
+    <span className="rounded-full border border-black/[0.1] bg-white px-2 py-0.5 text-[0.7rem] font-medium text-[#0d0d0d]/55">
       {FEEDBACK_CATEGORY_LABELS[category]}
     </span>
   );
@@ -87,7 +93,7 @@ export function FeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-1 rounded-[4px] border border-border bg-card p-1">
+        <div className="flex flex-wrap gap-1 rounded-full border border-black/[0.1] bg-white p-1">
           {(["all", ...FEEDBACK_STATUSES] as const).map((status) => {
             const active = statusFilter === status;
             const label = status === "all" ? "All" : FEEDBACK_STATUS_LABELS[status];
@@ -99,10 +105,10 @@ export function FeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
                 type="button"
                 onClick={() => setStatusFilter(status)}
                 className={cn(
-                  "rounded-[3px] px-3 py-1.5 text-xs font-medium transition-colors",
+                  "rounded-full px-3 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-black/25",
                   active
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    ? "bg-[#0d0d0d] text-white"
+                    : "text-[#0d0d0d]/55 hover:bg-black/[0.04] hover:text-[#0d0d0d]"
                 )}
               >
                 {label}
@@ -126,10 +132,10 @@ export function FeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
               type="button"
               onClick={() => setCategoryFilter(category)}
               className={cn(
-                "rounded-[4px] border px-2.5 py-1 text-xs transition-colors",
+                "rounded-full border px-3 py-1 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-black/25",
                 active
-                  ? "border-primary/40 bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  ? "border-[#0d0d0d] bg-black/[0.04] text-[#0d0d0d]"
+                  : "border-black/[0.1] text-[#0d0d0d]/55 hover:border-black/25 hover:text-[#0d0d0d]"
               )}
             >
               {label}
@@ -139,15 +145,13 @@ export function FeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-[4px] border border-dashed border-border bg-card px-6 py-14 text-center">
-          <Flag className="mx-auto size-8 text-muted-foreground/50" />
-          <p className="mt-3 text-sm font-medium">No reports in this view</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            User reports from notes and the sidebar land here.
-          </p>
-        </div>
+        <AdminEmpty
+          icon={Flag}
+          title="No reports in this view"
+          body="User reports from notes and the sidebar land here."
+        />
       ) : (
-        <ul className="divide-y rounded-[4px] border border-border bg-card shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+        <ul className={cn(CARD, "divide-y divide-black/[0.06] overflow-hidden")}>
           {filtered.map((row) => (
             <FeedbackRow key={row.id} row={row} />
           ))}
@@ -169,17 +173,18 @@ function StatCard({
   return (
     <div
       className={cn(
-        "rounded-[4px] border bg-card px-4 py-3",
-        alert ? "border-destructive/35 bg-destructive/5" : "border-border"
+        CARD,
+        "rounded-2xl px-4 py-3",
+        alert && "border-amber-500/35 bg-amber-500/[0.06]"
       )}
     >
-      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+      <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/45">
         {label}
       </p>
       <p
         className={cn(
-          "mt-1 text-2xl font-semibold tabular-nums",
-          alert && "text-destructive"
+          "mt-1 text-2xl font-normal tabular-nums tracking-tight text-[#0d0d0d]",
+          alert && "text-amber-700"
         )}
       >
         {value}
@@ -193,12 +198,10 @@ function MarkAllReadButton({ disabled }: { disabled: boolean }) {
   const [pending, startTransition] = useTransition();
 
   return (
-    <Button
+    <button
       type="button"
-      variant="outline"
-      size="sm"
       disabled={disabled || pending}
-      className="gap-1.5"
+      className={ADMIN_BTN}
       onClick={() => {
         startTransition(async () => {
           const res = await markAllFeedbackRead();
@@ -217,7 +220,7 @@ function MarkAllReadButton({ disabled }: { disabled: boolean }) {
         <CheckCheck className="size-4" />
       )}
       Mark all read
-    </Button>
+    </button>
   );
 }
 
@@ -255,31 +258,31 @@ function FeedbackRow({ row }: { row: AdminFeedbackRow }) {
   return (
     <li
       className={cn(
-        "px-4 py-4 transition-colors",
-        row.status === "unread" && "bg-destructive/[0.03]"
+        "px-5 py-4 transition-colors",
+        row.status === "unread" && "bg-amber-500/[0.04]"
       )}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="min-w-0 flex-1 text-left"
+          className="min-w-0 flex-1 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-black/25"
         >
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={row.status} />
             <CategoryBadge category={row.category} />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-[#0d0d0d]/50">
               {formatFeedbackWhen(row.created_at)}
             </span>
           </div>
-          <p className="mt-2 text-sm font-medium">
+          <p className="mt-2 text-sm font-medium text-[#0d0d0d]">
             {row.message?.trim() || "No details provided."}
           </p>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#0d0d0d]/50">
             {row.reporter_email && <span>{row.reporter_email}</span>}
             {row.note_title && (
               <span>
-                Note: <span className="text-foreground">{row.note_title}</span>
+                Note: <span className="text-[#0d0d0d]">{row.note_title}</span>
               </span>
             )}
             {row.page_path && <span>{row.page_path}</span>}
@@ -288,94 +291,91 @@ function FeedbackRow({ row }: { row: AdminFeedbackRow }) {
 
         <div className="flex shrink-0 flex-wrap gap-1.5">
           {row.status === "unread" ? (
-            <Button
+            <button
               type="button"
-              size="sm"
-              variant="secondary"
               disabled={pending}
+              className={ADMIN_BTN}
               onClick={() => runStatus("read", "Marked as read.")}
             >
               Mark read
-            </Button>
+            </button>
           ) : (
-            <Button
+            <button
               type="button"
-              size="sm"
-              variant="ghost"
               disabled={pending}
+              className={ADMIN_BTN_GHOST}
               onClick={() => runStatus("unread", "Marked as unread.")}
             >
               Mark unread
-            </Button>
+            </button>
           )}
           {row.status !== "resolved" && (
-            <Button
+            <button
               type="button"
-              size="sm"
-              variant="outline"
               disabled={pending}
+              className={ADMIN_BTN}
               onClick={() => runStatus("resolved", "Marked as resolved.")}
             >
               Resolve
-            </Button>
+            </button>
           )}
           {row.status !== "dismissed" && (
-            <Button
+            <button
               type="button"
-              size="sm"
-              variant="ghost"
               disabled={pending}
-              className="text-muted-foreground"
+              className={ADMIN_BTN_GHOST}
               onClick={() => runStatus("dismissed", "Dismissed report.")}
             >
               Dismiss
-            </Button>
+            </button>
           )}
         </div>
       </div>
 
       {expanded && (
-        <div className="mt-4 space-y-4 rounded-[4px] border border-border bg-background p-4">
+        <div className="mt-4 space-y-4 rounded-2xl bg-black/[0.02] p-4">
           {row.message && (
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/45">
                 Full message
               </p>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#0d0d0d]">
                 {row.message}
               </p>
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2">
-            {row.note_id && (
-              <Button asChild size="sm" variant="outline" className="gap-1.5">
-                <Link href={`/notes/${row.note_id}`} target="_blank">
-                  <ExternalLink className="size-3.5" />
-                  Open note
-                </Link>
-              </Button>
-            )}
-          </div>
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          {row.note_id && (
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={`/notes/${row.note_id}`}
+                target="_blank"
+                className={ADMIN_BTN}
+              >
+                <ExternalLink className="size-3.5" />
+                Open note
+              </Link>
+            </div>
+          )}
+          <p className="flex items-center gap-1.5 text-xs text-[#0d0d0d]/50">
             <MessageSquareText className="size-3.5" />
             Report {row.id.slice(0, 8)}
           </p>
 
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/45">
               Internal notes
             </p>
-            <Textarea
+            <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               onBlur={saveNotes}
               placeholder="Triage notes — what you checked, fixed, or decided."
               rows={3}
-              className="mt-2 rounded-[4px]"
+              className={cn(ADMIN_TEXTAREA, "mt-2 bg-white")}
             />
             {row.reviewed_at && (
-              <p className="mt-2 text-xs text-muted-foreground">
+              <p className="mt-2 text-xs text-[#0d0d0d]/50">
                 Last reviewed {formatFeedbackWhen(row.reviewed_at)}
               </p>
             )}

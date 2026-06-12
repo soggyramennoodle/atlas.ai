@@ -12,6 +12,12 @@ import {
 } from "lucide-react";
 import { isJobCancellable } from "@/lib/admin-jobs";
 import { cn } from "@/lib/utils";
+import {
+  ADMIN_BADGE,
+  ADMIN_BTN,
+  AdminEmpty,
+  CARD,
+} from "@/components/admin/admin-kit";
 import type {
   ProcessingStageKey,
   SegmentTally,
@@ -22,22 +28,15 @@ const POLL_MS = 5_000;
 
 /** Tailwind classes per stage, so the eye can scan the list by colour. */
 const STAGE_TONE: Record<ProcessingStageKey, string> = {
-  recording: "border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400",
-  uploading: "border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400",
-  queued:
-    "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  transcribing:
-    "border-primary/30 bg-primary/10 text-primary",
-  composing:
-    "border-violet-500/30 bg-violet-500/10 text-violet-600 dark:text-violet-400",
-  stalled:
-    "border-orange-500/40 bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  held:
-    "border-orange-500/45 bg-orange-500/12 text-orange-600 dark:text-orange-400",
-  ready:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  failed:
-    "border-destructive/40 bg-destructive/10 text-destructive",
+  recording: "border-sky-500/35 bg-sky-500/10 text-sky-700",
+  uploading: "border-sky-500/35 bg-sky-500/10 text-sky-700",
+  queued: "border-amber-500/35 bg-amber-500/10 text-amber-700",
+  transcribing: "border-violet-500/35 bg-violet-500/10 text-violet-700",
+  composing: "border-violet-500/35 bg-violet-500/10 text-violet-700",
+  stalled: "border-orange-500/40 bg-orange-500/10 text-orange-700",
+  held: "border-orange-500/45 bg-orange-500/10 text-orange-700",
+  ready: "border-emerald-500/35 bg-emerald-500/10 text-emerald-700",
+  failed: "border-[#0d0d0d] bg-[#0d0d0d] text-white",
 };
 
 function relativeTime(iso: string, now: number): string {
@@ -57,12 +56,7 @@ function shortId(id: string): string {
 
 function StageBadge({ row }: { row: ProcessingJobRow }) {
   return (
-    <span
-      className={cn(
-        "inline-flex w-fit items-center gap-1.5 rounded-[4px] border px-2 py-0.5 text-xs font-medium",
-        STAGE_TONE[row.stage.key]
-      )}
-    >
+    <span className={cn(ADMIN_BADGE, "w-fit", STAGE_TONE[row.stage.key])}>
       <CircleDot className="size-3" />
       {row.stage.label}
     </span>
@@ -71,17 +65,17 @@ function StageBadge({ row }: { row: ProcessingJobRow }) {
 
 function SegmentBar({ tally }: { tally: SegmentTally }) {
   if (tally.total === 0) {
-    return <span className="text-xs text-muted-foreground">—</span>;
+    return <span className="text-xs text-[#0d0d0d]/45">—</span>;
   }
   const parts: Array<[string, number, string]> = [
     ["transcribed", tally.transcribed, "bg-emerald-500"],
-    ["transcribing", tally.transcribing, "bg-primary"],
+    ["transcribing", tally.transcribing, "bg-violet-500"],
     ["uploaded", tally.uploaded, "bg-sky-500"],
-    ["failed", tally.failed, "bg-destructive"],
+    ["failed", tally.failed, "bg-[#0d0d0d]"],
   ];
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex h-1.5 w-28 overflow-hidden rounded-full bg-secondary">
+      <div className="flex h-1.5 w-28 overflow-hidden rounded-full bg-black/[0.08]">
         {parts.map(([key, count, color]) =>
           count > 0 ? (
             <span
@@ -92,7 +86,7 @@ function SegmentBar({ tally }: { tally: SegmentTally }) {
           ) : null
         )}
       </div>
-      <span className="font-mono text-[0.65rem] text-muted-foreground">
+      <span className="font-mono text-[0.65rem] text-[#0d0d0d]/50">
         {tally.transcribed}/{tally.total} done
         {tally.failed > 0 ? ` · ${tally.failed} failed` : ""}
       </span>
@@ -132,36 +126,36 @@ function JobCard({
   }
 
   return (
-    <li className="flex flex-col gap-3 px-4 py-3.5 transition duration-300 ease-out hover:bg-secondary/55 sm:flex-row sm:items-center">
+    <li className="flex flex-col gap-3 px-5 py-4 transition duration-300 ease-out hover:bg-black/[0.02] sm:flex-row sm:items-center">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <StageBadge row={row} />
           <span
-            className="inline-flex items-center gap-1 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground"
+            className="inline-flex items-center gap-1 text-[0.65rem] uppercase tracking-[0.12em] text-[#0d0d0d]/50"
             title={`source: ${row.source}`}
           >
             <SourceIcon className="size-3" />
             {row.source}
           </span>
           {row.attempts > 0 && (
-            <span className="font-mono text-[0.65rem] text-muted-foreground">
+            <span className="font-mono text-[0.65rem] text-[#0d0d0d]/50">
               {row.attempts} attempt{row.attempts === 1 ? "" : "s"}
             </span>
           )}
         </div>
         {row.userEmail ? (
-          <p className="mt-1 text-sm text-foreground">{row.userEmail}</p>
+          <p className="mt-1 text-sm text-[#0d0d0d]">{row.userEmail}</p>
         ) : null}
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-xs">
-          <span className="text-foreground" title={`job ${row.jobId}`}>
+          <span className="text-[#0d0d0d]/80" title={`job ${row.jobId}`}>
             job {shortId(row.jobId)}
           </span>
-          <span className="text-muted-foreground" title={`note ${row.noteId ?? "—"}`}>
+          <span className="text-[#0d0d0d]/50" title={`note ${row.noteId ?? "—"}`}>
             note {row.noteId ? shortId(row.noteId) : "—"}
           </span>
         </div>
         {row.stage.key === "failed" && row.error && (
-          <p className="mt-1 flex items-center gap-1.5 text-xs text-destructive">
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-[#0d0d0d]/70">
             <AlertTriangle className="size-3.5 shrink-0" />
             {row.error}
           </p>
@@ -172,12 +166,12 @@ function JobCard({
         <SegmentBar tally={row.segments} />
       </div>
 
-      <div className="shrink-0 text-right text-xs text-muted-foreground sm:w-40">
+      <div className="shrink-0 text-right text-xs text-[#0d0d0d]/50 sm:w-40">
         {canStop ? (
           <button
             onClick={stopJob}
             disabled={stopping}
-            className="mb-2 inline-flex items-center gap-1 rounded-[3px] border border-destructive/40 px-2 py-0.5 text-xs text-destructive hover:bg-destructive/10"
+            className="mb-2 inline-flex items-center gap-1 rounded-full border border-black/[0.12] bg-white px-2.5 py-0.5 text-xs text-[#0d0d0d]/70 outline-none transition hover:bg-black/[0.03] hover:text-[#0d0d0d] disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-black/25"
           >
             {stopping ? (
               <Loader2 className="size-3 animate-spin" />
@@ -197,10 +191,7 @@ function JobCard({
           updated {relativeTime(row.updatedAt, now)}
         </p>
         <p
-          className={cn(
-            "text-[0.7rem]",
-            !row.heartbeatAt && "text-orange-600 dark:text-orange-400"
-          )}
+          className={cn("text-[0.7rem]", !row.heartbeatAt && "text-orange-600")}
           title={
             row.heartbeatAt
               ? new Date(row.heartbeatAt).toLocaleString()
@@ -264,35 +255,30 @@ export function ProcessingMonitor({
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-[#0d0d0d]/55">
           {jobs.length === 0
             ? "No active jobs."
             : `${jobs.length} job${jobs.length === 1 ? "" : "s"} in the last 30 min · auto-refreshing`}
-          {error && <span className="ml-2 text-destructive">· {error}</span>}
+          {error && (
+            <span className="ml-2 inline-flex items-center gap-1 text-[#0d0d0d]/80">
+              <AlertTriangle className="size-3.5" /> {error}
+            </span>
+          )}
         </p>
-        <button
-          onClick={poll}
-          disabled={refreshing}
-          className="inline-flex items-center gap-1.5 rounded-[4px] border px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-foreground/25 hover:bg-accent hover:text-foreground disabled:opacity-50"
-        >
+        <button onClick={poll} disabled={refreshing} className={ADMIN_BTN}>
           <RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
           Refresh
         </button>
       </div>
 
       {jobs.length === 0 ? (
-        <div className="rounded-[4px] border border-dashed bg-card px-6 py-16 text-center shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-          <div className="mx-auto grid size-12 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
-            <CircleDot className="size-5" />
-          </div>
-          <h2 className="mt-4 font-medium">Nothing processing</h2>
-          <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">
-            Recordings and uploads in flight will appear here. Finished jobs drop
-            off after 30 minutes.
-          </p>
-        </div>
+        <AdminEmpty
+          icon={CircleDot}
+          title="Nothing processing"
+          body="Recordings and uploads in flight will appear here. Finished jobs drop off after 30 minutes."
+        />
       ) : (
-        <ul className="divide-y rounded-[4px] border bg-card shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+        <ul className={cn(CARD, "divide-y divide-black/[0.06] overflow-hidden")}>
           {jobs.map((row) => (
             <JobCard key={row.jobId} row={row} now={now} onStopped={poll} />
           ))}

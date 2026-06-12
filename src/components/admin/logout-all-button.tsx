@@ -3,9 +3,14 @@
 import { useState, useTransition } from "react";
 import { AlertTriangle, Loader2, LogOut } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  ADMIN_BTN,
+  ADMIN_BTN_GHOST,
+  ADMIN_BTN_PRIMARY,
+  ADMIN_INPUT,
+  CARD,
+  cn,
+} from "@/components/admin/admin-kit";
 
 const CONFIRM_PHRASE = "log out everyone";
 
@@ -45,14 +50,15 @@ export function LogoutAllButton() {
   }
 
   return (
-    <div className="rounded-[4px] border border-destructive/30 bg-card p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-      <div className="flex items-start gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-[4px] border border-destructive/30 bg-destructive/10 text-destructive">
+    <div className={cn(CARD, "p-6 sm:p-7")}>
+      <div className="flex items-start gap-3.5">
+        {/* Drastic action: amber attention, never a red block. */}
+        <span className="grid size-10 shrink-0 place-items-center rounded-full border border-amber-500/35 bg-amber-500/10 text-amber-700">
           <AlertTriangle className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="font-medium text-destructive">Log out everyone</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h2 className="font-medium text-[#0d0d0d]">Log out everyone</h2>
+          <p className="mt-1 text-sm leading-6 text-[#0d0d0d]/60">
             Queues a sign-out for every non-admin account. Users mid-recording
             finish uploading first; processing sessions end immediately. Admins
             are never signed out.
@@ -61,33 +67,43 @@ export function LogoutAllButton() {
       </div>
 
       {!open ? (
-        <Button
-          variant="destructive"
-          className="mt-5"
+        <button
+          type="button"
+          className={`${ADMIN_BTN} mt-5 h-10`}
           onClick={() => setOpen(true)}
         >
           <LogOut className="size-4" />
           Log out everyone
-        </Button>
+        </button>
       ) : (
-        <div className="mt-5 space-y-3 rounded-[4px] border border-destructive/25 bg-destructive/5 p-4">
-          <p className="text-sm text-muted-foreground">
-            Type <strong className="text-foreground">{CONFIRM_PHRASE}</strong> to
-            confirm.
+        <div className="mt-5 space-y-3 rounded-2xl border border-amber-500/30 bg-amber-500/[0.06] p-4">
+          <p className="text-sm text-[#0d0d0d]/60">
+            Type{" "}
+            <strong className="font-medium text-[#0d0d0d]">
+              {CONFIRM_PHRASE}
+            </strong>{" "}
+            to confirm.
           </p>
           <div className="space-y-2">
-            <Label htmlFor="logout-all-confirm">Confirmation</Label>
-            <Input
+            <label
+              htmlFor="logout-all-confirm"
+              className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45"
+            >
+              Confirmation
+            </label>
+            <input
               id="logout-all-confirm"
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
               placeholder={CONFIRM_PHRASE}
               autoComplete="off"
+              className={ADMIN_INPUT}
             />
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant="destructive"
+            <button
+              type="button"
+              className={`${ADMIN_BTN_PRIMARY} h-10`}
               onClick={run}
               disabled={!matches || pending}
             >
@@ -97,9 +113,10 @@ export function LogoutAllButton() {
                 <LogOut className="size-4" />
               )}
               Confirm log out everyone
-            </Button>
-            <Button
-              variant="secondary"
+            </button>
+            <button
+              type="button"
+              className={`${ADMIN_BTN_GHOST} h-10`}
               onClick={() => {
                 if (pending) return;
                 setOpen(false);
@@ -108,7 +125,7 @@ export function LogoutAllButton() {
               disabled={pending}
             >
               Cancel
-            </Button>
+            </button>
           </div>
         </div>
       )}

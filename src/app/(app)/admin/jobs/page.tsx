@@ -21,6 +21,7 @@ import {
 import { fetchUserEmails } from "@/lib/admin-user-emails";
 import { getActiveAlert } from "@/lib/alerts";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
+import { ADMIN_EYEBROW, AdminEmpty } from "@/components/admin/admin-kit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { LectureJobRecord, LectureSegmentRecord } from "@/lib/types";
 
@@ -67,6 +68,7 @@ export default async function AdminJobsPage() {
     segmentsByJob.set(segment.job_id, list);
   }
 
+  // eslint-disable-next-line react-hooks/purity -- server page; point-in-time snapshot is intended
   const now = Date.now();
   const rows: AdminJobRow[] = jobRows.map((job) => {
     const segments = segmentsByJob.get(job.id) ?? [];
@@ -118,12 +120,14 @@ export default async function AdminJobsPage() {
           <AdminJobsToolbar />
 
           <div className="mt-4">
-            <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-wider text-primary">
+            <span className={ADMIN_EYEBROW}>
               <ListOrdered className="size-3.5" />
               Admin
             </span>
-            <h1 className="mt-4 text-2xl font-semibold tracking-tight">Lecture jobs</h1>
-            <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
+            <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+              Lecture <span className="font-instrument italic">jobs</span>
+            </h1>
+            <p className="mt-2 max-w-3xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
               Job and note IDs with owner email — no lecture titles or filenames. Stuck jobs are
               removed after {formatHours(STALE_JOB_TTL_MS)} hours of inactivity; finished
               job records are purged after {formatDays(TERMINAL_JOB_RETENTION_MS)} days.
@@ -140,15 +144,11 @@ export default async function AdminJobsPage() {
 
           <div className="mt-8">
             {rows.length === 0 ? (
-              <div className="rounded-[4px] border border-dashed bg-card px-6 py-16 text-center shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-                <div className="mx-auto grid size-12 place-items-center rounded-[4px] border border-primary/25 bg-primary/10 text-primary">
-                  <ListOrdered className="size-5" />
-                </div>
-                <h2 className="mt-4 font-medium">No jobs yet</h2>
-                <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">
-                  New recordings and uploads will appear here while they move through the pipeline.
-                </p>
-              </div>
+              <AdminEmpty
+                icon={ListOrdered}
+                title="No jobs yet"
+                body="New recordings and uploads will appear here while they move through the pipeline."
+              />
             ) : (
               <AdminJobList jobs={rows} />
             )}
