@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, Flag, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -149,7 +150,12 @@ function ReportDialog({
     }
   }
 
-  return (
+  // Portaled to <body>: the sidebar rail's backdrop-filter creates a
+  // containing block, which would otherwise trap this `fixed` dialog inside
+  // the rail's bounds.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-[220] flex items-end justify-center p-4 sm:items-center">
@@ -312,6 +318,7 @@ function ReportDialog({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
