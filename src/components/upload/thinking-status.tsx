@@ -44,7 +44,7 @@ export function ThinkingStatus({ className }: { className?: string }) {
           animate={{ opacity: 1, y: 0 }}
           exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
           transition={{ duration: reduceMotion ? 0 : 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className={className ?? "text-pretty text-sm leading-6 text-muted-foreground"}
+          className={className ?? "text-pretty text-sm leading-6 text-[#0d0d0d]/60"}
         >
           {THINKING_LINES[i]}
         </motion.p>

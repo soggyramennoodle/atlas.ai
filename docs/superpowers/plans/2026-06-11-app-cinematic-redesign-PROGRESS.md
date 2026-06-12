@@ -12,16 +12,31 @@ Full cinematic conversion of the user app (Inter Tight + Instrument Serif, no gr
 
 | Phase | Surface | Status | Commit |
 |---|---|---|---|
-| 0 | Primitive kit + fonts + shell (rail, mobile bar/drawer) | DONE | (phase-0 commit) |
-| 1 | Dashboard | todo | — |
-| 2 | Capture (upload, recorder, uploader, processing overlay, dock) | todo | — |
+| 0 | Primitive kit + fonts + shell (rail, mobile bar/drawer) | DONE | e41747a6 |
+| 1 | Dashboard | DONE | b4b9422f |
+| 2 | Capture (upload, recorder, uploader, processing overlay, dock) | DONE | (phase-2 commit) |
 | 3 | Note view | todo | — |
 | 4 | Settings | todo | — |
 | 5 | Onboarding + UI tour + passkey prompt | todo | — |
 | 6 | Admin (7 pages) | todo | — |
 | 7 | Final sweep (theme files, rivo tokens, dead styles) | todo | — |
 
-## Phase 0 design (current work)
+## Phase 2 notes (capture, DONE)
+
+- pills.tsx grew inline variants: PILL_PRIMARY_INLINE / PILL_SECONDARY_INLINE / PILL_ICON (auto-width pills for action rows).
+- ProcessingOverlay rewritten: aurora-through-glass — AiGlow full bloom behind a light GlassPanel; stage titles have serif-italic accents (STAGE_TITLE JSX map replaced STAGE_COPY); all states preserved (progress, long-run hint via glass card, keep-tab-open amber pill, capacity orange + emerald close-hint, failed pill actions). Light-only (dark: variants dropped).
+- Recorder: white rounded-3xl control box; recording = red pulsing dot in hairline chip, paused = amber; waveform ink gradient (amber when paused); shadcn Buttons -> pills; Enclave/saved badges -> hairline pills; SourceCards -> rounded-2xl hairline; FluidTranscript ink text + white glow shadow.
+- Uploader: dashed rounded-3xl dropzone, hairline file card, PILL_PRIMARY generate; all chunking/progress/watcher logic untouched.
+- RecordingDock: ink liquid-glass (GLASS_INK), white/glass mini pills, amber paused accents.
+- thinking-status default class -> ink/60.
+
+- Hero band: greeting in light GlassPanel + ink GlassPanel with hours headline + white record pill. Stats pill row carries recordings/concepts/streak (hours moved to the ink chip — the page now passes 3 stats).
+- NoteCard keeps processing-glow / capacity-glow rings (CSS uses border-radius:inherit, adapts to rounded-3xl). Status chips: failed = ink pill, capacity = orange (kept as a functional warning color), processing/ready = hairline pills.
+- EmptyRecordings = HeroBand + light GlassPanel + PILL_PRIMARY CTA.
+- Greeting/QuickRecord/Tips: serif-italic accents, hairline geometry. All data-tour ids, refresh components, streak logic untouched.
+- NOT yet visually verified in a browser (no preview tool in session) — user should eyeball /dashboard.
+
+## Phase 0 design (DONE)
 
 - `src/components/app/pills.tsx` — NEW: shared cinematic pill constants (PILL_PRIMARY/SECONDARY/INPUT, INK_LINK, GHOST_LINK, EASE, ARROW_BADGE) promoted from `auth-form.tsx`; auth-form now imports them (values unchanged).
 - `src/components/app/glass.tsx` — NEW: `GLASS_LIGHT`/`GLASS_INK` class recipes, `GlassPanel` (light|ink), `AuroraPanel` (AiGlow behind a light GlassPanel), `HeroBand` (mist imagery stage, next/image fill).

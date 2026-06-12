@@ -16,6 +16,15 @@ export const INK_LINK =
 export const GHOST_LINK =
   "inline-flex items-center gap-1 text-sm text-[#0d0d0d]/55 transition hover:text-[#0d0d0d]";
 
+/* Inline (auto-width) variants for action rows — same recipes, no w-full. */
+export const PILL_PRIMARY_INLINE =
+  "group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0d0d0d] px-6 text-sm font-medium text-white transition hover:scale-[1.01] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2";
+export const PILL_SECONDARY_INLINE =
+  "inline-flex h-12 items-center justify-center gap-2 rounded-full border border-black/[0.12] bg-white px-6 text-sm font-medium text-[#0d0d0d] transition hover:bg-black/[0.03] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2";
+/** Round icon-only pill (pause/resume/close…). */
+export const PILL_ICON =
+  "grid size-12 place-items-center rounded-full border border-black/[0.12] bg-white text-[#0d0d0d] transition hover:bg-black/[0.03] active:scale-[0.97] disabled:pointer-events-none disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2";
+
 export const EASE = [0.22, 1, 0.36, 1] as const;
 
 /** White arrow circle that sits inside an ink PILL_PRIMARY (group hover lifts it). */

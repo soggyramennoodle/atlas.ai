@@ -16,7 +16,11 @@ import {
   Square,
   Trash2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  PILL_ICON,
+  PILL_PRIMARY_INLINE,
+  PILL_SECONDARY_INLINE,
+} from "@/components/app/pills";
 import { cn, type DeviceAudioSupport } from "@/lib/utils";
 import {
   BARS,
@@ -92,24 +96,28 @@ export function Recorder() {
         {/* Control box */}
         <div
           className={cn(
-            "relative z-10 overflow-hidden rounded-[6px] border border-border bg-card p-6 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] sm:p-8 motion-reduce:transition-none lg:will-change-transform",
+            "relative z-10 overflow-hidden rounded-3xl border border-black/[0.08] bg-white p-6 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] sm:p-8 motion-reduce:transition-none lg:will-change-transform",
             !live && "lg:translate-x-[calc(50%+0.625rem)]",
-            phase === "paused" && "border-destructive/50"
+            phase === "paused" && "border-amber-500/50"
           )}
         >
           <div className="relative flex flex-col items-center text-center">
             <span
               className={cn(
-                "inline-flex items-center gap-2 rounded-[4px] border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em]",
+                "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em]",
                 phase === "paused"
-                  ? "border-destructive/40 bg-destructive/10 text-destructive"
-                  : "border-primary/30 bg-primary/10 text-primary"
+                  ? "border-amber-500/40 bg-amber-500/10 text-amber-700"
+                  : "border-black/[0.12] bg-black/[0.03] text-[#0d0d0d]/70"
               )}
             >
               <span
                 className={cn(
                   "size-1.5 rounded-full",
-                  phase === "paused" ? "bg-destructive" : "bg-primary",
+                  phase === "paused"
+                    ? "bg-amber-500"
+                    : phase === "recording"
+                      ? "bg-red-500"
+                      : "bg-[#0d0d0d]/60",
                   phase === "recording" && "animate-pulse"
                 )}
               />
@@ -130,13 +138,13 @@ export function Recorder() {
               barClassName={cn(
                 "h-full w-[3px] origin-center rounded-full bg-gradient-to-t transform-gpu",
                 phase === "paused"
-                  ? "from-destructive/40 to-destructive"
-                  : "from-primary/40 to-primary"
+                  ? "from-amber-500/40 to-amber-500"
+                  : "from-[#0d0d0d]/30 to-[#0d0d0d]"
               )}
               style={{ opacity: live ? 1 : 0.35 }}
             />
 
-            <div className="mt-5 font-mono text-4xl font-medium tabular-nums tracking-tight">
+            <div className="mt-5 text-4xl font-light tabular-nums tracking-tight">
               {formatClock(seconds)}
             </div>
 
@@ -152,60 +160,52 @@ export function Recorder() {
 
               {phase === "recording" && (
                 <>
-                  <Button
-                    onClick={pause}
-                    size="lg"
-                    variant="outline"
-                    className="h-12 w-12 rounded-[4px] p-0"
-                    aria-label="Pause"
-                  >
+                  <button onClick={pause} className={PILL_ICON} aria-label="Pause">
                     <Pause className="size-5" />
-                  </Button>
-                  <Button onClick={stop} size="lg" className="h-14 gap-2.5 px-7 text-base">
+                  </button>
+                  <button
+                    onClick={stop}
+                    className={cn(PILL_PRIMARY_INLINE, "h-14 px-7 text-base")}
+                  >
                     <Square className="size-4 fill-current" />
                     Stop
-                  </Button>
+                  </button>
                 </>
               )}
 
               {phase === "paused" && (
                 <>
-                  <Button
-                    onClick={resume}
-                    size="lg"
-                    variant="outline"
-                    className="h-12 w-12 rounded-[4px] p-0"
-                    aria-label="Resume"
-                  >
+                  <button onClick={resume} className={PILL_ICON} aria-label="Resume">
                     <Play className="size-5" />
-                  </Button>
-                  <Button onClick={stop} size="lg" className="h-14 gap-2.5 px-7 text-base">
+                  </button>
+                  <button
+                    onClick={stop}
+                    className={cn(PILL_PRIMARY_INLINE, "h-14 px-7 text-base")}
+                  >
                     <Square className="size-4 fill-current" />
                     Finish
-                  </Button>
+                  </button>
                 </>
               )}
 
               {phase === "recorded" && (
                 <div className="w-full space-y-5">
                   {recoveredDraft && (
-                    <div className="space-y-3 rounded-[4px] border border-primary/30 bg-primary/[0.06] p-4 text-left">
+                    <div className="space-y-3 rounded-2xl border border-black/[0.1] bg-black/[0.02] p-4 text-left">
                       <div>
                         <p className="text-sm font-medium">Recovered recording</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
+                        <p className="mt-1 text-xs text-[#0d0d0d]/55">
                           {formatSavedAt(lastSavedAt)}
                         </p>
                       </div>
-                      <Button
+                      <button
                         onClick={resumeDraft}
                         disabled={busy}
-                        variant="outline"
-                        size="lg"
-                        className="h-11 w-full gap-2"
+                        className={cn(PILL_SECONDARY_INLINE, "h-11 w-full")}
                       >
                         <Play className="size-4" />
                         Resume recording
-                      </Button>
+                      </button>
                     </div>
                   )}
 
@@ -213,11 +213,10 @@ export function Recorder() {
                     <audio controls src={clip.url} className="w-full" preload="metadata" />
                   )}
                   <div className="flex flex-col gap-3 sm:flex-row">
-                    <Button
+                    <button
                       onClick={generate}
                       disabled={busy}
-                      size="lg"
-                      className="h-12 flex-1 text-base"
+                      className={cn(PILL_PRIMARY_INLINE, "flex-1 text-base")}
                     >
                       {busy ? (
                         <Loader2 className="size-4 animate-spin" />
@@ -225,36 +224,32 @@ export function Recorder() {
                         <Sparkles className="size-4" />
                       )}
                       {busy ? "Working…" : "Generate notes"}
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                       onClick={discard}
                       disabled={busy}
-                      variant="outline"
-                      size="lg"
-                      className="h-12 gap-2"
+                      className={PILL_SECONDARY_INLINE}
                     >
                       <Trash2 className="size-4" />
                       Discard
-                    </Button>
+                    </button>
                   </div>
 
                   {/* Escape hatch when processing fails: save the audio locally
                       so it can be re-uploaded later. */}
                   {failed && (
-                    <div className="space-y-3 rounded-[4px] border border-destructive/40 bg-destructive/5 p-4 text-left">
-                      <p className="text-sm text-muted-foreground">
+                    <div className="space-y-3 rounded-2xl border border-black/[0.15] bg-black/[0.03] p-4 text-left">
+                      <p className="text-sm text-[#0d0d0d]/65">
                         Atlas couldn&apos;t process this recording. Download it now
                         and upload it again later, so you won&apos;t lose the audio.
                       </p>
-                      <Button
+                      <button
                         onClick={download}
-                        variant="outline"
-                        size="lg"
-                        className="h-11 w-full gap-2"
+                        className={cn(PILL_SECONDARY_INLINE, "h-11 w-full")}
                       >
                         <Download className="size-4" />
                         Download recording
-                      </Button>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -262,13 +257,13 @@ export function Recorder() {
             </div>
 
             {/* Atlas Enclave — private & encrypted session badge (§7). */}
-            <span className="mt-6 inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-background px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
-              <Lock className="size-3 text-primary" />
+            <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-black/[0.1] px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/55">
+              <Lock className="size-3" />
               Secured by Atlas Enclave
             </span>
             {(live || recoveredDraft) && (
-              <span className="mt-2 inline-flex items-center gap-1.5 rounded-[4px] border border-border bg-background px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
-                <Save className="size-3 text-primary" />
+              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-black/[0.1] px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/55">
+                <Save className="size-3" />
                 {formatSavedAt(lastSavedAt)}
               </span>
             )}
@@ -332,7 +327,7 @@ function SourcePicker({
 }) {
   return (
     <div className="w-full space-y-3 text-left">
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm text-[#0d0d0d]/60">
         How are you attending this lecture?
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -363,22 +358,22 @@ function SourcePicker({
           }
         />
       </div>
-      <p className="px-1 text-center text-xs text-muted-foreground/80">
+      <p className="px-1 text-center text-xs text-[#0d0d0d]/50">
         {deviceSupported ? (
           <>
             Virtual lectures ask you to share a browser tab and tick{" "}
-            <span className="font-medium text-foreground/80">
+            <span className="font-medium text-[#0d0d0d]/75">
               “Share tab audio.”
             </span>{" "}
-            <span className="text-muted-foreground/70">
+            <span className="text-[#0d0d0d]/45">
               (Sharing a whole screen only carries audio on Windows.)
             </span>
           </>
         ) : deviceSupport === "browser" ? (
           <>
             Safari and Firefox can&apos;t capture a tab&apos;s audio. Open Atlas
-            in <span className="font-medium text-foreground/80">Chrome</span> or{" "}
-            <span className="font-medium text-foreground/80">Edge</span> to record
+            in <span className="font-medium text-[#0d0d0d]/75">Chrome</span> or{" "}
+            <span className="font-medium text-[#0d0d0d]/75">Edge</span> to record
             a lecture playing on your screen.
           </>
         ) : (
@@ -414,18 +409,16 @@ function SourceCard({
       disabled={disabled}
       aria-disabled={disabled}
       className={cn(
-        "group hover-glow icon-animate flex h-full flex-col items-start gap-2.5 rounded-[4px] border border-border bg-card p-4 text-left transition-[border-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/40 motion-reduce:transition-none",
+        "group flex h-full flex-col items-start gap-2.5 rounded-2xl border border-black/[0.08] bg-white p-4 text-left transition-[border-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 motion-reduce:transition-none",
         disabled
           ? "cursor-not-allowed opacity-55"
-          : "hover:border-foreground/30 hover:shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-18px_rgba(0,0,0,0.28)]"
+          : "hover:border-black/25 hover:shadow-[0_14px_36px_-26px_rgba(0,0,0,0.35)]"
       )}
     >
       <span
         className={cn(
-          "grid size-10 place-items-center rounded-[4px] border border-border transition-colors duration-200",
-          disabled
-            ? "bg-muted text-muted-foreground"
-            : "bg-background text-foreground"
+          "grid size-10 place-items-center rounded-full border border-black/[0.1] transition-colors duration-200",
+          disabled ? "text-[#0d0d0d]/40" : "text-[#0d0d0d]/80"
         )}
       >
         <Icon className="size-5" />
@@ -433,12 +426,12 @@ function SourceCard({
       <span className="flex items-center gap-2 text-base font-medium leading-none">
         {title}
         {badge && (
-          <span className="rounded-[4px] border border-border bg-secondary px-2 py-0.5 text-[0.6rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          <span className="rounded-full border border-black/[0.1] bg-black/[0.03] px-2 py-0.5 text-[0.6rem] font-medium uppercase tracking-[0.12em] text-[#0d0d0d]/55">
             {badge}
           </span>
         )}
       </span>
-      <span className="text-pretty text-xs leading-relaxed text-muted-foreground">
+      <span className="text-pretty text-xs leading-relaxed text-[#0d0d0d]/55">
         {desc}
       </span>
     </button>
@@ -490,14 +483,14 @@ function FluidTranscript() {
     <div className="absolute inset-0 z-10 grid place-items-center px-8">
       <div
         className="flex max-w-md flex-col items-center justify-end gap-2 text-center"
-        style={{ textShadow: "0 1px 18px rgba(8,6,20,0.55)" }}
+        style={{ textShadow: "0 1px 18px rgba(255,255,255,0.75)" }}
       >
         {placeholder ? (
           <motion.p
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 0.7 }}
             transition={{ duration: reduceMotion ? 0 : 0.2 }}
-            className="text-pretty text-sm text-foreground/70"
+            className="text-pretty text-sm text-[#0d0d0d]/70"
           >
             {placeholder}
           </motion.p>
@@ -513,7 +506,7 @@ function FluidTranscript() {
                   animate={{ opacity, y: 0 }}
                   exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
                   transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-pretty text-lg font-medium leading-snug text-foreground"
+                  className="text-pretty text-lg font-medium leading-snug text-[#0d0d0d]"
                   style={{ scale: 0.92 + 0.08 * t }}
                 >
                   {line.text}

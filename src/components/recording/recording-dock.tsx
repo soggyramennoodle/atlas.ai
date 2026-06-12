@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Download, Loader2, Mic, MonitorSpeaker, Pause, Play, Sparkles, Square, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GLASS_INK } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
 import { useRecording } from "./recording-context";
 import { Waveform } from "./waveform";
@@ -14,10 +14,16 @@ function clock(s: number) {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
+/* Small pills tuned for the dark glass dock. */
+const DOCK_BTN_PRIMARY =
+  "inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-white px-4 text-xs font-medium text-[#0d0d0d] outline-none transition hover:bg-white/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-white/50";
+const DOCK_BTN_SECONDARY =
+  "inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-white/[0.18] bg-white/[0.06] px-4 text-xs font-medium text-white outline-none transition hover:bg-white/[0.12] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-white/40";
+
 /**
  * Persistent fly-out card that keeps a recording session controllable from any
  * route in the (app) layout (§8). Hidden on /upload, where the full recorder
- * already shows these controls.
+ * already shows these controls. Ink liquid-glass, sibling of the sidebar rail.
  */
 export function RecordingDock() {
   const pathname = usePathname();
@@ -57,24 +63,27 @@ export function RecordingDock() {
               : { type: "spring", stiffness: 340, damping: 30 }
           }
           className={cn(
-            "fixed bottom-5 left-5 z-50 w-72 overflow-hidden rounded-[6px] border border-border bg-card p-4 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_18px_50px_-20px_rgba(0,0,0,0.35)]",
-            phase === "paused" && "border-destructive/50"
+            "fixed bottom-5 left-5 z-50 w-72 overflow-hidden rounded-3xl p-4",
+            GLASS_INK,
+            phase === "paused" && "border-amber-400/40"
           )}
         >
           <div className="flex items-center gap-2.5">
             <span
               className={cn(
-                "grid size-8 shrink-0 place-items-center rounded-[4px] border",
+                "grid size-8 shrink-0 place-items-center rounded-full border",
                 phase === "paused"
-                  ? "border-destructive/30 bg-destructive/10 text-destructive"
-                  : "border-primary/30 bg-primary/10 text-primary"
+                  ? "border-amber-400/40 bg-amber-400/15 text-amber-300"
+                  : "border-white/[0.18] bg-white/[0.08] text-white"
               )}
             >
               <SourceIcon className="size-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{sessionLabel}</p>
-              <p className="font-mono text-xs tabular-nums text-muted-foreground">
+              <p className="truncate text-sm font-medium text-white">
+                {sessionLabel}
+              </p>
+              <p className="text-xs tabular-nums text-white/55">
                 {phase === "recording"
                   ? "Recording"
                   : phase === "paused"
@@ -99,7 +108,7 @@ export function RecordingDock() {
               containerClassName="mt-3 flex h-8 items-center gap-[2px]"
               barClassName={cn(
                 "h-full w-[3px] flex-1 origin-center rounded-full transform-gpu",
-                phase === "paused" ? "bg-destructive/50" : "bg-primary/70"
+                phase === "paused" ? "bg-amber-400/60" : "bg-white/70"
               )}
             />
           )}
@@ -108,72 +117,70 @@ export function RecordingDock() {
           <div className="mt-3 flex items-center gap-2">
             {phase === "recording" && (
               <>
-                <Button size="sm" variant="outline" onClick={pause} className="flex-1 gap-1.5">
+                <button onClick={pause} className={DOCK_BTN_SECONDARY}>
                   <Pause className="size-3.5" /> Pause
-                </Button>
-                <Button size="sm" onClick={stop} className="flex-1 gap-1.5">
+                </button>
+                <button onClick={stop} className={DOCK_BTN_PRIMARY}>
                   <Square className="size-3 fill-current" /> Stop
-                </Button>
+                </button>
               </>
             )}
             {phase === "paused" && (
               <>
-                <Button size="sm" variant="outline" onClick={resume} className="flex-1 gap-1.5">
+                <button onClick={resume} className={DOCK_BTN_SECONDARY}>
                   <Play className="size-3.5" /> Resume
-                </Button>
-                <Button size="sm" onClick={stop} className="flex-1 gap-1.5">
+                </button>
+                <button onClick={stop} className={DOCK_BTN_PRIMARY}>
                   <Square className="size-3 fill-current" /> Finish
-                </Button>
+                </button>
               </>
             )}
             {phase === "recorded" && (
               <>
-                <Button
-                  size="sm"
-                  variant="ghost"
+                <button
                   onClick={discard}
                   disabled={busy}
-                  className="gap-1.5"
                   aria-label="Discard"
+                  className="grid size-9 shrink-0 place-items-center rounded-full text-white/55 outline-none transition hover:bg-white/[0.1] hover:text-white disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-white/40"
                 >
                   <Trash2 className="size-3.5" />
-                </Button>
-                <Button size="sm" onClick={generate} disabled={busy} className="flex-1 gap-1.5">
+                </button>
+                <button
+                  onClick={generate}
+                  disabled={busy}
+                  className={DOCK_BTN_PRIMARY}
+                >
                   {busy ? (
                     <Loader2 className="size-3.5 animate-spin" />
                   ) : (
                     <Sparkles className="size-3.5" />
                   )}
                   {busy ? "Working…" : failed ? "Try again" : "Generate notes"}
-                </Button>
+                </button>
               </>
             )}
           </div>
 
           {phase === "recorded" && recoveredDraft && (
-            <Button
-              size="sm"
-              variant="outline"
+            <button
               onClick={resumeDraft}
               disabled={busy}
-              className="mt-2 w-full gap-1.5"
+              className={cn(DOCK_BTN_SECONDARY, "mt-2 w-full")}
             >
               <Play className="size-3.5" />
               Resume recording
-            </Button>
+            </button>
           )}
 
           {/* Download escape hatch after a failed run. */}
           {phase === "recorded" && failed && (
-            <Button
-              size="sm"
-              variant="outline"
+            <button
               onClick={download}
-              className="mt-2 w-full gap-1.5"
+              className={cn(DOCK_BTN_SECONDARY, "mt-2 w-full")}
             >
               <Download className="size-3.5" />
               Download recording
-            </Button>
+            </button>
           )}
         </motion.div>
       )}

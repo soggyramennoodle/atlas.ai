@@ -34,7 +34,7 @@ export function CapturePanel({ userId }: { userId: string }) {
             {/* Segmented control — recording leads, upload is the quieter option. */}
             <div
               data-tour="capture-modes"
-              className="mx-auto grid w-full max-w-sm grid-cols-2 gap-1 rounded-[4px] border border-border bg-card p-1"
+              className="mx-auto grid w-full max-w-sm grid-cols-2 gap-1 rounded-full border border-black/[0.12] bg-white p-1"
             >
               {(
                 [
@@ -48,16 +48,16 @@ export function CapturePanel({ userId }: { userId: string }) {
                     key={t.id}
                     onClick={() => setMode(t.id)}
                     className={cn(
-                      "relative flex items-center justify-center gap-2 rounded-[3px] px-4 py-2 text-sm font-medium transition-colors",
+                      "relative flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-black/25",
                       active
-                        ? "text-background"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "text-white"
+                        : "text-[#0d0d0d]/55 hover:text-[#0d0d0d]"
                     )}
                   >
                     {active && (
                       <motion.span
                         layoutId="capture-pill"
-                        className="absolute inset-0 rounded-[3px] bg-foreground"
+                        className="absolute inset-0 rounded-full bg-[#0d0d0d]"
                         transition={
                           reduceMotion
                             ? { duration: 0 }
@@ -94,11 +94,11 @@ export function CapturePanel({ userId }: { userId: string }) {
             transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
           >
             <Uploader userId={userId} />
-            <p className="mt-4 text-center text-xs text-muted-foreground">
+            <p className="mt-4 text-center text-xs text-[#0d0d0d]/55">
               Already have a recording? Drop it in. Most students just{" "}
               <button
                 onClick={() => setMode("record")}
-                className="text-primary underline-offset-2 hover:underline"
+                className="font-medium text-[#0d0d0d] underline-offset-2 hover:underline"
               >
                 record in the browser
               </button>

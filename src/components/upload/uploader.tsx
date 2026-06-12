@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
+import { PILL_PRIMARY } from "@/components/app/pills";
 import { ProcessingOverlay } from "@/components/upload/processing-overlay";
 import { cn } from "@/lib/utils";
 import {
@@ -382,25 +382,28 @@ export function Uploader({ userId }: { userId: string }) {
           tabIndex={0}
           onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
           className={cn(
-            "group hover-glow icon-animate flex cursor-pointer flex-col items-center justify-center rounded-[4px] border-2 border-dashed border-border bg-card px-6 py-16 text-center transition-colors",
+            "group flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-black/[0.15] bg-white px-6 py-16 text-center transition-colors",
             dragging
-              ? "border-primary bg-primary/[0.04]"
-              : "hover:border-foreground/40 hover:bg-secondary"
+              ? "border-[#0d0d0d] bg-black/[0.02]"
+              : "hover:border-black/40 hover:bg-black/[0.015]"
           )}
         >
           <motion.span
             animate={reduceMotion ? undefined : { y: dragging ? -4 : 0 }}
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="grid size-16 place-items-center rounded-[4px] border border-border bg-background text-foreground"
+            className="grid size-16 place-items-center rounded-full border border-black/[0.1] text-[#0d0d0d]/75"
           >
             <UploadCloud className="size-8" />
           </motion.span>
           <p className="mt-5 text-lg font-medium">
             Drop your lecture recording here
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            or <span className="text-primary">browse your files</span> · MP3,
-            MP4, M4A, WAV, AAC, OGG, WebM up to {formatBytes(MAX_BYTES)}
+          <p className="mt-1 text-sm text-[#0d0d0d]/55">
+            or{" "}
+            <span className="font-medium text-[#0d0d0d] underline-offset-2 group-hover:underline">
+              browse your files
+            </span>{" "}
+            · MP3, MP4, M4A, WAV, AAC, OGG, WebM up to {formatBytes(MAX_BYTES)}
           </p>
         </div>
       )}
@@ -410,15 +413,15 @@ export function Uploader({ userId }: { userId: string }) {
           initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
-          className="rounded-[4px] border border-border bg-card p-5"
+          className="rounded-3xl border border-black/[0.08] bg-white p-5"
         >
           <div className="flex items-start gap-4">
-            <span className="grid size-12 shrink-0 place-items-center rounded-[4px] border border-border bg-background text-foreground">
+            <span className="grid size-12 shrink-0 place-items-center rounded-full border border-black/[0.1] text-[#0d0d0d]/75">
               <FileAudio className="size-6" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{file.name}</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
+              <p className="mt-0.5 text-sm text-[#0d0d0d]/55">
                 {formatBytes(file.size)}
                 {durationLoading
                   ? " · reading file…"
@@ -428,15 +431,15 @@ export function Uploader({ userId }: { userId: string }) {
                 {hasVideo ? " · video (audio only will be used)" : ""}
               </p>
               {durationLoading ? (
-                <div className="mt-3 h-1 overflow-hidden rounded-full bg-secondary">
-                  <div className="h-full w-1/3 animate-pulse rounded-full bg-primary/70" />
+                <div className="mt-3 h-1 overflow-hidden rounded-full bg-black/[0.08]">
+                  <div className="h-full w-1/3 animate-pulse rounded-full bg-[#0d0d0d]/60" />
                 </div>
               ) : null}
             </div>
             {!busy && (
               <button
                 onClick={reset}
-                className="grid size-8 place-items-center rounded-[4px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="grid size-8 place-items-center rounded-full text-[#0d0d0d]/50 outline-none transition-colors hover:bg-black/[0.05] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
                 aria-label="Remove file"
               >
                 <X className="size-4" />
@@ -449,7 +452,7 @@ export function Uploader({ userId }: { userId: string }) {
               <video
                 controls
                 src={previewUrl}
-                className="mt-4 w-full rounded-[4px]"
+                className="mt-4 w-full rounded-2xl"
                 preload="metadata"
               />
             ) : (
@@ -463,10 +466,10 @@ export function Uploader({ userId }: { userId: string }) {
           )}
 
           <div className="mt-5">
-            <Button
+            <button
               onClick={generate}
               disabled={busy || durationLoading || !fileReady}
-              className="h-12 w-full text-base"
+              className={cn(PILL_PRIMARY, "h-12 text-base")}
             >
               {busy || durationLoading ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -478,7 +481,7 @@ export function Uploader({ userId }: { userId: string }) {
                 : durationLoading
                   ? "Reading file…"
                   : "Generate notes"}
-            </Button>
+            </button>
           </div>
         </motion.div>
       )}
