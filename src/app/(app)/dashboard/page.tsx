@@ -117,6 +117,11 @@ export default async function DashboardPage() {
                 <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
             )}
+            {/* Stat strip lives in the masthead column so its bottom edge and
+                the record tile's bottom edge sit on the same line (items-end). */}
+            <div className="mt-8">
+              <StatCards stats={stats} />
+            </div>
           </div>
 
           {/* The record tile: a small window of light holding the session CTA. */}
@@ -146,11 +151,6 @@ export default async function DashboardPage() {
               </GlassPanel>
             </div>
           </HeroBand>
-        </div>
-
-        {/* Stat strip */}
-        <div className="mt-8">
-          <StatCards stats={stats} />
         </div>
 
         {/* The library is the hero of this page. */}
