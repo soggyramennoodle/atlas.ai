@@ -9,7 +9,7 @@ import {
 import { AccountLockedModal } from "@/components/account-locked-modal";
 import type { AccessRevocation } from "@/lib/types";
 
-const POLL_MS = 12_000;
+const POLL_MS = 3_000;
 
 export function AccessRevocationGuard({ userId }: { userId: string }) {
   const [revocation, setRevocation] = useState<AccessRevocation | null>(null);
@@ -22,14 +22,19 @@ export function AccessRevocationGuard({ userId }: { userId: string }) {
       const json = (await res.json()) as { revocation: AccessRevocation | null };
       setRevocation(json.revocation);
     } catch {
-      // Fail open — middleware and login still guard new sessions.
+      // Fail open — auth callbacks and login still guard new sessions.
     }
   }, []);
 
   useEffect(() => {
     void refresh();
     const interval = window.setInterval(() => void refresh(), POLL_MS);
-    return () => window.clearInterval(interval);
+    const onFocus = () => void refresh();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
   }, [refresh]);
 
   useEffect(() => {

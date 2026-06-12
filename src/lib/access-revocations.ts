@@ -73,7 +73,9 @@ export async function queueAccessRevocation(
     throw error;
   }
 
-  if (resolvedGrace === "immediate") {
+  // Bans surface the in-app lock overlay first; sessions are ended when the
+  // user acknowledges. Maintenance logouts still revoke tokens immediately.
+  if (resolvedGrace === "immediate" && kind !== "banned") {
     await forceRemoteSignOut(userId);
   }
 }
