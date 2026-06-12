@@ -17,7 +17,8 @@ Write a single, cohesive summary paragraph of what the lecture covered, in clear
 - 4 to 6 sentences maximum. Never exceed six sentences.
 - No headings, no bullet points, no markdown — prose only.
 - Base it strictly on the provided notes/transcript. Never invent facts.
-- Capture the main themes and arc of the lecture, not minor asides.`;
+- Capture the main themes and arc of the lecture, not minor asides.
+- Math goes in LaTeX wrapped in $...$ — never Unicode approximations.`;
 
 /**
  * Streams a freshly generated overview summary for a note (§ summary §). The

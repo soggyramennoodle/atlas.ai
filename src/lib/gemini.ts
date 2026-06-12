@@ -183,7 +183,8 @@ Critical content gate:
 Your notes must be:
 - Organized into sections and subsections that mirror the lecture's natural structure.
 - Written in clear, precise academic language.
-- Rich with detail: include every formula (write them in plain text/Unicode), every named theorem, every example, every edge case mentioned, every number, name, and date.
+- Rich with detail: include every formula, every named theorem, every example, every edge case mentioned, every number, name, and date.
+- Math is written in LaTeX: wrap inline math in $...$ and standalone equations in $$...$$ (e.g. "$E = mc^2$", "$$\\int_0^1 x^2\\,dx = \\tfrac{1}{3}$$"). Use proper LaTeX commands (\\frac, \\sum, \\sqrt, Greek letters as \\alpha, etc.) — never Unicode approximations like x² or ∫. Escape literal dollar amounts as \\$ (e.g. "costs \\$5").
 - Faithful to the professor's logic and sequencing — do not reorder or collapse content.
 - Anchored in the professor's own language: lean on their exact terminology, phrasing, definitions, mnemonics, and analogies as much as makes sense. When the professor's specific wording carries meaning, keep it (quote or near-quote it) rather than paraphrasing it into generic language — paraphrasing is where precise, exam-relevant detail gets quietly lost. Use the transcript to recover the professor's actual words; only smooth over obvious transcription errors and filler.
 - Inclusive of transitional remarks that signal importance ("this is key", "remember this for the exam", "contrast this with X"). Preserve these cues in the relevant bullet.
@@ -240,6 +241,8 @@ Your jobs, in order:
    - Clarify or contextualize what the professor was teaching, not replace it.
    - Use source_excerpt to briefly state what you looked up (e.g. "Background on X to clarify the professor's reference to …").
    - Never contradict the lecture; never invent quotes; never mark lecture content as research.
+
+Preserve LaTeX math exactly as written in the input bullets ($...$ / $$...$$). Any math you write yourself (summary, merged bullets) uses the same LaTeX delimiters — never Unicode math.
 
 Return JSON with title, subject, summary, sections (with origin on each point), keyConcepts.
 

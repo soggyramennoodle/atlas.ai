@@ -22,6 +22,8 @@ import {
   PILL_PRIMARY_INLINE,
   PILL_SECONDARY_INLINE,
 } from "@/components/app/pills";
+import { CARD } from "@/components/app/glass";
+import { cn } from "@/lib/utils";
 import type { CourseEntry, UserMemory, UserProfile } from "@/lib/types";
 
 type IconType = ComponentType<{ className?: string }>;
@@ -62,7 +64,7 @@ function formatDate(iso: string): string | null {
 }
 
 const CHIP =
-  "inline-flex min-h-8 max-w-full items-center rounded-full border border-black/[0.10] bg-white px-3 py-1.5 text-left text-xs font-medium leading-5 text-[#0d0d0d]/68";
+  "inline-flex min-h-8 max-w-full items-center rounded-full border border-black/[0.08] bg-black/[0.03] px-3 py-1.5 text-left text-xs font-medium leading-5 text-[#0d0d0d]/68";
 
 /**
  * "What Atlas knows about you" surfaces the per-user personalization that
@@ -103,9 +105,9 @@ export function MemoryPanel({
     corrections.length > 0;
 
   return (
-    <div className="space-y-8">
-      <section data-tour="settings-memory" className="border-b border-black/[0.08] py-8">
-        <div className="relative isolate rounded-3xl border border-black/[0.08] bg-white p-6 shadow-[0_18px_55px_-44px_rgba(13,13,13,0.5)] sm:p-8">
+    <div className="space-y-6 py-8">
+      <section data-tour="settings-memory">
+        <div className={cn(CARD, "relative isolate p-6 sm:p-8")}>
           <span
             aria-hidden
             className="processing-glow"
@@ -132,7 +134,7 @@ export function MemoryPanel({
 
       <RefineBox memory={memory} onUpdated={setMemory} />
 
-      <section className="border-b border-black/[0.08] pb-8">
+      <section className={cn(CARD, "p-6 sm:p-7")}>
         <SectionHeader icon={GraduationCap} title="Who you are" />
         {who.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
@@ -161,7 +163,7 @@ export function MemoryPanel({
       {!hasLearned ? (
         <EmptyState />
       ) : (
-        <section className="border-y border-black/[0.08]">
+        <section className={cn(CARD, "space-y-8 p-6 sm:p-7")}>
           <ChipSection
             icon={BookOpen}
             title="Your courses and subjects"
@@ -182,19 +184,16 @@ export function MemoryPanel({
       )}
 
       {corrections.length > 0 && (
-        <section className="border-b border-black/[0.08] pb-8">
+        <section className={cn(CARD, "p-6 sm:p-7")}>
           <SectionHeader
             icon={History}
             title="What your edits have taught Atlas"
           />
-          <ol className="mt-5 border-y border-black/[0.08]">
+          <ol className="mt-5 space-y-4">
             {corrections.map((c, i) => {
               const date = formatDate(c.at);
               return (
-                <li
-                  key={`${c.at}-${i}`}
-                  className="border-b border-black/[0.08] py-4 last:border-b-0"
-                >
+                <li key={`${c.at}-${i}`}>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#0d0d0d]/45">
                     {date && <span>{date}</span>}
                     {c.noteTitle && (
@@ -204,7 +203,7 @@ export function MemoryPanel({
                       </>
                     )}
                   </div>
-                  <p className="mt-1.5 max-w-3xl text-pretty text-sm leading-6 text-[#0d0d0d]/72">
+                  <p className="mt-1 max-w-3xl text-pretty text-sm leading-6 text-[#0d0d0d]/72">
                     {c.summary}
                   </p>
                 </li>
@@ -215,7 +214,7 @@ export function MemoryPanel({
       )}
 
       {formatting.length > 0 && (
-        <section className="border-b border-black/[0.08] pb-8">
+        <section className={cn(CARD, "p-6 sm:p-7")}>
           <SectionHeader icon={Type} title="Note formatting" />
           <p className="mt-2 text-sm text-[#0d0d0d]/55">
             How your notes are presented.
@@ -281,7 +280,7 @@ function RefineBox({
   void memory;
 
   return (
-    <section className="border-b border-black/[0.08] pb-8">
+    <section className={cn(CARD, "p-6 sm:p-7")}>
       <SectionHeader icon={Wand2} title="Correct what Atlas knows" />
       <p className="mt-2 max-w-2xl text-sm leading-6 text-[#0d0d0d]/60">
         Something off? Tell Atlas in plain language and it will adjust.
@@ -299,7 +298,7 @@ function RefineBox({
             void submit();
           }
         }}
-        className="mt-5 min-h-32 w-full resize-none rounded-3xl border border-black/[0.12] bg-white px-5 py-4 text-sm leading-6 text-[#0d0d0d] outline-none transition placeholder:text-[#0d0d0d]/40 focus:border-black/30 focus-visible:ring-2 focus-visible:ring-black/25 disabled:opacity-60"
+        className="mt-5 min-h-32 w-full resize-none rounded-2xl border border-black/[0.12] bg-black/[0.02] px-5 py-4 text-sm leading-6 text-[#0d0d0d] outline-none transition placeholder:text-[#0d0d0d]/40 focus:border-black/30 focus-visible:ring-2 focus-visible:ring-black/25 disabled:opacity-60"
       />
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <span className="text-xs text-[#0d0d0d]/45">
@@ -321,7 +320,7 @@ function RefineBox({
       </div>
 
       {changes.length > 0 && (
-        <ul className="mt-5 border-t border-black/[0.08] pt-4">
+        <ul className="mt-5 space-y-1">
           {changes.map((c, i) => (
             <li
               key={i}
@@ -366,7 +365,7 @@ function ChipSection({
   items: string[];
 }) {
   return (
-    <div className="grid gap-4 border-b border-black/[0.08] py-5 last:border-b-0 sm:grid-cols-[14rem_minmax(0,1fr)]">
+    <div className="grid gap-4 sm:grid-cols-[14rem_minmax(0,1fr)]">
       <SectionHeader icon={icon} title={title} />
       {items.length > 0 ? (
         <div className="flex flex-wrap gap-2">
@@ -387,7 +386,7 @@ function ChipSection({
 
 function ContentSection({ items }: { items: string[] }) {
   return (
-    <div className="grid gap-4 border-b border-black/[0.08] py-5 last:border-b-0 sm:grid-cols-[14rem_minmax(0,1fr)]">
+    <div className="grid gap-4 sm:grid-cols-[14rem_minmax(0,1fr)]">
       <SectionHeader
         icon={SlidersHorizontal}
         title="How deep you like your notes"
@@ -425,17 +424,17 @@ function EmptyState() {
     "The content fixes you make so Atlas stops repeating them",
   ];
   return (
-    <section className="border-b border-black/[0.08] pb-8">
+    <section className={cn(CARD, "p-6 sm:p-7")}>
       <SectionHeader icon={Brain} title="Atlas is just getting to know you" />
       <p className="mt-3 max-w-2xl text-sm leading-6 text-[#0d0d0d]/60">
         Record a lecture and tweak the generated notes. The more you use Atlas,
         the more this page fills in.
       </p>
-      <ul className="mt-5 border-y border-black/[0.08]">
+      <ul className="mt-5 space-y-2.5">
         {willLearn.map((w) => (
           <li
             key={w}
-            className="flex items-start gap-3 border-b border-black/[0.08] py-3 text-sm leading-6 text-[#0d0d0d]/72 last:border-b-0"
+            className="flex items-start gap-3 text-sm leading-6 text-[#0d0d0d]/72"
           >
             <Sparkles className="mt-1 size-4 shrink-0 text-[#0d0d0d]/45" />
             <span className="text-pretty">{w}</span>

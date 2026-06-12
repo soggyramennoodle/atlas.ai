@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { browserSupportsPasskeys } from "@/lib/passkeys";
 import { PILL_SECONDARY_INLINE } from "@/components/app/pills";
+import { CARD } from "@/components/app/glass";
+import { cn } from "@/lib/utils";
 
 type PasskeyRow = {
   id: string;
@@ -103,7 +105,7 @@ export function PasskeysPanel() {
   }
 
   return (
-    <section className="border-b border-black/[0.08] pb-8">
+    <section className={cn(CARD, "p-6 sm:p-7")}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
@@ -135,7 +137,7 @@ export function PasskeysPanel() {
       </div>
 
       {!supported ? (
-        <p className="mt-5 rounded-2xl border border-black/[0.08] bg-white px-4 py-3 text-sm text-[#0d0d0d]/60">
+        <p className="mt-5 rounded-2xl bg-black/[0.03] px-4 py-3 text-sm text-[#0d0d0d]/60">
           Your browser doesn&apos;t support passkeys on this device.
         </p>
       ) : loading ? (
@@ -144,30 +146,35 @@ export function PasskeysPanel() {
           Loading passkeys…
         </div>
       ) : passkeys.length === 0 ? (
-        <p className="mt-5 rounded-2xl border border-black/[0.08] bg-white px-4 py-3 text-sm text-[#0d0d0d]/60">
+        <p className="mt-5 rounded-2xl bg-black/[0.03] px-4 py-3 text-sm text-[#0d0d0d]/60">
           No passkeys saved yet. Add one to sign in faster next time.
         </p>
       ) : (
-        <ul className="mt-6 border-y border-black/[0.08]">
+        <ul className="mt-5 space-y-2">
           {passkeys.map((passkey) => (
             <li
               key={passkey.id}
-              className="flex items-center justify-between gap-4 border-b border-black/[0.08] py-4 last:border-b-0"
+              className="flex items-center justify-between gap-4 rounded-2xl bg-black/[0.02] px-4 py-3"
             >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-[#0d0d0d]">
-                  {passkey.friendly_name?.trim() || "Passkey"}
-                </p>
-                <p className="mt-1 text-xs text-[#0d0d0d]/50">
-                  Added {formatPasskeyDate(passkey.created_at)}
-                  {passkey.last_used_at
-                    ? ` · Last used ${formatPasskeyDate(passkey.last_used_at)}`
-                    : ""}
-                </p>
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full border border-black/[0.08] bg-white text-[#0d0d0d]/70">
+                  <Fingerprint className="size-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-[#0d0d0d]">
+                    {passkey.friendly_name?.trim() || "Passkey"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[#0d0d0d]/50">
+                    Added {formatPasskeyDate(passkey.created_at)}
+                    {passkey.last_used_at
+                      ? ` · Last used ${formatPasskeyDate(passkey.last_used_at)}`
+                      : ""}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
-                className="grid size-10 shrink-0 place-items-center rounded-full border border-black/[0.10] bg-white text-[#0d0d0d]/55 outline-none transition hover:bg-black/[0.03] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25 disabled:opacity-60"
+                className="grid size-10 shrink-0 place-items-center rounded-full text-[#0d0d0d]/45 outline-none transition hover:bg-black/[0.05] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25 disabled:opacity-60"
                 onClick={() => void removePasskey(passkey.id)}
                 disabled={removingId === passkey.id}
                 aria-label="Remove passkey"

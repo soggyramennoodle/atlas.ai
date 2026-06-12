@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { countUnreadFeedback } from "@/lib/admin-feedback-server";
 import { isNewsroomAdmin } from "@/lib/newsroom";
 import { AppShell } from "@/components/app/app-shell";
+import { AppCanvas } from "@/components/app/glass";
 import { RecordingProvider } from "@/components/recording/recording-context";
 import { RecordingDock } from "@/components/recording/recording-dock";
 import { MarketingThemeLock } from "@/components/marketing-theme-lock";
@@ -62,8 +63,9 @@ export default async function AppLayout({
         dismissedAt={profile?.passkey_prompt_dismissed_at ?? null}
       />
       <div
-        className={`${interTight.variable} ${instrumentSerif.variable} font-heading relative min-h-screen bg-[#fafafa] text-[#0d0d0d]`}
+        className={`${interTight.variable} ${instrumentSerif.variable} font-heading relative isolate min-h-screen bg-[#f4f3f1] text-[#0d0d0d]`}
       >
+        <AppCanvas />
         <AppShell
           email={user.email ?? ""}
           name={profile?.display_name ?? ""}

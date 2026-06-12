@@ -83,7 +83,7 @@ export function PasskeyEnrollmentPrompt({
     >
       <div
         aria-hidden
-        className="absolute inset-0 bg-[#fafafa]/82 backdrop-blur-sm"
+        className="absolute inset-0 bg-[#f4f3f1]/85 backdrop-blur-sm"
       />
       <div className="relative w-full max-w-md rounded-3xl border border-black/[0.08] bg-white p-7 shadow-[0_24px_70px_-42px_rgba(13,13,13,0.45)] sm:p-8">
         <button
@@ -96,7 +96,7 @@ export function PasskeyEnrollmentPrompt({
           <X className="size-4" />
         </button>
 
-        <span className="grid size-12 place-items-center rounded-full border border-black/[0.10] bg-[#fafafa] text-[#0d0d0d]">
+        <span className="grid size-12 place-items-center rounded-full border border-black/[0.10] bg-[#f4f3f1] text-[#0d0d0d]">
           <Fingerprint className="size-6" />
         </span>
         <p className="mt-5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">

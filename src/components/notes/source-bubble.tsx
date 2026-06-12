@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Quote, Sparkles } from "lucide-react";
+import { MathText } from "./math-text";
 
 /**
  * A note bullet that, on hover for >800ms, reveals the transcript excerpt it
@@ -54,7 +55,12 @@ export function SourceBullet({
   // even when no excerpt is present.
   const showBubble = !!excerpt || research || ai;
 
-  if (!showBubble) return <span className="text-pretty">{children ?? text}</span>;
+  if (!showBubble)
+    return (
+      <span className="text-pretty">
+        {children ?? <MathText text={text} />}
+      </span>
+    );
 
   const label =
     status === "ai"
@@ -93,7 +99,7 @@ export function SourceBullet({
       onMouseLeave={onLeave}
       className={`relative cursor-help text-pretty underline decoration-dotted underline-offset-4 transition ${decoration}`}
     >
-      {children ?? text}
+      {children ?? <MathText text={text} />}
       <AnimatePresence>
         {show && (
           <motion.span

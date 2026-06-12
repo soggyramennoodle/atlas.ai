@@ -302,7 +302,7 @@ export function AppSidebar({
       </aside>
 
       {/* Mobile: light-glass top bar. */}
-      <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-black/[0.08] bg-[#fafafa]/75 px-4 py-3 backdrop-blur-xl lg:hidden">
+      <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-black/[0.08] bg-[#f4f3f1]/75 px-4 py-3 backdrop-blur-xl lg:hidden">
         <Link href="/" className="inline-flex items-center gap-2 text-[#0d0d0d]">
           <AtlasMark className="size-7" />
           <span className="text-[1.35rem] font-medium leading-none tracking-tight">

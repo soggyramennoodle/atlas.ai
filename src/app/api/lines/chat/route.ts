@@ -67,7 +67,8 @@ Rules:
 - Stay tightly focused on this line and ideas directly related to it. If the student drifts far off-topic, answer briefly and gently steer back to the line.
 - Be accurate and concrete. You may use web search to verify facts, add a current example, or go deeper.
 - Be concise and conversational — a couple of short paragraphs at most unless the student asks for more.
-- Reply in plain prose. No markdown headings, no bullet lists unless genuinely helpful.`;
+- Reply in plain prose. No markdown headings, no bullet lists unless genuinely helpful.
+- Write any math in LaTeX wrapped in $...$ (inline) or $$...$$ (display) — never Unicode approximations.`;
 
   // Trim history defensively and map to Gemini's content format.
   const contents = messages.slice(-12).map((m) => ({

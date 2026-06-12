@@ -51,11 +51,11 @@ export function Greeting({ name }: { name: string }) {
       <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
         {local?.date || " "}
       </p>
-      <h1 className="mt-2 inline-block text-3xl font-normal leading-[1.05] tracking-[-0.02em] sm:text-4xl">
+      <h1 className="mt-3 inline-block text-balance text-4xl font-normal leading-[1.02] tracking-[-0.025em] sm:text-5xl lg:text-6xl">
         {local?.greeting ?? "Welcome back"},{" "}
         <span className="font-instrument italic">{name}</span>
       </h1>
-      <p className="mt-2.5 text-sm text-[#0d0d0d]/60">{local?.line ?? " "}</p>
+      <p className="mt-3 text-base text-[#0d0d0d]/60">{local?.line ?? " "}</p>
     </div>
   );
 }

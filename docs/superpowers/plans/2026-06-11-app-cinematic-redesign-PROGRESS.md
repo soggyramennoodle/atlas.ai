@@ -15,13 +15,27 @@ Full cinematic conversion of the user app (Inter Tight + Instrument Serif, no gr
 | 0 | Primitive kit + fonts + shell (rail, mobile bar/drawer) | DONE | e41747a6 |
 | 1 | Dashboard | DONE | b4b9422f |
 | 2 | Capture (upload, recorder, uploader, processing overlay, dock) | DONE | 6b04352d |
-| 3 | Note view | DONE | phase 3 commit |
-| 4 | Settings | DONE | phase 4 commit |
-| 5 | Onboarding + UI tour + passkey prompt | DONE | phase 5 commit |
+| 3 | Note view | DONE | aad041e0 |
+| 4 | Settings | DONE | 13917864 |
+| 5 | Onboarding + UI tour + passkey prompt | DONE | b9672635 |
 | 6 | Admin (7 pages) | todo | — |
 | 7 | Final sweep (theme files, rivo tokens, dead styles) | todo | — |
 
 ## ➜ RESUME HERE: Phase 6 (admin) is next
+
+**2026-06-12 DEPTH & POLISH PASS (user-directed audit of phases 3–5):** The user reviewed the live app and found the conversions on-contract but flat — blinding white-on-white, hairline-divider soup in settings, no texture, no moments. A full polish pass shipped on top, and it CHANGES THE CONTRACT for Phase 6+:
+
+- **Canvas is now `#f4f3f1` (warm paper), not `#fafafa`**, with `AppCanvas` (fixed grain + mist-light wash layers; parent needs `isolate`) mounted in `(app)` and onboarding layouts. App-scoped scrims were updated to match. The marketing/auth `#fafafa` is unchanged.
+- **New primitive `CARD` in `glass.tsx`**: raised white card w/ hairline + ambient shadow. Use it instead of bare `bg-white border-black/[0.08]`. `GLASS_LIGHT` gained `ring-1 ring-black/[0.07]` for edge definition (white glass was invisible on the old canvas).
+- **De-lining rule:** settings-style "border-y + border-b on every row" is banned. Group content into `CARD` blocks with `space-y` breathing room; hairlines only where a list truly needs them. (memory-panel/passkeys/settings-client are the exemplars now.)
+- **LaTeX support shipped:** Gemini prompts (gemini.ts SYSTEM/COMPOSE + concepts/lines/summary/explain routes) now demand `$...$` / `$$...$$`; `notes/math-text.tsx` (KaTeX, `katex` dep added) renders math in note body, summary, concepts, source bullets, and chat answers. Phase 6/7 surfaces showing note text should use `MathText`.
+- **WaveRibbon** (`recording/wave-ribbon.tsx`) replaced the bar `Waveform` (file deleted): canvas-drawn breathing ribbon w/ glow bloom, imperative meter→ref→rAF (no React re-renders), amber when paused, `tone="ink"|"light"`.
+- **Report dialog** restyled to cinematic (was deferred to Phase 7 — done early; shadcn Button/Label/Textarea removed from it).
+- **Dashboard recomposed** (drastic, user-approved): oversized masthead greeting on bare canvas, mist imagery condensed into a small ink record tile (`HeroBand` now takes the masthead slot), library is the full-width hero (3-col grid, newest note featured at 2-col, dashed `QuickRecord` tile lives in-grid), `Tips` is a bottom strip, `Reveal` (dashboard/reveal.tsx) staggers cards in on scroll.
+- **Aurora bleed** added behind the popped concept card while its AI chat is thinking.
+- Verified: eslint clean, tsc clean, 95/95 tests, banned-token grep clean, all app routes compile (auth 307s). NOT visually verified in a browser this session.
+
+Phase 6 admin should follow THIS contract (warm canvas + CARD + de-lining), not the older notes below.
 
 **2026-06-12 Phase 5 DONE:** Onboarding + UI tour + passkey prompt are converted to the cinematic-light system. Completed scope: onboarding first-run shell/layout and HeroBand treatment, onboarding form rails/progress/buttons/inputs, tour spotlight geometry/popover as ink glass, removal of the stale retired theme-selector tour step, passkey enrollment prompt as a pale hairline modal with shared pill actions, and a small Next 16 `HeroBand` image API cleanup (`priority` now maps to `loading="eager"` instead of deprecated `next/image` priority; dashboard empty-library HeroBand also opts into that priority path). Verification passed: `git diff --check`, blocked-token grep over touched source files, targeted `npx eslint`, `npx tsc --noEmit`, `npm test` 92/92, unauthenticated `/onboarding` 307, dev-login `/onboarding` render at desktop and 390px mobile with clean console and no mobile overflow, throwaway `phase5-onboarding@atlas.local` dashboard QA with natural UI-tour + passkey eligibility, tour `Next` interaction to Step 2, tour skip persistence, passkey `Not now` dismiss after the tour overlay was cleared, 390px mobile prompt/tour render with `documentElement.scrollWidth` 390, and a fresh dashboard reload after the HeroBand cleanup with no repeated `/app/hero-mist.jpg` LCP advisory. Browser screenshot capture was attempted but the Browser tab's `Page.captureScreenshot` CDP call timed out repeatedly; DOM snapshots, console logs, URL/title checks, and width metrics were used for rendered evidence. Throwaway QA user/profile was cleaned up after validation. Next agent: start Phase 6 admin; do not redo Phase 5 unless a specific visual QA issue is reported.
 

@@ -67,7 +67,8 @@ ${deeper}${contextLines ? `\n\n${contextLines}` : ""}
 Output rules:
 - Reply with 1 to 3 concise note bullets, whichever the content warrants.
 - One bullet per line. Plain text only — no leading "-", "*", "•", numbers, or markdown.
-- Dense and study-friendly: capture the substance, drop the filler. No preamble, no sign-off, don't address the student.`;
+- Dense and study-friendly: capture the substance, drop the filler. No preamble, no sign-off, don't address the student.
+- Math goes in LaTeX wrapped in $...$ (inline) or $$...$$ (display) — never Unicode approximations.`;
 
   // Gemini 2.5 counts internal "thinking" tokens against maxOutputTokens, so
   // thinking is disabled and the cap is generous — the rewrite must never clip.

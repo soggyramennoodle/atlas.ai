@@ -6,7 +6,7 @@ import { Download, Loader2, Mic, MonitorSpeaker, Pause, Play, Sparkles, Square, 
 import { GLASS_INK } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
 import { useRecording } from "./recording-context";
-import { Waveform } from "./waveform";
+import { WaveRibbon } from "./wave-ribbon";
 
 function clock(s: number) {
   const m = Math.floor(s / 60);
@@ -98,19 +98,11 @@ export function RecordingDock() {
             </div>
           </div>
 
-          {/* Compact waveform — imperative, same as the full recorder. */}
+          {/* Compact ribbon — imperative, same engine as the full recorder. */}
           {(phase === "recording" || phase === "paused") && (
-            <Waveform
-              count={28}
-              minScale={0.1}
-              scaleMul={1}
-              baseScale={0.1}
-              containerClassName="mt-3 flex h-8 items-center gap-[2px]"
-              barClassName={cn(
-                "h-full w-[3px] flex-1 origin-center rounded-full transform-gpu",
-                phase === "paused" ? "bg-amber-400/60" : "bg-white/70"
-              )}
-            />
+            <div className="mt-3 h-8">
+              <WaveRibbon paused={phase === "paused"} tone="light" />
+            </div>
           )}
 
           {/* Controls */}

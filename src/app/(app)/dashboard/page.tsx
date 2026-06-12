@@ -12,6 +12,7 @@ import { EmptyRecordings } from "@/components/dashboard/empty-state";
 import { DashboardStaleRefresh } from "@/components/dashboard/dashboard-stale-refresh";
 import { RealtimeRefresh } from "@/components/dashboard/realtime-refresh";
 import { NoteCard } from "@/components/dashboard/note-card";
+import { Reveal } from "@/components/dashboard/reveal";
 import type { NoteRecord } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -98,105 +99,104 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <main className="px-4 pb-24 pt-6 lg:px-8 lg:pt-6">
+    <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-14">
       <DashboardStaleRefresh />
       <RealtimeRefresh userId={user.id} hasProcessing={hasProcessing} />
       <div className="mx-auto max-w-6xl">
-        {/* Hero band: the page's single imagery moment, glass floating on mist. */}
-        <HeroBand priority>
-          <div className="flex flex-col gap-4 p-4 sm:p-6 lg:flex-row lg:items-stretch lg:justify-between">
-            <GlassPanel
-              variant="light"
-              className="flex flex-col justify-between px-6 py-5 lg:max-w-xl lg:flex-1"
-            >
-              <Greeting name={name} />
-              {profileIncomplete && (
-                <Link
-                  href="/settings"
-                  className="group mt-4 inline-flex items-center gap-1 text-sm text-[#0d0d0d]/60 transition hover:text-[#0d0d0d]"
-                >
-                  Complete your profile for a personalized experience
-                  <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              )}
-            </GlassPanel>
-            <GlassPanel
-              variant="ink"
-              className="flex flex-col justify-between gap-5 px-6 py-5 lg:w-72"
-            >
-              <div>
-                <p className="text-3xl font-normal tabular-nums tracking-tight sm:text-4xl">
-                  {hours.toFixed(1)}
-                  <span className="ml-1.5 text-base text-white/60">hrs</span>
-                </p>
-                <p className="mt-1 text-sm text-white/60">
-                  of lectures{" "}
-                  <span className="font-instrument italic">captured</span>
-                </p>
-              </div>
+        {/* Masthead: oversized editorial greeting straight on the canvas, with
+            the mist imagery condensed into the glowing record tile beside it. */}
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+          <div className="max-w-2xl">
+            <Greeting name={name} />
+            {profileIncomplete && (
               <Link
-                href="/upload"
-                className="group flex h-11 items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-[#0d0d0d] outline-none transition hover:scale-[1.02] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 motion-reduce:hover:scale-100"
+                href="/settings"
+                className="group mt-4 inline-flex items-center gap-1 text-sm text-[#0d0d0d]/60 transition hover:text-[#0d0d0d]"
               >
-                <Mic className="size-4" />
-                Record a lecture
+                Complete your profile for a personalized experience
+                <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
-            </GlassPanel>
+            )}
           </div>
-        </HeroBand>
 
-        {/* Stats */}
-        <div className="mt-6">
+          {/* The record tile: a small window of light holding the session CTA. */}
+          <HeroBand priority className="shrink-0 lg:w-80">
+            <div className="p-3">
+              <GlassPanel
+                variant="ink"
+                className="flex flex-col justify-between gap-6 px-6 py-5"
+              >
+                <div>
+                  <p className="text-3xl font-normal tabular-nums tracking-tight sm:text-4xl">
+                    {hours.toFixed(1)}
+                    <span className="ml-1.5 text-base text-white/60">hrs</span>
+                  </p>
+                  <p className="mt-1 text-sm text-white/60">
+                    of lectures{" "}
+                    <span className="font-instrument italic">captured</span>
+                  </p>
+                </div>
+                <Link
+                  href="/upload"
+                  className="group flex h-11 items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-[#0d0d0d] outline-none transition hover:scale-[1.02] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 motion-reduce:hover:scale-100"
+                >
+                  <Mic className="size-4" />
+                  Record a lecture
+                </Link>
+              </GlassPanel>
+            </div>
+          </HeroBand>
+        </div>
+
+        {/* Stat strip */}
+        <div className="mt-8">
           <StatCards stats={stats} />
         </div>
 
-        {/* Quick actions — the single quick-action entry point (§10). The
-            empty state below provides the record CTA when the library is empty,
-            so we avoid a third redundant button.
-            TODO: Dynamic quick actions based on AI context (flashcard review,
-            quiz practice, note review) */}
-        {notes.length > 0 && (
-          <div className="mt-6">
-            <QuickRecord />
+        {/* The library is the hero of this page. */}
+        <section className="mt-14">
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="text-3xl font-normal tracking-[-0.02em] sm:text-4xl">
+              Your <span className="font-instrument italic">library</span>
+            </h2>
+            {notes.length > 0 && (
+              <span className="rounded-full border border-black/[0.1] px-2.5 py-1 text-xs tabular-nums text-[#0d0d0d]/55">
+                {notes.length} total
+              </span>
+            )}
           </div>
-        )}
 
-        {/* Body: recordings + tips */}
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-          <section>
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-normal tracking-tight">
-                Recent{" "}
-                <span className="font-instrument italic">recordings</span>
-              </h2>
-              {notes.length > 0 && (
-                <span className="rounded-full border border-black/[0.1] px-2.5 py-1 text-xs tabular-nums text-[#0d0d0d]/55">
-                  {notes.length} total
-                </span>
-              )}
+          {notes.length === 0 ? (
+            <div className="mt-6">
+              <EmptyRecordings />
             </div>
-
-            {notes.length === 0 ? (
-              <div className="mt-5">
-                <EmptyRecordings />
-              </div>
-            ) : (
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                {notes.map((note) => (
+          ) : (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {notes.map((note, i) => (
+                <Reveal
+                  key={note.id}
+                  index={i}
+                  // The newest recording leads the library at double width.
+                  className={i === 0 ? "sm:col-span-2" : undefined}
+                >
                   <NoteCard
-                    key={note.id}
                     note={note}
                     status={displayStatus(note)}
                     held={note.content?.hold === "gemini_spend_cap"}
+                    className="h-full"
                   />
-                ))}
-              </div>
-            )}
-          </section>
+                </Reveal>
+              ))}
+              <Reveal index={notes.length}>
+                <QuickRecord />
+              </Reveal>
+            </div>
+          )}
+        </section>
 
-          <aside className="space-y-6">
-            <Tips />
-          </aside>
+        {/* Tips: a quiet strip at the foot of the page. */}
+        <div className="mt-12">
+          <Tips />
         </div>
       </div>
     </main>

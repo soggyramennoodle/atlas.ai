@@ -18,6 +18,7 @@ import {
   PILL_INPUT,
   PILL_SECONDARY_INLINE,
 } from "@/components/app/pills";
+import { CARD } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
 import type { UserMemory, UserProfile } from "@/lib/types";
 import { PasskeysPanel } from "@/components/settings/passkeys-panel";
@@ -59,7 +60,7 @@ export function SettingsClient({
     <div className="mt-8">
       <nav
         aria-label="Settings sections"
-        className="flex gap-1 overflow-x-auto border-b border-black/[0.08] pb-4"
+        className="flex gap-1 overflow-x-auto pb-2"
       >
         {TABS.map((t) => {
           const active = tab === t.id;
@@ -158,14 +159,15 @@ function ProfileForm({
   }
 
   return (
-    <section data-tour="settings-profile" className="border-b border-black/[0.08] py-8">
+    <section data-tour="settings-profile" className="py-8">
+      <div className={cn(CARD, "p-6 sm:p-8")}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
             Profile
           </p>
           <h2 className="mt-2 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
-            Your study profile
+            Your study <span className="font-instrument italic">profile</span>
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#0d0d0d]/60">
             Atlas uses these details to personalize your notes. Changes save as
@@ -175,11 +177,11 @@ function ProfileForm({
         <SaveStatus status={status} />
       </div>
 
-      <div className="mt-7 border-y border-black/[0.08]">
+      <div className="mt-7 space-y-4">
         {PROFILE_FIELDS.map((f) => (
           <div
             key={f.key}
-            className="grid gap-3 border-b border-black/[0.08] py-4 last:border-b-0 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center"
+            className="grid gap-2 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center"
           >
             <label
               htmlFor={f.key}
@@ -202,7 +204,7 @@ function ProfileForm({
             />
           </div>
         ))}
-        <div className="grid gap-3 py-4 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center">
+        <div className="grid gap-2 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center">
           <label
             htmlFor="email-readonly"
             className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45"
@@ -216,6 +218,7 @@ function ProfileForm({
             className={`${PILL_INPUT} bg-black/[0.03] text-[#0d0d0d]/55`}
           />
         </div>
+      </div>
       </div>
     </section>
   );
@@ -240,8 +243,8 @@ function SaveStatus({ status }: { status: "idle" | "saving" | "saved" }) {
 
 function PrivacyPanel() {
   return (
-    <section className="space-y-8 border-b border-black/[0.08] py-8">
-      <div className="relative isolate rounded-3xl border border-black/[0.08] bg-white p-6 shadow-[0_18px_55px_-42px_rgba(13,13,13,0.45)] sm:p-8">
+    <section className="space-y-6 py-8">
+      <div className={cn(CARD, "relative isolate p-6 sm:p-8")}>
         <span
           aria-hidden
           className="processing-glow"
@@ -260,7 +263,7 @@ function PrivacyPanel() {
         </p>
       </div>
 
-      <div className="border-y border-black/[0.08]">
+      <div className={cn(CARD, "space-y-6 p-6 sm:p-7")}>
         <InfoRow
           icon={Trash2}
           title="Audio is deleted after processing"
@@ -286,7 +289,7 @@ function InfoRow({
   body: string;
 }) {
   return (
-    <div className="grid gap-4 border-b border-black/[0.08] py-5 last:border-b-0 sm:grid-cols-[3rem_minmax(0,1fr)]">
+    <div className="grid gap-4 sm:grid-cols-[3rem_minmax(0,1fr)]">
       <span className="grid size-10 place-items-center rounded-full border border-black/[0.10] bg-white text-[#0d0d0d]">
         <Icon className="size-4" />
       </span>
@@ -310,11 +313,11 @@ function AccountPanel({
   joined: string | null;
 }) {
   return (
-    <section className="space-y-8 py-8">
+    <section className="space-y-6 py-8">
       <PasskeysPanel />
 
-      <div className="border-y border-black/[0.08]">
-        <div className="grid gap-3 border-b border-black/[0.08] py-5 sm:grid-cols-[12rem_minmax(0,1fr)]">
+      <div className={cn(CARD, "space-y-5 p-6 sm:p-7")}>
+        <div className="grid gap-2 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center">
           <dt className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45">
             <Mail className="size-3.5" /> Email
           </dt>
@@ -322,7 +325,7 @@ function AccountPanel({
             {email}
           </dd>
         </div>
-        <div className="grid gap-3 py-5 sm:grid-cols-[12rem_minmax(0,1fr)]">
+        <div className="grid gap-2 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center">
           <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45">
             Member since
           </dt>
@@ -332,7 +335,7 @@ function AccountPanel({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 border-b border-black/[0.08] pb-8 sm:flex-row sm:items-center sm:justify-between">
+      <div className={cn(CARD, "flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7")}>
         <div>
           <h3 className="text-lg font-normal tracking-[-0.01em] text-[#0d0d0d]">
             Sign out

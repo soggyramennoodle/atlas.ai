@@ -18,7 +18,12 @@ export function TranscriptPanel({ transcript }: { transcript: string }) {
   return (
     <motion.section
       layout
-      className={cn("overflow-hidden rounded-3xl", GLASS_LIGHT)}
+      className={cn(
+        "overflow-hidden rounded-3xl",
+        GLASS_LIGHT,
+        // Reads as a distinct frosted sheet, not a ghost on the canvas.
+        "bg-white/65 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(13,13,13,0.04),0_24px_60px_-36px_rgba(13,13,13,0.3)]"
+      )}
     >
       <button
         onClick={() => setOpen((o) => !o)}

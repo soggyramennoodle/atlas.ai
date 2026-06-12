@@ -23,11 +23,10 @@ import {
 } from "@/components/app/pills";
 import { cn, type DeviceAudioSupport } from "@/lib/utils";
 import {
-  BARS,
   useRecording,
   type RecordingSource,
 } from "@/components/recording/recording-context";
-import { Waveform } from "@/components/recording/waveform";
+import { WaveRibbon } from "@/components/recording/wave-ribbon";
 import { AiGlow } from "@/components/ui/ai-glow";
 import { ProcessingOverlay } from "@/components/upload/processing-overlay";
 
@@ -130,19 +129,14 @@ export function Recorder() {
                     : "Record in browser"}
             </span>
 
-            {/* Waveform — driven imperatively (see Waveform); the meter never
-                re-renders React, so the aura stays smooth while recording. */}
-            <Waveform
-              count={BARS}
-              containerClassName="mt-7 flex h-24 w-full items-center justify-center gap-[3px]"
-              barClassName={cn(
-                "h-full w-[3px] origin-center rounded-full bg-gradient-to-t transform-gpu",
-                phase === "paused"
-                  ? "from-amber-500/40 to-amber-500"
-                  : "from-[#0d0d0d]/30 to-[#0d0d0d]"
-              )}
+            {/* Breathing light ribbon — driven imperatively (see WaveRibbon);
+                the meter never re-renders React, so it stays smooth. */}
+            <div
+              className="mt-7 h-24 w-full transition-opacity duration-300"
               style={{ opacity: live ? 1 : 0.35 }}
-            />
+            >
+              <WaveRibbon paused={phase === "paused"} tone="ink" />
+            </div>
 
             <div className="mt-5 text-4xl font-light tabular-nums tracking-tight">
               {formatClock(seconds)}

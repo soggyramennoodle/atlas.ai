@@ -31,6 +31,7 @@ import {
   sanitizeNoteHtml,
   seedBodyFromSections,
 } from "@/lib/notes-html";
+import { MathText } from "./math-text";
 import { SummaryCard } from "./summary-card";
 import { TranscriptPanel } from "./transcript-panel";
 import { SourceBullet } from "./source-bubble";
@@ -729,7 +730,8 @@ function EditedNoteBody({
       key: string,
       inListItem = false
     ): React.ReactNode => {
-      if (node.nodeType === NodeType.TEXT_NODE) return node.text;
+      if (node.nodeType === NodeType.TEXT_NODE)
+        return <MathText key={key} text={node.text} />;
       if (!(node instanceof HTMLElement)) return null;
 
       const tag = tagOf(node);
@@ -1293,7 +1295,7 @@ function FloatingEditControls({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: reduce ? 0 : 12, scale: reduce ? 1 : 0.96 }}
           transition={{ type: "spring", stiffness: 360, damping: 28 }}
-          className="fixed bottom-6 right-4 z-40 rounded-full border border-white/55 bg-white/70 px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_50px_-28px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:right-6"
+          className="fixed bottom-6 right-4 z-40 rounded-full border border-white/55 bg-white/70 px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_50px_-28px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.07] backdrop-blur-xl sm:right-6"
           style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
         >
           <EditControls
@@ -1392,7 +1394,7 @@ function SectionView({
       <ul className="mt-4 space-y-2.5">
         {section.points.map((point, j) => (
           <li key={j} className="flex gap-3 leading-relaxed">
-            <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-primary/60" />
+            <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-[#0d0d0d]/40" />
             <AskableBlock
               text={point.text}
               sourceExcerpt={point.source_excerpt}

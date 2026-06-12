@@ -11,6 +11,8 @@ import {
   X,
 } from "lucide-react";
 import type { KeyConcept } from "@/lib/types";
+import { AiGlow } from "@/components/ui/ai-glow";
+import { MathText } from "./math-text";
 import { GLASS_LIGHT } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
 
@@ -82,7 +84,7 @@ export function KeyConceptsGrid({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSelected(null)}
-            className="fixed inset-0 z-30 cursor-default bg-[#fafafa]/40 backdrop-blur-[2px]"
+            className="fixed inset-0 z-30 cursor-default bg-[#f4f3f1]/45 backdrop-blur-[2px]"
           />
         )}
       </AnimatePresence>
@@ -225,7 +227,7 @@ function ConceptCard({
         }}
         whileHover={dimmed || selected ? undefined : { y: -4, scale: 1.015 }}
         transition={SPRING}
-        className="group relative block w-full rounded-2xl border border-black/[0.08] bg-white p-5 text-left transition-[border-color,box-shadow] duration-300 ease-out hover:border-black/20 hover:shadow-[0_18px_50px_-32px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
+        className="group relative block w-full rounded-2xl border border-white/60 bg-white/70 p-5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_1px_2px_rgba(13,13,13,0.04),0_18px_44px_-30px_rgba(13,13,13,0.3)] ring-1 ring-black/[0.07] backdrop-blur-md transition-[box-shadow] duration-300 ease-out hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_2px_4px_rgba(13,13,13,0.05),0_24px_60px_-30px_rgba(13,13,13,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
         style={{ visibility: selected ? "hidden" : "visible" }}
       >
         <div className="flex items-start justify-between gap-2">
@@ -233,7 +235,7 @@ function ConceptCard({
           <Sparkles className="size-4 shrink-0 text-[#0d0d0d]/45 opacity-0 transition group-hover:text-[#0d0d0d]/70 group-hover:opacity-100" />
         </div>
         <p className="mt-1.5 text-pretty text-sm leading-relaxed text-[#0d0d0d]/55">
-          {concept.definition}
+          <MathText text={concept.definition} />
         </p>
       </motion.button>
 
@@ -251,7 +253,22 @@ function ConceptCard({
           >
             {/* AI panel — signed by the fluid edge ring; brighter while thinking.
                 The glow shell never scrolls (so the outer bloom isn't clipped);
-                the inner wrapper carries the scroll. */}
+                the inner wrapper carries the scroll. While thinking, the brand
+                aurora bleeds through the frosted panel from behind. */}
+            <AnimatePresence>
+              {thinking && (
+                <motion.div
+                  aria-hidden
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute -inset-8 -z-10 overflow-hidden rounded-[2.5rem]"
+                >
+                  <AiGlow mode="active" density="standard" blur={48} />
+                </motion.div>
+              )}
+            </AnimatePresence>
             <div
               className={cn(
                 "ai-ring relative rounded-2xl",
@@ -275,7 +292,7 @@ function ConceptCard({
                   </button>
                 </div>
                 <p className="mt-1.5 text-pretty text-sm leading-relaxed text-[#0d0d0d]/55">
-                  {concept.definition}
+                  <MathText text={concept.definition} />
                 </p>
 
                 {/* Options (only before a conversation starts), staggered in. */}
@@ -345,7 +362,7 @@ function ConceptCard({
                               className="overflow-hidden"
                             >
                               <div className="px-3 pb-3 text-pretty text-sm leading-relaxed text-[#0d0d0d]/80">
-                                {turn.answer}
+                                <MathText text={turn.answer} />
                                 {turn.streaming && <StreamingCaret />}
                               </div>
                             </motion.div>

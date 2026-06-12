@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, BookOpen, Clock, Loader2, TriangleAlert } from "lucide-react";
 import type { NoteRecord } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 type NoteCardData = Pick<
   NoteRecord,
@@ -44,11 +45,13 @@ export function NoteCard({
   note,
   status,
   held = false,
+  className,
 }: {
   note: NoteCardData;
   status: "processing" | "ready" | "failed";
   /** Gemini spend-cap hold — saved but paused, not actively processing. */
   held?: boolean;
+  className?: string;
 }) {
   const processing = status === "processing" && !held;
   const atCapacity = held;
@@ -113,7 +116,10 @@ export function NoteCard({
   return (
     <Link
       href={`/notes/${note.id}`}
-      className="group relative flex flex-col rounded-3xl border border-black/[0.08] bg-white p-5 outline-none transition-[border-color,box-shadow] duration-300 hover:border-black/20 hover:shadow-[0_18px_50px_-32px_rgba(0,0,0,0.35)] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
+      className={cn(
+        "group relative flex flex-col rounded-3xl border border-black/[0.08] bg-white p-5 shadow-[0_1px_2px_rgba(13,13,13,0.04),0_22px_55px_-42px_rgba(13,13,13,0.35)] outline-none transition-[border-color,box-shadow] duration-300 hover:border-black/20 hover:shadow-[0_2px_4px_rgba(13,13,13,0.05),0_26px_60px_-34px_rgba(13,13,13,0.4)] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2",
+        className
+      )}
     >
       {atCapacity ? <span aria-hidden className="capacity-glow" /> : null}
       {glowing && (

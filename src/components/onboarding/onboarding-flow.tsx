@@ -100,7 +100,7 @@ export function OnboardingFlow() {
   }
 
   return (
-    <main className="min-h-svh bg-[#fafafa] px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-svh px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto grid min-h-[calc(100svh-3rem)] w-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center">
         <HeroBand
           priority

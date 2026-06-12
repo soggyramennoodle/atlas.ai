@@ -105,7 +105,7 @@ export function ProcessingOverlay({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: reduceMotion ? 0 : 0.18, ease: "easeOut" }}
-          className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-[#fafafa]/90 px-4 backdrop-blur-md"
+          className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-[#f4f3f1]/90 px-4 backdrop-blur-md"
         >
           {capacity ? (
             <div

@@ -7,8 +7,45 @@ import { AiGlow } from "@/components/ui/ai-glow";
  * here — never hand-rolled per page. Both read as real glass: translucent
  * fill, heavy backdrop blur, specular top edge, hairline inner border.
  */
+/** Warm paper canvas for the app surface — a touch darker than the marketing
+ *  #fafafa so white cards and light glass actually read as raised surfaces. */
+export const CANVAS = "#f4f3f1";
+
+/* Tileable monochrome film grain (SVG feTurbulence). Encoded once; rendered
+   at very low opacity over the whole canvas by AppCanvas. */
+const GRAIN_SVG =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E";
+
+/**
+ * The app's atmospheric backdrop: a soft light wash falling from the top of
+ * the viewport plus an ultra-subtle film grain, both fixed and non-interactive.
+ * Pure CSS — no animation, no compositing cost beyond two static layers.
+ * Parent must be `isolate` so the -z-10 layers sit above its background.
+ */
+export function AppCanvas() {
+  return (
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+      {/* Light falling from above — keeps the warm canvas from going flat. */}
+      <div className="absolute inset-x-0 top-0 h-[46rem] bg-[radial-gradient(120%_100%_at_50%_-30%,rgba(255,255,255,0.85),rgba(255,255,255,0)_62%)]" />
+      {/* A faint cool breath low in the frame, like the mist asset. */}
+      <div className="absolute bottom-[-12rem] left-1/2 h-[28rem] w-[110%] -translate-x-1/2 rounded-[100%] bg-[radial-gradient(60%_100%_at_50%_100%,rgba(13,13,13,0.05),rgba(13,13,13,0)_70%)]" />
+      {/* Film grain. */}
+      <div
+        className="absolute inset-0 opacity-[0.05]"
+        style={{ backgroundImage: `url("${GRAIN_SVG}")`, backgroundSize: "160px 160px" }}
+      />
+    </div>
+  );
+}
+
+/** The standard raised white card on the warm canvas: hairline + soft ambient
+ *  shadow. Use this instead of bare `bg-white border-black/[0.08]` so every
+ *  card separates from the canvas the same way. */
+export const CARD =
+  "rounded-3xl border border-black/[0.08] bg-white shadow-[0_1px_2px_rgba(13,13,13,0.04),0_24px_60px_-44px_rgba(13,13,13,0.35)]";
+
 export const GLASS_LIGHT =
-  "border border-white/55 bg-white/50 text-[#0d0d0d] shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_50px_-28px_rgba(0,0,0,0.35)] backdrop-blur-xl";
+  "border border-white/55 bg-white/50 text-[#0d0d0d] shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_50px_-28px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.07] backdrop-blur-xl";
 export const GLASS_INK =
   "border border-white/[0.16] bg-[#0d0d0d]/60 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_24px_60px_-30px_rgba(0,0,0,0.55)] backdrop-blur-xl";
 

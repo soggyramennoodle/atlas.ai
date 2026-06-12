@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
   const instruction = `${PROMPTS[mode](term)}\n\nThe student's notes define it as: "${definition ?? ""}".${
     context ? `\nLecture context: ${context}` : ""
-  }\nReply in prose only — no headings, no markdown bullets.`;
+  }\nReply in prose only — no headings, no markdown bullets. Math goes in LaTeX wrapped in $...$.`;
 
   let iterator;
   try {

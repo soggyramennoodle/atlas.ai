@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { GLASS_LIGHT } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
+import { MathText } from "./math-text";
 
 /** Spring shared with the key-concept cards for a consistent, lightly bouncy feel. */
 const SPRING = { type: "spring" as const, stiffness: 320, damping: 26 };
@@ -337,7 +338,7 @@ function LineChatPopup({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 z-40 cursor-default bg-[#fafafa]/40 backdrop-blur-[2px]"
+        className="fixed inset-0 z-40 cursor-default bg-[#f4f3f1]/45 backdrop-blur-[2px]"
       />
 
       <motion.div
@@ -461,7 +462,7 @@ function LineChatPopup({
                           className="overflow-hidden"
                         >
                           <div className="px-3 pb-3 text-pretty text-sm leading-relaxed text-[#0d0d0d]/80">
-                            {turn.answer}
+                            <MathText text={turn.answer} />
                             {turn.streaming && <StreamingCaret />}
                           </div>
                           {/* "Add to note" — only on a completed Go-deeper turn,

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { MathText } from "./math-text";
 
 /**
  * The lecture summary (§ summary §). The text itself is read-only — students no
@@ -86,7 +87,7 @@ export function SummaryCard({
   return (
     <section
       className={cn(
-        "relative isolate rounded-3xl border border-black/[0.08] bg-white p-6 shadow-[0_24px_70px_-52px_rgba(13,13,13,0.45)] sm:p-7"
+        "relative isolate rounded-3xl border border-black/[0.08] bg-white p-6 shadow-[0_1px_2px_rgba(13,13,13,0.04),0_28px_70px_-42px_rgba(13,13,13,0.35)] sm:p-7"
       )}
     >
       <span
@@ -126,7 +127,7 @@ export function SummaryCard({
         </div>
 
         <p className="mt-3 text-pretty leading-relaxed text-[#0d0d0d]/80">
-          {shown}
+          <MathText text={shown} />
           {regenerating && <StreamingCaret />}
         </p>
       </div>
