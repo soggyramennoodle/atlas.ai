@@ -23,6 +23,8 @@ Full cinematic conversion of the user app (Inter Tight + Instrument Serif, no gr
 
 ## ➜ RESUME HERE: Phase 3 (note view) is next
 
+**2026-06-11 late update:** a parallel session left UNCOMMITTED Phase 3 conversions in the working tree (all 13 note files, ~3.4k insertions, on-contract per spot-check of course-capsule). Next agent: review that diff against the contract below, run the verification battery, then commit it as the Phase 3 commit — don't redo the work blind, and don't discard it.
+
 Session ended cleanly at the Phase 2/3 boundary (usage limit). Nothing is half-converted. The next agent should execute Phases 3–7 in order, one commit per phase, updating this file after each. The complete style contract below was written for a Phase 3 subagent — use it verbatim (it works for phases 4–6 too; swap the file list).
 
 ### Style contract (apply to every remaining surface)
