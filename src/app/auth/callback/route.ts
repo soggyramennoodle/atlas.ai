@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { safeAuthNextPath } from "@/lib/auth-errors";
+import { isAccountBannedByUserId } from "@/lib/account-ban-server";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -15,6 +16,13 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user && (await isAccountBannedByUserId(user.id))) {
+        await supabase.auth.signOut();
+        return NextResponse.redirect(`${origin}/login?locked=1`);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

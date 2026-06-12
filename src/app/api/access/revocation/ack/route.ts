@@ -19,7 +19,7 @@ export async function POST() {
   const db = createAdminClient();
   const { data: pending } = await db
     .from("access_revocations")
-    .select("id")
+    .select("id, kind")
     .eq("user_id", user.id)
     .eq("status", "pending")
     .maybeSingle();
@@ -28,13 +28,17 @@ export async function POST() {
     return NextResponse.json({ error: "Nothing to acknowledge." }, { status: 404 });
   }
 
-  await db
-    .from("access_revocations")
-    .update({
-      status: "completed",
-      completed_at: new Date().toISOString(),
-    })
-    .eq("id", pending.id);
+  // One-time maintenance logouts clear the queue; bans stay active so the user
+  // cannot sign back in until an admin unbans them.
+  if (pending.kind !== "banned") {
+    await db
+      .from("access_revocations")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", pending.id);
+  }
 
   await forceRemoteSignOut(user.id);
   await supabase.auth.signOut();

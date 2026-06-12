@@ -24,6 +24,18 @@ export function usePasskeySignIn(next: string) {
         return;
       }
       if (data.session) {
+        const res = await fetch("/api/access/revocation", { cache: "no-store" });
+        if (res.ok) {
+          const json = (await res.json()) as {
+            revocation: { kind: string } | null;
+          };
+          if (json.revocation?.kind === "banned") {
+            await supabase.auth.signOut();
+            router.replace("/login?locked=1");
+            router.refresh();
+            return;
+          }
+        }
         router.push(next);
         router.refresh();
       }

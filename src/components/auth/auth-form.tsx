@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Fingerprint,
   Loader2,
+  Lock,
   Mail,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -34,7 +35,10 @@ type AuthStep =
   | "magic-sent"
   | "no-account"
   | "already-exists"
-  | "sign-in-choice";
+  | "sign-in-choice"
+  | "account-locked";
+
+const SUPPORT_EMAIL = "hello@atlasai.ca";
 
 const RESEND_COOLDOWN = 90;
 
@@ -68,6 +72,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     if (params.get("error")) {
       toast.error("That sign-in link didn't work. Please try again.");
       router.replace(isSignup ? "/signup" : "/login");
+    }
+    if (!isSignup && params.get("locked")) {
+      setStep("account-locked");
+      router.replace("/login");
     }
   }, [params, router, isSignup]);
 
@@ -126,6 +134,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
       if (!lookup.exists) {
         setStep("no-account");
+        return;
+      }
+
+      if (lookup.banned) {
+        setStep("account-locked");
         return;
       }
 
@@ -251,6 +264,33 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
               Sign in instead
               {ARROW_BADGE}
             </Link>
+            <button type="button" onClick={goBack} className={GHOST_LINK}>
+              <ArrowLeft className="size-3.5" />
+              Try a different email
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (step === "account-locked") {
+      return (
+        <div>
+          <span className="grid size-12 place-items-center rounded-full border border-black/[0.12] bg-white text-[#0d0d0d]">
+            <Lock className="size-5" />
+          </span>
+          <h2 className="mt-6 text-[2rem] font-normal leading-[1.05] tracking-[-0.02em]">
+            Account <span className="font-instrument italic">locked</span>
+          </h2>
+          <p className="mt-3 text-sm text-[#0d0d0d]/55 text-pretty">
+            This account has been locked and can&apos;t sign in. If you think this
+            is a mistake, reach out and we&apos;ll help sort it out.
+          </p>
+          <div className="mt-8 grid gap-4">
+            <a href={`mailto:${SUPPORT_EMAIL}`} className={PILL_PRIMARY}>
+              <Mail className="size-4" />
+              Contact {SUPPORT_EMAIL}
+            </a>
             <button type="button" onClick={goBack} className={GHOST_LINK}>
               <ArrowLeft className="size-3.5" />
               Try a different email

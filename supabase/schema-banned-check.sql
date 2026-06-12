@@ -19,9 +19,17 @@ set search_path = ''
 as $$
   select coalesce(
     (
-      select u.banned_until is not null and u.banned_until > now()
+      select
+        (u.banned_until is not null and u.banned_until > now())
+        or exists (
+          select 1
+          from public.access_revocations r
+          where r.user_id = u.id
+            and r.status = 'pending'
+            and r.kind = 'banned'
+        )
       from auth.users u
-      where lower(u.email) = lower(p_email)
+      where lower(u.email) = lower(trim(p_email))
       limit 1
     ),
     false

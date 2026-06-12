@@ -11,7 +11,15 @@ stable
 as $$
   select coalesce(
     (
-      select u.banned_until is not null and u.banned_until > now()
+      select
+        (u.banned_until is not null and u.banned_until > now())
+        or exists (
+          select 1
+          from public.access_revocations r
+          where r.user_id = u.id
+            and r.status = 'pending'
+            and r.kind = 'banned'
+        )
       from auth.users u
       where u.id = auth.uid()
       limit 1
