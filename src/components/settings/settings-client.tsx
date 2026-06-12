@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType, type CSSProperties } from "react";
 import { motion } from "framer-motion";
 import {
   Brain,
@@ -14,9 +14,10 @@ import {
   User,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  PILL_INPUT,
+  PILL_SECONDARY_INLINE,
+} from "@/components/app/pills";
 import { cn } from "@/lib/utils";
 import type { UserMemory, UserProfile } from "@/lib/types";
 import { PasskeysPanel } from "@/components/settings/passkeys-panel";
@@ -24,10 +25,10 @@ import { MemoryPanel } from "@/components/settings/memory-panel";
 
 type Tab = "profile" | "memory" | "privacy" | "account";
 
-const TABS: { id: Tab; label: string; icon: typeof User }[] = [
+const TABS: { id: Tab; label: string; icon: ComponentType<{ className?: string }> }[] = [
   { id: "profile", label: "Profile", icon: User },
   { id: "memory", label: "Memory", icon: Brain },
-  { id: "privacy", label: "Privacy & Data", icon: ShieldCheck },
+  { id: "privacy", label: "Privacy & data", icon: ShieldCheck },
   { id: "account", label: "Account", icon: Mail },
 ];
 
@@ -56,36 +57,40 @@ export function SettingsClient({
 
   return (
     <div className="mt-8">
-      {/* Tab bar */}
-      <div className="flex gap-1 rounded-[4px] border border-border bg-card p-1">
+      <nav
+        aria-label="Settings sections"
+        className="flex gap-1 overflow-x-auto border-b border-black/[0.08] pb-4"
+      >
         {TABS.map((t) => {
           const active = tab === t.id;
           return (
             <button
               key={t.id}
+              type="button"
               onClick={() => setTab(t.id)}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "icon-animate relative flex flex-1 items-center justify-center gap-2 rounded-[3px] px-4 py-2 text-sm font-medium transition-colors",
+                "relative isolate flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-full border px-4 py-2 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-black/25",
                 active
-                  ? "text-background"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "border-[#0d0d0d] bg-[#0d0d0d] text-white"
+                  : "border-black/[0.10] bg-white/70 text-[#0d0d0d]/58 hover:border-black/[0.18] hover:text-[#0d0d0d]"
               )}
             >
               {active && (
                 <motion.span
                   layoutId="settings-tab"
-                  className="absolute inset-0 rounded-[3px] bg-foreground"
+                  className="absolute inset-0 z-0 rounded-full bg-[#0d0d0d]"
                   transition={{ type: "spring", stiffness: 380, damping: 32 }}
                 />
               )}
-              <t.icon className="relative size-4" />
-              <span className="relative hidden sm:inline">{t.label}</span>
+              <t.icon className="relative z-10 size-4" />
+              <span className="relative z-10 whitespace-nowrap">{t.label}</span>
             </button>
           );
         })}
-      </div>
+      </nav>
 
-      <div className="mt-6">
+      <div className="mt-2">
         {tab === "profile" && <ProfileForm email={email} profile={profile} />}
         {tab === "memory" && (
           <MemoryPanel
@@ -130,7 +135,6 @@ function ProfileForm({
   const [saved, setSaved] = useState<Record<string, string>>(values);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
 
-  // Optimistic: persist a field the moment it loses focus, if it changed.
   async function commit(key: string) {
     if (values[key] === saved[key]) return;
     const optimistic = { ...saved, [key]: values[key] };
@@ -146,7 +150,7 @@ function ProfileForm({
       setStatus("saved");
       window.setTimeout(() => setStatus("idle"), 1500);
     } catch {
-      setSaved(saved); // roll back
+      setSaved(saved);
       setValues((v) => ({ ...v, [key]: saved[key] }));
       setStatus("idle");
       toast.error("Couldn't save that change.");
@@ -154,22 +158,36 @@ function ProfileForm({
   }
 
   return (
-    <div data-tour="settings-profile" className="rounded-[4px] border border-border bg-card p-6">
-      <div className="flex items-center justify-between">
+    <section data-tour="settings-profile" className="border-b border-black/[0.08] py-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="font-semibold tracking-tight">Your profile</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Atlas uses this to personalize your notes. Changes save as you go.
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
+            Profile
+          </p>
+          <h2 className="mt-2 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+            Your study profile
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#0d0d0d]/60">
+            Atlas uses these details to personalize your notes. Changes save as
+            you go.
           </p>
         </div>
         <SaveStatus status={status} />
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="mt-7 border-y border-black/[0.08]">
         {PROFILE_FIELDS.map((f) => (
-          <div key={f.key} className="space-y-1.5">
-            <Label htmlFor={f.key}>{f.label}</Label>
-            <Input
+          <div
+            key={f.key}
+            className="grid gap-3 border-b border-black/[0.08] py-4 last:border-b-0 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center"
+          >
+            <label
+              htmlFor={f.key}
+              className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45"
+            >
+              {f.label}
+            </label>
+            <input
               id={f.key}
               value={values[f.key] ?? ""}
               placeholder={f.placeholder}
@@ -180,29 +198,40 @@ function ProfileForm({
               onKeyDown={(e) => {
                 if (e.key === "Enter") (e.target as HTMLInputElement).blur();
               }}
+              className={PILL_INPUT}
             />
           </div>
         ))}
-        <div className="space-y-1.5">
-          <Label htmlFor="email-readonly">Email</Label>
-          <Input id="email-readonly" value={email} disabled />
+        <div className="grid gap-3 py-4 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center">
+          <label
+            htmlFor="email-readonly"
+            className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45"
+          >
+            Email
+          </label>
+          <input
+            id="email-readonly"
+            value={email}
+            disabled
+            className={`${PILL_INPUT} bg-black/[0.03] text-[#0d0d0d]/55`}
+          />
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
 function SaveStatus({ status }: { status: "idle" | "saving" | "saved" }) {
   if (status === "idle") return null;
   return (
-    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+    <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-black/[0.10] bg-white px-3 text-xs font-medium text-[#0d0d0d]/60">
       {status === "saving" ? (
         <>
-          <Loader2 className="size-3.5 animate-spin" /> Saving…
+          <Loader2 className="size-3.5 animate-spin" /> Saving...
         </>
       ) : (
         <>
-          <Check className="size-3.5 text-emerald-400" /> Saved
+          <Check className="size-3.5 text-emerald-500" /> Saved
         </>
       )}
     </span>
@@ -211,55 +240,64 @@ function SaveStatus({ status }: { status: "idle" | "saving" | "saved" }) {
 
 function PrivacyPanel() {
   return (
-    <div className="space-y-4">
-      <div className="ai-ring icon-animate relative isolate rounded-[4px] border border-border bg-card p-6">
-        <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
+    <section className="space-y-8 border-b border-black/[0.08] py-8">
+      <div className="relative isolate rounded-3xl border border-black/[0.08] bg-white p-6 shadow-[0_18px_55px_-42px_rgba(13,13,13,0.45)] sm:p-8">
+        <span
+          aria-hidden
+          className="processing-glow"
+          style={{ "--ai-ring-flow": "11s" } as CSSProperties}
+        />
+        <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.10] bg-black/[0.03] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/55">
           <Lock className="size-3.5" />
           Atlas Enclave
         </span>
-        <h2 className="mt-4 text-xl font-bold tracking-tight">
+        <h2 className="mt-5 max-w-2xl text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
           Your notes are private and only visible to you.
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
-          Every recording and note is scoped to your account alone. No one else,
-          not other students, not the public, can see them.
+        <p className="mt-3 max-w-2xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
+          Every recording and note is scoped to your account alone. Other
+          students and the public cannot see them.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <InfoCard
+      <div className="border-y border-black/[0.08]">
+        <InfoRow
           icon={Trash2}
           title="Audio is deleted after processing"
           body="Your lecture audio is sent to our notes engine, transcribed, and then deleted. We keep the notes, not the recording on our processor."
         />
-        <InfoCard
+        <InfoRow
           icon={ShieldCheck}
           title="Never sold or shared"
           body="Your data is never sold, shared, or used to train third-party models. It exists to serve you and only you."
         />
       </div>
-    </div>
+    </section>
   );
 }
 
-function InfoCard({
+function InfoRow({
   icon: Icon,
   title,
   body,
 }: {
-  icon: typeof ShieldCheck;
+  icon: ComponentType<{ className?: string }>;
   title: string;
   body: string;
 }) {
   return (
-    <div className="icon-animate rounded-[4px] border border-border bg-card p-5">
-      <span className="grid size-9 place-items-center rounded-[4px] border border-border bg-background text-foreground">
+    <div className="grid gap-4 border-b border-black/[0.08] py-5 last:border-b-0 sm:grid-cols-[3rem_minmax(0,1fr)]">
+      <span className="grid size-10 place-items-center rounded-full border border-black/[0.10] bg-white text-[#0d0d0d]">
         <Icon className="size-4" />
       </span>
-      <h3 className="mt-3 text-sm font-semibold tracking-tight">{title}</h3>
-      <p className="mt-1 text-sm leading-relaxed text-muted-foreground text-pretty">
-        {body}
-      </p>
+      <div>
+        <h3 className="text-sm font-medium tracking-[-0.01em] text-[#0d0d0d]">
+          {title}
+        </h3>
+        <p className="mt-1.5 max-w-2xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
+          {body}
+        </p>
+      </div>
     </div>
   );
 }
@@ -272,41 +310,44 @@ function AccountPanel({
   joined: string | null;
 }) {
   return (
-    <div className="space-y-4">
+    <section className="space-y-8 py-8">
       <PasskeysPanel />
 
-      <div className="rounded-[4px] border border-border bg-card p-6">
-        <h2 className="font-semibold tracking-tight">Account</h2>
-        <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-          <div className="icon-animate rounded-[4px] border border-border bg-background p-4">
-            <dt className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              <Mail className="size-3.5" /> Email
-            </dt>
-            <dd className="mt-1.5 truncate text-sm font-medium">{email}</dd>
-          </div>
-          <div className="rounded-[4px] border border-border bg-background p-4">
-            <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Member since
-            </dt>
-            <dd className="mt-1.5 text-sm font-medium">{joined ?? "Not set"}</dd>
-          </div>
-        </dl>
+      <div className="border-y border-black/[0.08]">
+        <div className="grid gap-3 border-b border-black/[0.08] py-5 sm:grid-cols-[12rem_minmax(0,1fr)]">
+          <dt className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45">
+            <Mail className="size-3.5" /> Email
+          </dt>
+          <dd className="min-w-0 truncate text-sm font-medium text-[#0d0d0d]">
+            {email}
+          </dd>
+        </div>
+        <div className="grid gap-3 py-5 sm:grid-cols-[12rem_minmax(0,1fr)]">
+          <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45">
+            Member since
+          </dt>
+          <dd className="text-sm font-medium text-[#0d0d0d]">
+            {joined ?? "Not set"}
+          </dd>
+        </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-[4px] border border-border bg-card p-6">
+      <div className="flex flex-col gap-4 border-b border-black/[0.08] pb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="font-semibold tracking-tight">Sign out</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h3 className="text-lg font-normal tracking-[-0.01em] text-[#0d0d0d]">
+            Sign out
+          </h3>
+          <p className="mt-1 text-sm text-[#0d0d0d]/55">
             End your session on this device.
           </p>
         </div>
         <form action="/auth/signout" method="post">
-          <Button variant="outline" className="gap-2">
+          <button className={`${PILL_SECONDARY_INLINE} h-10 px-4 text-xs`}>
             <LogOut className="size-4" />
             Sign out
-          </Button>
+          </button>
         </form>
       </div>
-    </div>
+    </section>
   );
 }

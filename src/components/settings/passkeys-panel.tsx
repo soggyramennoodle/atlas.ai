@@ -5,7 +5,7 @@ import { Fingerprint, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { browserSupportsPasskeys } from "@/lib/passkeys";
-import { Button } from "@/components/ui/button";
+import { PILL_SECONDARY_INLINE } from "@/components/app/pills";
 
 type PasskeyRow = {
   id: string;
@@ -103,19 +103,24 @@ export function PasskeysPanel() {
   }
 
   return (
-    <div className="rounded-[4px] border border-border bg-card p-6">
+    <section className="border-b border-black/[0.08] pb-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="font-semibold tracking-tight">Passkeys</h2>
-          <p className="mt-1 text-sm text-muted-foreground text-pretty">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
+            Sign-in methods
+          </p>
+          <h2 className="mt-2 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+            Passkeys
+          </h2>
+          <p className="mt-2 max-w-2xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
             Sign in with Face ID, Touch ID, or your device PIN instead of
             waiting on a magic link.
           </p>
         </div>
         {supported && (
-          <Button
-            variant="outline"
-            className="shrink-0 gap-2"
+          <button
+            type="button"
+            className={`${PILL_SECONDARY_INLINE} h-10 shrink-0 px-4 text-xs`}
             onClick={() => void addPasskey()}
             disabled={adding || loading}
           >
@@ -125,45 +130,44 @@ export function PasskeysPanel() {
               <Fingerprint className="size-4" />
             )}
             Add passkey
-          </Button>
+          </button>
         )}
       </div>
 
       {!supported ? (
-        <p className="mt-4 text-sm text-muted-foreground">
+        <p className="mt-5 rounded-2xl border border-black/[0.08] bg-white px-4 py-3 text-sm text-[#0d0d0d]/60">
           Your browser doesn&apos;t support passkeys on this device.
         </p>
       ) : loading ? (
-        <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="mt-6 flex items-center gap-2 text-sm text-[#0d0d0d]/55">
           <Loader2 className="size-4 animate-spin" />
           Loading passkeys…
         </div>
       ) : passkeys.length === 0 ? (
-        <p className="mt-4 text-sm text-muted-foreground">
+        <p className="mt-5 rounded-2xl border border-black/[0.08] bg-white px-4 py-3 text-sm text-[#0d0d0d]/60">
           No passkeys saved yet. Add one to sign in faster next time.
         </p>
       ) : (
-        <ul className="mt-5 divide-y divide-border rounded-[4px] border border-border">
+        <ul className="mt-6 border-y border-black/[0.08]">
           {passkeys.map((passkey) => (
             <li
               key={passkey.id}
-              className="flex items-center justify-between gap-4 px-4 py-3"
+              className="flex items-center justify-between gap-4 border-b border-black/[0.08] py-4 last:border-b-0"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium">
+                <p className="truncate text-sm font-medium text-[#0d0d0d]">
                   {passkey.friendly_name?.trim() || "Passkey"}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="mt-1 text-xs text-[#0d0d0d]/50">
                   Added {formatPasskeyDate(passkey.created_at)}
                   {passkey.last_used_at
                     ? ` · Last used ${formatPasskeyDate(passkey.last_used_at)}`
                     : ""}
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="shrink-0 text-muted-foreground hover:text-destructive"
+              <button
+                type="button"
+                className="grid size-10 shrink-0 place-items-center rounded-full border border-black/[0.10] bg-white text-[#0d0d0d]/55 outline-none transition hover:bg-black/[0.03] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25 disabled:opacity-60"
                 onClick={() => void removePasskey(passkey.id)}
                 disabled={removingId === passkey.id}
                 aria-label="Remove passkey"
@@ -173,11 +177,11 @@ export function PasskeysPanel() {
                 ) : (
                   <Trash2 className="size-4" />
                 )}
-              </Button>
+              </button>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 }

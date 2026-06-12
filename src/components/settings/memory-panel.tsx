@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentType, type CSSProperties } from "react";
 import {
   Brain,
   BookOpen,
@@ -18,10 +18,13 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  PILL_PRIMARY_INLINE,
+  PILL_SECONDARY_INLINE,
+} from "@/components/app/pills";
 import type { CourseEntry, UserMemory, UserProfile } from "@/lib/types";
+
+type IconType = ComponentType<{ className?: string }>;
 
 /** De-dupe + trim a string list, dropping empties. */
 function clean(...lists: (string[] | undefined)[]): string[] {
@@ -44,7 +47,7 @@ function clean(...lists: (string[] | undefined)[]): string[] {
 function courseLabel(c: CourseEntry): string {
   const name = c.name?.trim() ?? "";
   const code = c.code?.trim();
-  if (code && name) return `${code} — ${name}`;
+  if (code && name) return `${code} - ${name}`;
   return code || name;
 }
 
@@ -58,19 +61,13 @@ function formatDate(iso: string): string | null {
   });
 }
 
-/**
- * Chips here hold user/AI content of unbounded length (a concept, a full
- * formatting sentence), not short tags. Override the Badge primitive's
- * `whitespace-nowrap`/centering so long text wraps and breaks instead of
- * overflowing the card — on any screen size.
- */
-const CHIP = "h-auto max-w-full justify-start whitespace-normal break-words text-left text-[0.8rem]";
+const CHIP =
+  "inline-flex min-h-8 max-w-full items-center rounded-full border border-black/[0.10] bg-white px-3 py-1.5 text-left text-xs font-medium leading-5 text-[#0d0d0d]/68";
 
 /**
- * "What Atlas knows about you" — surfaces the per-user personalization that
- * drives note generation (the `user_memory` blob + profile). Students don't
- * edit fields directly; they correct Atlas conversationally via the refine box,
- * which rewrites the blob server-side.
+ * "What Atlas knows about you" surfaces the per-user personalization that
+ * drives note generation. Students correct Atlas conversationally through the
+ * refine box, which rewrites the blob server-side.
  */
 export function MemoryPanel({
   memory: initialMemory,
@@ -89,7 +86,6 @@ export function MemoryPanel({
   const concepts = clean(memory?.recurringConcepts);
   const terminology = clean(memory?.preferredTerminology);
   const content = clean(memory?.contentPreferences);
-  // Legacy `stylePreferences` were mostly formatting; surface them as such.
   const formatting = clean(memory?.formattingPreferences, memory?.stylePreferences);
   const corrections = [...(memory?.corrections ?? [])].reverse().slice(0, 12);
 
@@ -107,135 +103,131 @@ export function MemoryPanel({
     corrections.length > 0;
 
   return (
-    <div className="space-y-4">
-      {/* Intro / reassurance */}
-      <div
-        data-tour="settings-memory"
-        className="ai-ring icon-animate relative isolate rounded-[4px] border border-border bg-card p-6"
-      >
-        <span className="inline-flex items-center gap-2 rounded-[4px] border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-primary">
-          <Brain className="size-3.5" />
-          Atlas Memory
-        </span>
-        <h2 className="mt-4 text-xl font-bold tracking-tight">
-          What Atlas has learned about how you study
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
-          As you record lectures and refine your notes, Atlas learns your
-          courses, the concepts you study, and how deep you like your notes —
-          then uses it to make every new set of notes fit you better.
-        </p>
-        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Lock className="size-3.5" />
-          Private to you. Never shared with other students or used to train
-          outside models.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <section data-tour="settings-memory" className="border-b border-black/[0.08] py-8">
+        <div className="relative isolate rounded-3xl border border-black/[0.08] bg-white p-6 shadow-[0_18px_55px_-44px_rgba(13,13,13,0.5)] sm:p-8">
+          <span
+            aria-hidden
+            className="processing-glow"
+            style={{ "--ai-ring-flow": "11s" } as CSSProperties}
+          />
+          <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.10] bg-black/[0.03] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/55">
+            <Brain className="size-3.5" />
+            Atlas Memory
+          </span>
+          <h2 className="mt-5 max-w-3xl text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+            What Atlas has learned about how you study
+          </h2>
+          <p className="mt-3 max-w-3xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
+            As you record lectures and refine notes, Atlas learns your courses,
+            recurring concepts, and preferred depth so each new note starts
+            closer to the way you study.
+          </p>
+          <p className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-3 py-1.5 text-xs font-medium text-[#0d0d0d]/55">
+            <Lock className="size-3.5" />
+            Private to you. Never shared with other students.
+          </p>
+        </div>
+      </section>
 
-      {/* Conversational correction */}
       <RefineBox memory={memory} onUpdated={setMemory} />
 
-      {/* Who you are — sourced from profile */}
-      <div className="rounded-[4px] border border-border bg-card p-6">
+      <section className="border-b border-black/[0.08] pb-8">
         <SectionHeader icon={GraduationCap} title="Who you are" />
         {who.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {who.map((w) => (
-              <Badge key={w} variant="secondary" className={CHIP}>
+              <span key={w} className={CHIP}>
                 {w}
-              </Badge>
+              </span>
             ))}
           </div>
         ) : (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Tell Atlas your program and university so notes start out tuned to
-            your field.
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[#0d0d0d]/55">
+            Tell Atlas your program and university so notes start tuned to your
+            field.
           </p>
         )}
         <button
+          type="button"
           onClick={onEditProfile}
-          className="group mt-4 inline-flex items-center gap-1 text-sm text-primary/90 transition hover:text-primary"
+          className={`${PILL_SECONDARY_INLINE} mt-5 h-10 px-4 text-xs`}
         >
-          {who.length > 0 ? "Edit in Profile" : "Complete your profile"}
-          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          {who.length > 0 ? "Edit profile" : "Complete profile"}
+          <ArrowRight className="size-3.5" />
         </button>
-      </div>
+      </section>
 
       {!hasLearned ? (
         <EmptyState />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <ChipCard
+        <section className="border-y border-black/[0.08]">
+          <ChipSection
             icon={BookOpen}
-            title="Your courses & subjects"
+            title="Your courses and subjects"
             items={coursesAndSubjects}
           />
-          <ChipCard
+          <ChipSection
             icon={Sparkles}
             title="Concepts that keep coming up"
             items={concepts}
           />
-          <ChipCard
+          <ChipSection
             icon={Languages}
             title="Terminology you prefer"
             items={terminology}
           />
-          <ContentCard items={content} />
-        </div>
+          <ContentSection items={content} />
+        </section>
       )}
 
       {corrections.length > 0 && (
-        <div className="rounded-[4px] border border-border bg-card p-6">
+        <section className="border-b border-black/[0.08] pb-8">
           <SectionHeader
             icon={History}
             title="What your edits have taught Atlas"
           />
-          <ol className="mt-4 space-y-3">
+          <ol className="mt-5 border-y border-black/[0.08]">
             {corrections.map((c, i) => {
               const date = formatDate(c.at);
               return (
                 <li
                   key={`${c.at}-${i}`}
-                  className="rounded-[4px] border border-border bg-background p-4"
+                  className="border-b border-black/[0.08] py-4 last:border-b-0"
                 >
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                    {date && <span className="font-mono">{date}</span>}
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#0d0d0d]/45">
+                    {date && <span>{date}</span>}
                     {c.noteTitle && (
                       <>
-                        <span aria-hidden>·</span>
+                        <span aria-hidden>/</span>
                         <span className="truncate">{c.noteTitle}</span>
                       </>
                     )}
                   </div>
-                  <p className="mt-1.5 text-sm leading-relaxed text-foreground/90 text-pretty">
+                  <p className="mt-1.5 max-w-3xl text-pretty text-sm leading-6 text-[#0d0d0d]/72">
                     {c.summary}
                   </p>
                 </li>
               );
             })}
           </ol>
-        </div>
+        </section>
       )}
 
-      {/* Formatting — deliberately separated from "what Atlas knows about you". */}
       {formatting.length > 0 && (
-        <div className="rounded-[4px] border border-dashed border-border bg-card/60 p-5">
+        <section className="border-b border-black/[0.08] pb-8">
           <SectionHeader icon={Type} title="Note formatting" />
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-sm text-[#0d0d0d]/55">
             How your notes are presented.
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             {formatting.map((f) => (
-              <Badge
-                key={f}
-                variant="ghost"
-                className={`${CHIP} border-border text-muted-foreground`}
-              >
+              <span key={f} className={CHIP}>
                 {f}
-              </Badge>
+              </span>
             ))}
           </div>
-        </div>
+        </section>
       )}
     </div>
   );
@@ -285,64 +277,63 @@ function RefineBox({
     }
   }
 
-  // `memory` is intentionally accepted so the box sits with the data it edits;
-  // the server reads the authoritative blob, so we don't send it from here.
+  // The server reads the authoritative blob, so this is colocated but not sent.
   void memory;
 
   return (
-    <div className="rounded-[4px] border border-border bg-card p-6">
+    <section className="border-b border-black/[0.08] pb-8">
       <SectionHeader icon={Wand2} title="Correct what Atlas knows" />
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
-        Something off? Tell Atlas in plain language — it&apos;ll adjust.
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-[#0d0d0d]/60">
+        Something off? Tell Atlas in plain language and it will adjust.
       </p>
-      <Textarea
+      <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={busy}
-        rows={3}
+        rows={4}
         maxLength={1000}
-        placeholder="Tell Atlas what to fix or add — a course, a subject, a term, or how you like your notes…"
+        placeholder="Tell Atlas what to fix or add: a course, a subject, a term, or how you like your notes."
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
             e.preventDefault();
             void submit();
           }
         }}
-        className="mt-4 resize-none"
+        className="mt-5 min-h-32 w-full resize-none rounded-3xl border border-black/[0.12] bg-white px-5 py-4 text-sm leading-6 text-[#0d0d0d] outline-none transition placeholder:text-[#0d0d0d]/40 focus:border-black/30 focus-visible:ring-2 focus-visible:ring-black/25 disabled:opacity-60"
       />
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="hidden text-xs text-muted-foreground sm:inline">
-          ⌘/Ctrl + Enter to send
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <span className="text-xs text-[#0d0d0d]/45">
+          Cmd/Ctrl + Enter to send
         </span>
-        <Button
+        <button
+          type="button"
           onClick={submit}
           disabled={busy || !value.trim()}
-          size="sm"
-          className="ml-auto gap-1.5"
+          className={`${PILL_PRIMARY_INLINE} h-10 px-4 text-xs`}
         >
           {busy ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
             <Send className="size-4" />
           )}
-          {busy ? "Applying…" : "Send to Atlas"}
-        </Button>
+          {busy ? "Applying..." : "Send to Atlas"}
+        </button>
       </div>
 
       {changes.length > 0 && (
-        <ul className="mt-4 space-y-2 border-t border-border pt-4">
+        <ul className="mt-5 border-t border-black/[0.08] pt-4">
           {changes.map((c, i) => (
             <li
               key={i}
-              className="flex items-start gap-2 text-sm text-muted-foreground"
+              className="flex items-start gap-2 py-2 text-sm leading-6 text-[#0d0d0d]/60"
             >
-              <Check className="mt-0.5 size-4 shrink-0 text-emerald-500" />
+              <Check className="mt-1 size-4 shrink-0 text-emerald-500" />
               <span className="text-pretty">{c}</span>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -350,74 +341,76 @@ function SectionHeader({
   icon: Icon,
   title,
 }: {
-  icon: typeof BookOpen;
+  icon: IconType;
   title: string;
 }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <span className="grid size-8 shrink-0 place-items-center rounded-[4px] border border-border bg-background text-foreground">
+    <div className="flex items-center gap-3">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full border border-black/[0.10] bg-white text-[#0d0d0d]">
         <Icon className="size-4" />
       </span>
-      <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
+      <h3 className="text-base font-medium tracking-[-0.01em] text-[#0d0d0d]">
+        {title}
+      </h3>
     </div>
   );
 }
 
-function ChipCard({
+function ChipSection({
   icon,
   title,
   items,
 }: {
-  icon: typeof BookOpen;
+  icon: IconType;
   title: string;
   items: string[];
 }) {
   return (
-    <div className="rounded-[4px] border border-border bg-card p-5">
+    <div className="grid gap-4 border-b border-black/[0.08] py-5 last:border-b-0 sm:grid-cols-[14rem_minmax(0,1fr)]">
       <SectionHeader icon={icon} title={title} />
       {items.length > 0 ? (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           {items.map((item) => (
-            <Badge key={item} variant="outline" className={CHIP}>
+            <span key={item} className={CHIP}>
               {item}
-            </Badge>
+            </span>
           ))}
         </div>
       ) : (
-        <p className="mt-3 text-sm text-muted-foreground">
-          Nothing here yet — this fills in as you use Atlas.
+        <p className="text-sm leading-6 text-[#0d0d0d]/55">
+          Nothing here yet. This fills in as you use Atlas.
         </p>
       )}
     </div>
   );
 }
 
-function ContentCard({ items }: { items: string[] }) {
+function ContentSection({ items }: { items: string[] }) {
   return (
-    <div className="rounded-[4px] border border-border bg-card p-5">
+    <div className="grid gap-4 border-b border-black/[0.08] py-5 last:border-b-0 sm:grid-cols-[14rem_minmax(0,1fr)]">
       <SectionHeader
         icon={SlidersHorizontal}
         title="How deep you like your notes"
       />
       {items.length > 0 ? (
-        <ul className="mt-4 space-y-2">
+        <ul className="space-y-2">
           {items.map((item) => (
             <li
               key={item}
-              className="flex gap-2 text-sm leading-relaxed text-foreground/90"
+              className="flex gap-2 text-sm leading-6 text-[#0d0d0d]/72"
             >
               <span
                 aria-hidden
-                className="mt-2 size-1.5 shrink-0 rounded-full bg-primary"
+                className="mt-2.5 size-1.5 shrink-0 rounded-full bg-[#0d0d0d]/35"
               />
               <span className="text-pretty">{item}</span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-3 text-sm text-muted-foreground">
-          Edit a set of notes — add an example, expand a derivation — and Atlas
-          learns how much depth you want on the substance.
+        <p className="text-sm leading-6 text-[#0d0d0d]/55">
+          Edit a set of notes, add an example, or expand a derivation, and Atlas
+          learns how much depth you want.
         </p>
       )}
     </div>
@@ -429,26 +422,26 @@ function EmptyState() {
     "The courses and subjects you record",
     "Concepts and terminology you engage with",
     "How much depth you want in your notes",
-    "The content fixes you make, so it stops repeating them",
+    "The content fixes you make so Atlas stops repeating them",
   ];
   return (
-    <div className="rounded-[4px] border border-dashed border-border bg-card p-6">
+    <section className="border-b border-black/[0.08] pb-8">
       <SectionHeader icon={Brain} title="Atlas is just getting to know you" />
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground text-pretty">
-        Record a lecture and tweak the notes Atlas generates. The more you use
-        it, the more this page fills in. Here&apos;s what it will pick up:
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-[#0d0d0d]/60">
+        Record a lecture and tweak the generated notes. The more you use Atlas,
+        the more this page fills in.
       </p>
-      <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+      <ul className="mt-5 border-y border-black/[0.08]">
         {willLearn.map((w) => (
           <li
             key={w}
-            className="flex items-start gap-2 rounded-[4px] border border-border bg-background p-3 text-sm text-foreground/90"
+            className="flex items-start gap-3 border-b border-black/[0.08] py-3 text-sm leading-6 text-[#0d0d0d]/72 last:border-b-0"
           >
-            <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
+            <Sparkles className="mt-1 size-4 shrink-0 text-[#0d0d0d]/45" />
             <span className="text-pretty">{w}</span>
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }

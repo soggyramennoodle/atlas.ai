@@ -22,17 +22,17 @@ export function UserAvatar({
   const src = profileAvatarUrl(avatarR2Key);
 
   return (
-    <Avatar className={cn("rounded-[4px] border border-border", className)}>
+    <Avatar className={cn("rounded-2xl border border-black/[0.10] bg-white", className)}>
       {src ? (
         <AvatarImage
           src={src}
           alt=""
-          className="rounded-[4px] object-cover"
+          className="rounded-2xl object-cover"
         />
       ) : null}
       <AvatarFallback
         className={cn(
-          "rounded-[4px] bg-secondary text-sm font-semibold text-foreground",
+          "rounded-2xl bg-[#0d0d0d] text-sm font-medium text-white",
           fallbackClassName
         )}
       >

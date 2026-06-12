@@ -16,12 +16,16 @@ Full cinematic conversion of the user app (Inter Tight + Instrument Serif, no gr
 | 1 | Dashboard | DONE | b4b9422f |
 | 2 | Capture (upload, recorder, uploader, processing overlay, dock) | DONE | 6b04352d |
 | 3 | Note view | DONE | phase 3 commit |
-| 4 | Settings | todo | — |
+| 4 | Settings | DONE | phase 4 commit |
 | 5 | Onboarding + UI tour + passkey prompt | todo | — |
 | 6 | Admin (7 pages) | todo | — |
 | 7 | Final sweep (theme files, rivo tokens, dead styles) | todo | — |
 
-## ➜ RESUME HERE: Phase 4 (settings) is next
+## ➜ RESUME HERE: Phase 5 (onboarding + UI tour + passkey prompt) is next
+
+**2026-06-12 Phase 4 DONE:** Settings is converted to the cinematic-light/editorial system. Completed scope: settings page header, identity strip/avatar actions, segmented settings tabs, profile autosave rows, privacy enclave panel, account details/signout, passkeys list/add/remove states, memory intro/refine box/profile-derived identity/learned memory/corrections/formatting surfaces, plus shared `UserAvatar` token cleanup visible in Settings and the app rail. Verification passed: touched-file blocked-token grep, targeted `npx eslint`, `npx tsc --noEmit` after clearing two stale generated `.next/types/* 3.ts` duplicates, `npm test` 92/92, unauthenticated `/settings` 307, authenticated Browser smoke on `/settings` desktop and 390px mobile with zero relevant console warnings/errors, zero old-token DOM matches, tab interaction proof for Memory and Account, memory textarea type proof without submission, and mobile `documentElement.scrollWidth` 390. Next agent: start Phase 5 onboarding; do not redo Phase 4 unless design QA finds a specific visual issue. Note: pre-existing untracked `src/components/settings/settings-client 2.tsx` still contains old tokens but is not imported or staged.
+
+**2026-06-12 Phase 4 STARTED:** Settings restyle is active. Scope: `src/app/(app)/settings/page.tsx`, `src/components/settings/settings-client.tsx`, `src/components/settings/settings-identity-card.tsx`, `src/components/settings/memory-panel.tsx`, `src/components/settings/passkeys-panel.tsx`, plus the shared `src/components/user-avatar.tsx` token cleanup visible inside the settings identity strip. Contract: editorial sections + hairline dividers, identity strip, memory/passkeys as lists with pill actions, no theme UI, preserve profile autosave, avatar upload/remove, memory refine, passkey list/add/remove, privacy/account/signout behavior.
 
 **2026-06-12 pre-Phase-4 note-summary polish:** Changed the opened note summary card in `src/components/notes/summary-card.tsx` from the filled `ai-ring` glow to the landing-page-style masked `processing-glow` outline. Verified on real note `/notes/b5789b85-c0cc-4c6a-9b11-88444207a353`: summary card has `processing-glow`, no `ai-ring`, white interior, visible outline glow, mask-composited glow edges, overflow visible, and no browser console warnings/errors at desktop; mobile 390px check kept `documentElement.scrollWidth` at 390 with the same outline-only DOM state. Phase 4 settings remains next.
 

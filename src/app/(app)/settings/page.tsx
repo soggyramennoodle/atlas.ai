@@ -32,14 +32,21 @@ export default async function SettingsPage() {
     : null;
 
   return (
-    <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-12">
-      <div className="mx-auto max-w-3xl">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
+    <main className="px-4 pb-24 pt-8 sm:px-6 lg:px-10 lg:pt-12">
+      <div className="mx-auto max-w-5xl">
+        <header className="border-b border-black/[0.08] pb-8">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
           Account
-        </p>
-        <h1 className="mt-3 text-4xl font-bold tracking-[-0.02em] sm:text-5xl">
-          Settings
-        </h1>
+          </p>
+          <h1 className="mt-3 text-balance text-5xl font-normal leading-[0.98] text-[#0d0d0d] sm:text-6xl">
+            Settings for{" "}
+            <span className="font-instrument italic">Atlas</span>
+          </h1>
+          <p className="mt-4 max-w-2xl text-pretty text-sm leading-6 text-[#0d0d0d]/60 sm:text-base">
+            Keep your identity, study memory, sign-in methods, and privacy
+            controls tuned without leaving the app.
+          </p>
+        </header>
 
         <SettingsIdentityCard
           displayName={displayName}
