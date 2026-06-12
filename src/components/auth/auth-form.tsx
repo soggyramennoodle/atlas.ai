@@ -12,10 +12,9 @@ import {
   Mail,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AnimatePresence, motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { browserSupportsPasskeys } from "@/lib/passkeys";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { lookupAuthEmail } from "@/app/(auth)/login/actions";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { usePasskeySignIn } from "@/components/auth/use-passkey-sign-in";
@@ -49,13 +48,16 @@ const ARROW_BADGE = (
     />
   </span>
 );
+const EASE = [0.22, 1, 0.36, 1] as const;
+const GHOST_LINK =
+  "inline-flex items-center gap-1 text-sm text-[#0d0d0d]/55 transition hover:text-[#0d0d0d]";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/dashboard";
   const isSignup = mode === "signup";
-  const passkeysSupported = browserSupportsPasskeys();
+  const [passkeysSupported, setPasskeysSupported] = useState(false);
 
   const [email, setEmail] = useState(() => params.get("email")?.trim() ?? "");
   const [step, setStep] = useState<AuthStep>("main");
@@ -66,6 +68,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   const { signIn: signInWithPasskey, signingIn: passkeySigningIn } =
     usePasskeySignIn(next);
+
+  // Detect passkey support after mount to avoid SSR/client hydration mismatch.
+  useEffect(() => {
+    Promise.resolve(browserSupportsPasskeys()).then(setPasskeysSupported);
+  }, []);
 
   useEffect(() => {
     if (params.get("error")) {
@@ -174,258 +181,269 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   const authBusy = sending || continuing || !!redirecting || passkeySigningIn;
 
-  if (step === "magic-sent") {
-    return (
-      <div className="rounded-[4px] border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
-        <span className="mx-auto grid size-12 place-items-center rounded-[4px] border border-border bg-background text-foreground">
-          <Mail className="size-6" />
-        </span>
-        <h2 className="mt-5 text-2xl font-bold tracking-tight">
-          Check your email
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground text-pretty">
-          We sent a magic link to <strong>{email}</strong>. Click it to sign in,
-          no password needed.
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground text-pretty">
-          Nothing in your inbox? Check your junk or spam folder.
-        </p>
+  function renderStep() {
+    if (step === "magic-sent") {
+      return (
+        <div>
+          <span className="grid size-12 place-items-center rounded-full border border-black/[0.12] bg-white text-[#0d0d0d]">
+            <Mail className="size-5" />
+          </span>
+          <h2 className="mt-6 text-[2rem] font-normal leading-[1.05] tracking-[-0.02em]">
+            Check <span className="font-instrument italic">your email</span>
+          </h2>
+          <p className="mt-3 text-sm text-[#0d0d0d]/55 text-pretty">
+            We sent a magic link to <strong className="font-medium text-[#0d0d0d]">{email}</strong>.
+            Click it to sign in, no password needed.
+          </p>
+          <p className="mt-1 text-xs text-[#0d0d0d]/45 text-pretty">
+            Nothing in your inbox? Check your junk or spam folder.
+          </p>
 
-        <div className="mt-6 flex flex-col items-center gap-3">
-          <Button
-            className="w-full"
-            onClick={() => void resend()}
-            disabled={cooldown > 0 || sending}
-          >
-            {sending && <Loader2 className="size-4 animate-spin" />}
-            {cooldown > 0 ? `Resend email in ${cooldown}s` : "Resend email"}
-          </Button>
-          <button
-            type="button"
-            onClick={goBack}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
-          >
+          <div className="mt-8 grid gap-4">
+            <button
+              type="button"
+              className={PILL_PRIMARY}
+              onClick={() => void resend()}
+              disabled={cooldown > 0 || sending}
+            >
+              {sending && <Loader2 className="size-4 animate-spin" />}
+              {cooldown > 0 ? `Resend email in ${cooldown}s` : "Resend email"}
+            </button>
+            <button type="button" onClick={goBack} className={GHOST_LINK}>
+              <ArrowLeft className="size-3.5" />
+              Go back
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (step === "no-account") {
+      return (
+        <div>
+          <h2 className="text-[2rem] font-normal leading-[1.05] tracking-[-0.02em]">
+            No account <span className="font-instrument italic">found yet</span>
+          </h2>
+          <p className="mt-3 text-sm text-[#0d0d0d]/55 text-pretty">
+            We couldn&apos;t find an Atlas account for{" "}
+            <strong className="font-medium text-[#0d0d0d]">{email}</strong>.
+          </p>
+          <div className="mt-8 grid gap-4">
+            <Link href="/signup" className={PILL_PRIMARY}>
+              Create an account
+              {ARROW_BADGE}
+            </Link>
+            <button type="button" onClick={goBack} className={GHOST_LINK}>
+              <ArrowLeft className="size-3.5" />
+              Try a different email
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (step === "already-exists") {
+      return (
+        <div>
+          <h2 className="text-[2rem] font-normal leading-[1.05] tracking-[-0.02em]">
+            You already{" "}
+            <span className="font-instrument italic">have an account</span>
+          </h2>
+          <p className="mt-3 text-sm text-[#0d0d0d]/55 text-pretty">
+            <strong className="font-medium text-[#0d0d0d]">{email}</strong> is
+            already registered with Atlas.
+          </p>
+          <div className="mt-8 grid gap-4">
+            <Link
+              href={`/login?email=${encodeURIComponent(email)}`}
+              className={PILL_PRIMARY}
+            >
+              Sign in instead
+              {ARROW_BADGE}
+            </Link>
+            <button type="button" onClick={goBack} className={GHOST_LINK}>
+              <ArrowLeft className="size-3.5" />
+              Try a different email
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (step === "sign-in-choice") {
+      return (
+        <div>
+          <h2 className="text-[2rem] font-normal leading-[1.05] tracking-[-0.02em]">
+            Choose how <span className="font-instrument italic">to sign in</span>
+          </h2>
+          <p className="mt-3 text-sm text-[#0d0d0d]/55">
+            For <strong className="font-medium text-[#0d0d0d]">{email}</strong>
+          </p>
+
+          <div className="mt-8 grid gap-3">
+            <button
+              type="button"
+              className={PILL_PRIMARY}
+              onClick={() => void signInWithPasskey()}
+              disabled={authBusy}
+            >
+              {passkeySigningIn ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Fingerprint className="size-4" />
+              )}
+              Use passkey
+            </button>
+            <button
+              type="button"
+              className={PILL_SECONDARY}
+              onClick={() => void sendMagicLink(false)}
+              disabled={authBusy}
+            >
+              {sending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Mail className="size-4" />
+              )}
+              Send magic link
+            </button>
+          </div>
+
+          <button type="button" onClick={goBack} className={`${GHOST_LINK} mt-6`}>
             <ArrowLeft className="size-3.5" />
             Go back
           </button>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (step === "no-account") {
     return (
-      <div className="rounded-[4px] border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
-        <h2 className="text-2xl font-bold tracking-tight">No account found</h2>
-        <p className="mt-2 text-sm text-muted-foreground text-pretty">
-          We couldn&apos;t find an Atlas account for <strong>{email}</strong>.
+      <div>
+        <p className="text-xs font-medium uppercase tracking-[2px] text-[#0d0d0d]/45">
+          {isSignup ? "Get started" : "Welcome back"}
         </p>
-        <div className="mt-6 flex flex-col items-center gap-3">
-          <Link href="/signup" className={cn(buttonVariants(), "w-full")}>
-            Create an account
-          </Link>
+        <h1 className="mt-3 text-[2.35rem] font-normal leading-[1.02] tracking-[-0.03em] text-balance">
+          {isSignup ? (
+            <>
+              Start <span className="font-instrument italic">learning smarter</span>
+            </>
+          ) : (
+            <>
+              Pick up{" "}
+              <span className="font-instrument italic">where you left off</span>
+            </>
+          )}
+        </h1>
+        <p className="mt-3 text-sm text-[#0d0d0d]/55">
+          {isSignup
+            ? "Start turning lectures into notes in minutes."
+            : "Sign in to your Atlas library."}
+        </p>
+
+        <div className="mt-8 grid gap-3">
           <button
             type="button"
-            onClick={goBack}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
+            className={PILL_SECONDARY}
+            onClick={() => signInWith("google")}
+            disabled={authBusy}
           >
-            <ArrowLeft className="size-3.5" />
-            Try a different email
+            {redirecting === "google" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <GoogleIcon />
+            )}
+            Continue with Google
           </button>
-        </div>
-      </div>
-    );
-  }
 
-  if (step === "already-exists") {
-    return (
-      <div className="rounded-[4px] border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
-        <h2 className="text-2xl font-bold tracking-tight">
-          You already have an account
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground text-pretty">
-          <strong>{email}</strong> is already registered with Atlas.
+          {!isSignup && passkeysSupported && (
+            <button
+              type="button"
+              className={PILL_SECONDARY}
+              onClick={() => void signInWithPasskey()}
+              disabled={authBusy}
+            >
+              {passkeySigningIn ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Fingerprint className="size-4" />
+              )}
+              Sign in with passkey
+            </button>
+          )}
+        </div>
+
+        <div className="my-6 flex items-center gap-3 text-xs text-[#0d0d0d]/45">
+          <span className="h-px flex-1 bg-black/[0.08]" />
+          or with email
+          <span className="h-px flex-1 bg-black/[0.08]" />
+        </div>
+
+        <form onSubmit={(e) => void handleEmailContinue(e)} className="space-y-3">
+          <label htmlFor="email" className="sr-only">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            placeholder="you@university.edu"
+            className={PILL_INPUT}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <button type="submit" disabled={authBusy} className={PILL_PRIMARY}>
+            {(continuing || sending) && (
+              <Loader2 className="size-4 animate-spin" />
+            )}
+            Continue
+            {ARROW_BADGE}
+          </button>
+        </form>
+
+        <p className="mt-5 text-xs text-[#0d0d0d]/45 text-pretty">
+          {isSignup
+            ? "We'll email you a secure link to finish creating your account."
+            : "Enter your email to sign in with a passkey or magic link."}
         </p>
-        <div className="mt-6 flex flex-col items-center gap-3">
-          <Link
-            href={`/login?email=${encodeURIComponent(email)}`}
-            className={cn(buttonVariants(), "w-full")}
-          >
-            Sign in instead
+
+        {!isSignup && (
+          <p className="mt-3 text-xs text-[#0d0d0d]/45 text-pretty">
+            Institutional emails (e.g. @mcmaster.ca, @mail.utoronto.ca) may be
+            blocked by your school&apos;s security filters. Use a personal email
+            for the best experience.{" "}
+            <Link
+              href="/sign-in-help"
+              className="group inline-flex items-center gap-1 font-medium text-[#0d0d0d] underline-offset-4 hover:underline"
+            >
+              Learn more
+              <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </p>
+        )}
+
+        <p className="mt-6 text-sm text-[#0d0d0d]/55">
+          {isSignup ? "Already have an account? " : "New to Atlas? "}
+          <Link href={isSignup ? "/login" : "/signup"} className={INK_LINK}>
+            {isSignup ? "Sign in" : "Create one"}
           </Link>
-          <button
-            type="button"
-            onClick={goBack}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
-          >
-            <ArrowLeft className="size-3.5" />
-            Try a different email
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "sign-in-choice") {
-    return (
-      <div className="rounded-[4px] border border-border bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
-        <h2 className="text-2xl font-bold tracking-tight">Choose how to sign in</h2>
-        <p className="mt-2 text-sm text-muted-foreground text-pretty">
-          For <strong>{email}</strong>
         </p>
-
-        <div className="mt-6 grid gap-3">
-          <Button
-            className="h-11 w-full gap-2"
-            onClick={() => void signInWithPasskey()}
-            disabled={authBusy}
-          >
-            {passkeySigningIn ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Fingerprint className="size-4" />
-            )}
-            Use passkey
-          </Button>
-          <Button
-            variant="outline"
-            className="h-11 w-full gap-2"
-            onClick={() => void sendMagicLink(false)}
-            disabled={authBusy}
-          >
-            {sending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Mail className="size-4" />
-            )}
-            Send magic link
-          </Button>
-        </div>
-
-        <button
-          type="button"
-          onClick={goBack}
-          className="mt-5 inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
-        >
-          <ArrowLeft className="size-3.5" />
-          Go back
-        </button>
       </div>
     );
   }
 
   return (
-    <div>
-      <p className="text-xs font-medium uppercase tracking-[2px] text-[#0d0d0d]/45">
-        {isSignup ? "Get started" : "Welcome back"}
-      </p>
-      <h1 className="mt-3 text-[2.35rem] font-normal leading-[1.02] tracking-[-0.03em] text-balance">
-        {isSignup ? (
-          <>
-            Start <span className="font-instrument italic">learning smarter</span>
-          </>
-        ) : (
-          <>
-            Pick up{" "}
-            <span className="font-instrument italic">where you left off</span>
-          </>
-        )}
-      </h1>
-      <p className="mt-3 text-sm text-[#0d0d0d]/55">
-        {isSignup
-          ? "Start turning lectures into notes in minutes."
-          : "Sign in to your Atlas library."}
-      </p>
-
-      <div className="mt-8 grid gap-3">
-        <button
-          type="button"
-          className={PILL_SECONDARY}
-          onClick={() => signInWith("google")}
-          disabled={authBusy}
-        >
-          {redirecting === "google" ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <GoogleIcon />
-          )}
-          Continue with Google
-        </button>
-
-        {!isSignup && passkeysSupported && (
-          <button
-            type="button"
-            className={PILL_SECONDARY}
-            onClick={() => void signInWithPasskey()}
-            disabled={authBusy}
-          >
-            {passkeySigningIn ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Fingerprint className="size-4" />
-            )}
-            Sign in with passkey
-          </button>
-        )}
-      </div>
-
-      <div className="my-6 flex items-center gap-3 text-xs text-[#0d0d0d]/45">
-        <span className="h-px flex-1 bg-black/[0.08]" />
-        or with email
-        <span className="h-px flex-1 bg-black/[0.08]" />
-      </div>
-
-      <form onSubmit={(e) => void handleEmailContinue(e)} className="space-y-3">
-        <label htmlFor="email" className="sr-only">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          required
-          placeholder="you@university.edu"
-          className={PILL_INPUT}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <button type="submit" disabled={authBusy} className={PILL_PRIMARY}>
-          {(continuing || sending) && (
-            <Loader2 className="size-4 animate-spin" />
-          )}
-          Continue
-          {ARROW_BADGE}
-        </button>
-      </form>
-
-      <p className="mt-5 text-xs text-[#0d0d0d]/45 text-pretty">
-        {isSignup
-          ? "We'll email you a secure link to finish creating your account."
-          : "Enter your email to sign in with a passkey or magic link."}
-      </p>
-
-      {!isSignup && (
-        <p className="mt-3 text-xs text-[#0d0d0d]/45 text-pretty">
-          Institutional emails (e.g. @mcmaster.ca, @mail.utoronto.ca) may be
-          blocked by your school&apos;s security filters. Use a personal email
-          for the best experience.{" "}
-          <Link
-            href="/sign-in-help"
-            className="group inline-flex items-center gap-1 font-medium text-[#0d0d0d] underline-offset-4 hover:underline"
-          >
-            Learn more
-            <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        </p>
-      )}
-
-      <p className="mt-6 text-sm text-[#0d0d0d]/55">
-        {isSignup ? "Already have an account? " : "New to Atlas? "}
-        <Link href={isSignup ? "/login" : "/signup"} className={INK_LINK}>
-          {isSignup ? "Sign in" : "Create one"}
-        </Link>
-      </p>
-    </div>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={step}
+        initial={{ opacity: 0, filter: "blur(8px)", y: 8 }}
+        animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+        exit={{ opacity: 0, filter: "blur(8px)", y: -6 }}
+        transition={{ duration: 0.45, ease: EASE }}
+      >
+        {renderStep()}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
