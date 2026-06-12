@@ -11,7 +11,6 @@ import {
   X,
 } from "lucide-react";
 import type { KeyConcept } from "@/lib/types";
-import { AiGlow } from "@/components/ui/ai-glow";
 import { MathText } from "./math-text";
 import { GLASS_LIGHT } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
@@ -227,17 +226,22 @@ function ConceptCard({
         }}
         whileHover={dimmed || selected ? undefined : { y: -4, scale: 1.015 }}
         transition={SPRING}
-        // No backdrop-blur on the grid cards: a whole grid of blur layers
-        // re-samples on every scroll frame. Translucent fill + specular keeps
-        // the glassy read; the popped overlay carries the real blur.
-        className="group relative block w-full rounded-2xl border border-white/60 bg-white/75 p-5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_1px_2px_rgba(13,13,13,0.04),0_18px_44px_-30px_rgba(13,13,13,0.3)] ring-1 ring-black/[0.07] transition-[box-shadow] duration-300 ease-out hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_2px_4px_rgba(13,13,13,0.05),0_24px_60px_-30px_rgba(13,13,13,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
+        // Clear glass, not frost: a barely-there 3px refraction (cheap — blur
+        // cost scales with radius), gradient fill, crisp specular edge, and a
+        // light-catch sheen. Heavier blur stays on the single popped overlay.
+        className="group relative block w-full overflow-hidden rounded-2xl border border-white/70 bg-[linear-gradient(160deg,rgba(255,255,255,0.72),rgba(255,255,255,0.38))] p-5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(13,13,13,0.04),0_1px_2px_rgba(13,13,13,0.04),0_18px_44px_-30px_rgba(13,13,13,0.3)] ring-1 ring-black/[0.07] backdrop-blur-[3px] transition-[box-shadow] duration-300 ease-out hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(13,13,13,0.04),0_2px_4px_rgba(13,13,13,0.05),0_24px_60px_-30px_rgba(13,13,13,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
         style={{ visibility: selected ? "hidden" : "visible" }}
       >
-        <div className="flex items-start justify-between gap-2">
+        {/* Light catching the pane — the liquid-glass specular sweep. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(130%_90%_at_18%_-10%,rgba(255,255,255,0.9),rgba(255,255,255,0)_55%)] opacity-70"
+        />
+        <div className="relative flex items-start justify-between gap-2">
           <span className="font-medium tracking-tight text-[#0d0d0d]">{concept.term}</span>
           <Sparkles className="size-4 shrink-0 text-[#0d0d0d]/45 opacity-0 transition group-hover:text-[#0d0d0d]/70 group-hover:opacity-100" />
         </div>
-        <p className="mt-1.5 text-pretty text-sm leading-relaxed text-[#0d0d0d]/55">
+        <p className="relative mt-1.5 text-pretty text-sm leading-relaxed text-[#0d0d0d]/55">
           <MathText text={concept.definition} />
         </p>
       </motion.button>
@@ -254,28 +258,17 @@ function ConceptCard({
             transition={SPRING}
             className="absolute inset-x-0 top-0 z-40 origin-top"
           >
-            {/* AI panel — signed by the fluid edge ring; brighter while thinking.
-                The glow shell never scrolls (so the outer bloom isn't clipped);
-                the inner wrapper carries the scroll. While thinking, the brand
-                aurora bleeds through the frosted panel from behind. */}
-            <AnimatePresence>
-              {thinking && (
-                <motion.div
-                  aria-hidden
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute -inset-8 -z-10 overflow-hidden rounded-[2.5rem]"
-                >
-                  <AiGlow mode="active" density="standard" blur={48} />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* AI panel — signed by the fluid edge ring; brighter while
+                thinking. The fill is near-opaque on purpose: the ring's
+                animated bloom (and any color) lives on the BORDER only and
+                must never wash the panel interior. The glow shell never
+                scrolls (so the outer bloom isn't clipped); the inner wrapper
+                carries the scroll. */}
             <div
               className={cn(
                 "ai-ring relative rounded-2xl",
                 GLASS_LIGHT,
+                "bg-white/90",
                 thinking && "ai-ring--active"
               )}
             >

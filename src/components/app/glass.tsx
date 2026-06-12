@@ -31,7 +31,7 @@ export function AppCanvas() {
       <div className="absolute bottom-[-12rem] left-1/2 h-[28rem] w-[110%] -translate-x-1/2 rounded-[100%] bg-[radial-gradient(60%_100%_at_50%_100%,rgba(13,13,13,0.05),rgba(13,13,13,0)_70%)]" />
       {/* Film grain. */}
       <div
-        className="absolute inset-0 opacity-[0.05]"
+        className="absolute inset-0 opacity-[0.08]"
         style={{ backgroundImage: `url("${GRAIN_SVG}")`, backgroundSize: "160px 160px" }}
       />
     </div>
