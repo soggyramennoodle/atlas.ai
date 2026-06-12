@@ -8,7 +8,6 @@ import {
   TriangleAlertIcon,
   XIcon,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 /** True when marketing/auth layouts have tagged the document for cinematic UI. */
@@ -19,8 +18,11 @@ function useCinematicSurface() {
     const read = () =>
       document.documentElement.getAttribute("data-atlas-surface") ===
       "cinematic";
-    setCinematic(read());
-    const observer = new MutationObserver(read);
+    // Microtask defer satisfies the no-sync-setState-in-effect rule; the
+    // observer now actually writes state (it previously only re-read).
+    const update = () => setCinematic(read());
+    void Promise.resolve().then(update);
+    const observer = new MutationObserver(update);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["data-atlas-surface"],
@@ -32,12 +34,11 @@ function useCinematicSurface() {
 }
 
 const Toaster = ({ richColors = true, ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
   const cinematic = useCinematicSurface();
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme="light"
       className="toaster group"
       richColors={richColors && !cinematic}
       icons={{
