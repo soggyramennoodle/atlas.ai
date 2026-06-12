@@ -18,6 +18,7 @@ const LINKS = [
   { href: "/#insights", label: "Insights" },
   { href: "/#how", label: "How it works" },
   { href: "/#ai", label: "Atlas AI" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/newsroom", label: "Newsroom" },
 ];
 
@@ -107,7 +108,7 @@ export function Nav({
         </div>
       </div>
 
-      {/* Mobile panel — detached dark glass sheet. */}
+      {/* Mobile panel: detached dark glass sheet. */}
       {open && (
         <div className="mt-3 rounded-[20px] border border-black/10 bg-white/95 p-2 shadow-[0_16px_50px_rgba(0,0,0,0.10)] backdrop-blur-xl md:hidden">
           {LINKS.map((l) => (
