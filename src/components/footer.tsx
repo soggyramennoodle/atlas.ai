@@ -67,7 +67,7 @@ export function Footer() {
             </span>
             <p className="mt-3 text-sm text-pretty text-black/55">
               A smart study assistant that turns lecture recordings into
-              thorough, structured notes.
+              thorough, structured notes. Built for students, by a student.
             </p>
           </div>
 
