@@ -116,7 +116,7 @@ export default function PrivacyPhilosophyPage() {
         <section className="mt-12 grid grid-cols-1 items-center gap-12 lg:mt-14 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-7">
             <Eyebrow icon={<Lock className="size-3.5" />}>ATLAS ENCLAVE</Eyebrow>
-            <h1 className="mt-8 max-w-[20ch] text-balance text-[#0d0d0d]">
+            <h1 className="mt-8 text-balance text-[#0d0d0d]">
               <span
                 className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
                 style={{ fontSize: "clamp(2.5rem, 6vw, 72px)" }}

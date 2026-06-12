@@ -83,7 +83,7 @@ export default function SignInHelpPage() {
         <section className="mt-12 grid grid-cols-1 items-center gap-12 lg:mt-16 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-7">
             <Eyebrow>SIGN-IN &amp; DELIVERABILITY</Eyebrow>
-            <h1 className="mt-5 max-w-[16ch] text-balance text-[#0d0d0d]">
+            <h1 className="mt-5 text-balance text-[#0d0d0d]">
               <span
                 className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
                 style={{ fontSize: "clamp(2.5rem, 6vw, 72px)" }}
@@ -266,9 +266,13 @@ function InboxPreview() {
           </span>
         </div>
 
-        {/* Delivered — personal address. The AI edge-glow marks the live link
-            (Atlas's multicolor signature; the one exception to monochrome). */}
-        <div className="ai-ring relative m-3 rounded-[12px] bg-white p-4">
+        {/* Delivered — personal address. Rainbow outline only (no interior fill). */}
+        <div className="relative isolate m-3 rounded-[12px] bg-white p-4">
+          <span
+            aria-hidden
+            className="processing-glow"
+            style={{ "--ai-ring-flow": "11s" } as React.CSSProperties}
+          />
           <div className="relative flex items-start gap-3">
             <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-[12px] border border-black/10 bg-white text-[#0d0d0d]">
               <Sparkles className="size-4" strokeWidth={1.8} />
