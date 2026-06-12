@@ -1,23 +1,40 @@
 "use client";
 
 import { useState } from "react";
+import { Inter_Tight, Instrument_Serif } from "next/font/google";
 import { Loader2, Lock, LogOut, Mail } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import type { AccessRevocationKind } from "@/lib/types";
+
+/* This modal renders inside the app shell (Geist), so it carries the
+   cinematic display fonts itself — next/font is scoped per component. */
+const interTight = Inter_Tight({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-inter-tight",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["italic"],
+  variable: "--font-instrument-serif",
+});
 
 const SUPPORT_EMAIL = "hello@atlasai.ca";
 
 const COPY: Record<
   AccessRevocationKind,
-  { title: string; body: string }
+  { lead: string; accent: string; body: string }
 > = {
   banned: {
-    title: "Account locked",
+    lead: "Account",
+    accent: "locked",
     body: "This account has been locked and can't stay signed in. If you think this is a mistake, reach out and we'll help sort it out.",
   },
   global_logout: {
-    title: "Signed out by Atlas",
+    lead: "Signed out",
+    accent: "by Atlas",
     body: "Atlas ended your session for maintenance or security. Sign in again when you're ready to continue.",
   },
 };
@@ -43,37 +60,38 @@ export function AccountLockedModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className={`${interTight.variable} ${instrumentSerif.variable} font-heading fixed inset-0 z-[200] flex items-center justify-center bg-[#0d0d0d] p-6`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="account-locked-title"
     >
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.45),rgba(127,29,29,0.72)_55%,rgba(15,23,42,0.92))] backdrop-blur-[2px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 animate-pulse bg-[radial-gradient(circle_at_center,rgba(248,113,113,0.35),transparent_65%)]"
-      />
-
-      <div className="relative w-full max-w-md rounded-[4px] border border-destructive/35 bg-card p-8 text-center shadow-[0_0_0_1px_rgba(248,113,113,0.15),0_24px_80px_-20px_rgba(127,29,29,0.65)]">
-        <span className="mx-auto grid size-12 place-items-center rounded-[4px] border border-destructive/40 bg-destructive/10 text-destructive">
-          <Lock className="size-6" />
+      <div className="w-full max-w-sm text-center">
+        <span className="mx-auto grid size-12 place-items-center rounded-full border border-white/20 bg-white/[0.06] text-white">
+          {kind === "banned" ? (
+            <Lock className="size-5" />
+          ) : (
+            <LogOut className="size-5" />
+          )}
         </span>
         <h2
           id="account-locked-title"
-          className="mt-5 text-2xl font-bold tracking-tight text-destructive"
+          className="mt-6 text-[2rem] font-normal leading-[1.05] tracking-[-0.02em] text-white"
         >
-          {copy.title}
+          {copy.lead}{" "}
+          <span className="font-instrument italic">{copy.accent}</span>
         </h2>
-        <p className="mt-2 text-sm text-muted-foreground text-pretty">{copy.body}</p>
+        <p className="mt-3 text-sm leading-relaxed text-white/55 text-pretty">
+          {copy.body}
+        </p>
 
-        <div className="mt-6 flex flex-col items-center gap-3">
+        <div className="mt-8 grid gap-3">
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
-            className={cn(buttonVariants(), "w-full")}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-[#0d0d0d] transition hover:scale-[1.01] active:scale-[0.99]"
           >
             <Mail className="size-4" />
             Contact {SUPPORT_EMAIL}
@@ -82,10 +100,7 @@ export function AccountLockedModal({
             type="button"
             onClick={handleExit}
             disabled={pending}
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "w-full"
-            )}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/20 text-sm font-medium text-white transition hover:bg-white/[0.06] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60"
           >
             {pending ? (
               <Loader2 className="size-4 animate-spin" />
@@ -96,6 +111,6 @@ export function AccountLockedModal({
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
