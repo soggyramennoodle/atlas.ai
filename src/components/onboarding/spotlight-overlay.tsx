@@ -256,7 +256,7 @@ export function SpotlightOverlay({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
-          "pointer-events-auto fixed z-[210] max-h-[min(70vh,420px)] overflow-y-auto rounded-3xl border border-white/[0.16] bg-[#0d0d0d]/72 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_24px_70px_-30px_rgba(0,0,0,0.65)] backdrop-blur-2xl",
+          "pointer-events-auto fixed z-[210] max-h-[min(70vh,420px)] overflow-y-auto rounded-3xl border border-white/[0.16] bg-[#0d0d0d]/72 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_24px_70px_-30px_rgba(0,0,0,0.65)] backdrop-blur-xl",
           narrow
             ? "touch-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
             : "p-5",

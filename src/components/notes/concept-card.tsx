@@ -227,7 +227,10 @@ function ConceptCard({
         }}
         whileHover={dimmed || selected ? undefined : { y: -4, scale: 1.015 }}
         transition={SPRING}
-        className="group relative block w-full rounded-2xl border border-white/60 bg-white/70 p-5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_1px_2px_rgba(13,13,13,0.04),0_18px_44px_-30px_rgba(13,13,13,0.3)] ring-1 ring-black/[0.07] backdrop-blur-md transition-[box-shadow] duration-300 ease-out hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_2px_4px_rgba(13,13,13,0.05),0_24px_60px_-30px_rgba(13,13,13,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
+        // No backdrop-blur on the grid cards: a whole grid of blur layers
+        // re-samples on every scroll frame. Translucent fill + specular keeps
+        // the glassy read; the popped overlay carries the real blur.
+        className="group relative block w-full rounded-2xl border border-white/60 bg-white/75 p-5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_1px_2px_rgba(13,13,13,0.04),0_18px_44px_-30px_rgba(13,13,13,0.3)] ring-1 ring-black/[0.07] transition-[box-shadow] duration-300 ease-out hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_2px_4px_rgba(13,13,13,0.05),0_24px_60px_-30px_rgba(13,13,13,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
         style={{ visibility: selected ? "hidden" : "visible" }}
       >
         <div className="flex items-start justify-between gap-2">

@@ -68,7 +68,7 @@ export function RichNoteEditor({
 
 function Toolbar({ editor }: { editor: Editor }) {
   return (
-    <div className="sticky top-16 z-10 flex flex-wrap items-center gap-1 rounded-t-3xl border-b border-black/[0.08] bg-white/90 px-3 py-2 backdrop-blur-xl">
+    <div className="sticky top-16 z-10 flex flex-wrap items-center gap-1 rounded-t-3xl border-b border-black/[0.08] bg-white/90 px-3 py-2 backdrop-blur-md">
       <ToolButton
         label="Bold"
         active={editor.isActive("bold")}

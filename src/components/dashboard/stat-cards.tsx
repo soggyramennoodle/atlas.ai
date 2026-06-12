@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Mic, Clock, Sparkles, Flame, type LucideIcon } from "lucide-react";
+import { GLASS_CHIP } from "@/components/app/glass";
 
 export interface Stat {
   icon: "mic" | "clock" | "sparkles" | "flame";
@@ -51,7 +52,7 @@ function StatPill({ stat, index }: { stat: Stat; index: number }) {
       initial={reduce ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="flex items-center gap-2.5 rounded-full border border-black/[0.12] bg-white px-4 py-2.5 transition-colors hover:border-black/25"
+      className={`flex items-center gap-2.5 rounded-full px-4 py-2.5 ${GLASS_CHIP}`}
     >
       <Icon className="size-4 shrink-0 text-[#0d0d0d]/50" />
       <span className="text-base font-medium tabular-nums tracking-tight">

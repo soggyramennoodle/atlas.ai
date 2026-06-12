@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Mic } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { GlassPanel, HeroBand } from "@/components/app/glass";
+import { GLASS_CHIP, GlassPanel, HeroBand } from "@/components/app/glass";
 import { Greeting } from "@/components/dashboard/greeting";
 import { StatCards, type Stat } from "@/components/dashboard/stat-cards";
 import { QuickRecord } from "@/components/dashboard/quick-record";
@@ -160,7 +160,7 @@ export default async function DashboardPage() {
               Your <span className="font-instrument italic">library</span>
             </h2>
             {notes.length > 0 && (
-              <span className="rounded-full border border-black/[0.1] px-2.5 py-1 text-xs tabular-nums text-[#0d0d0d]/55">
+              <span className={`rounded-full px-2.5 py-1 text-xs tabular-nums text-[#0d0d0d]/55 ${GLASS_CHIP}`}>
                 {notes.length} total
               </span>
             )}

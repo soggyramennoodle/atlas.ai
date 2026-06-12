@@ -122,15 +122,18 @@ export function WaveRibbon({
         ctx.stroke();
       };
 
-      // Bloom pass — wide, soft, blurred — then the thin core.
+      // Layered strokes fake the glow bloom. Canvas shadowBlur is deliberately
+      // avoided: it re-renders a gaussian every frame and tanks low-end GPUs.
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.strokeStyle = bloom;
-      ctx.lineWidth = 7 * dpr;
-      ctx.shadowColor = bloom;
-      ctx.shadowBlur = 14 * dpr;
+      ctx.lineWidth = 12 * dpr;
+      ctx.globalAlpha = 0.35;
       trace();
-      ctx.shadowBlur = 0;
+      ctx.lineWidth = 6 * dpr;
+      ctx.globalAlpha = 0.65;
+      trace();
+      ctx.globalAlpha = 1;
       ctx.strokeStyle = core;
       ctx.lineWidth = 1.6 * dpr;
       trace();

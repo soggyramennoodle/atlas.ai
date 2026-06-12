@@ -44,10 +44,18 @@ export function AppCanvas() {
 export const CARD =
   "rounded-3xl border border-black/[0.08] bg-white shadow-[0_1px_2px_rgba(13,13,13,0.04),0_24px_60px_-44px_rgba(13,13,13,0.35)]";
 
+/* Perf budget: backdrop-filter cost scales with blurred area × radius, and
+   in-flow glass re-samples on every scroll frame. blur-lg (16px) reads the
+   same as blur-xl over our low-frequency canvas at ~2/3 the GPU cost — don't
+   raise these without checking scroll perf on a low-end device. */
 export const GLASS_LIGHT =
-  "border border-white/55 bg-white/50 text-[#0d0d0d] shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_50px_-28px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.07] backdrop-blur-xl";
+  "border border-white/55 bg-white/50 text-[#0d0d0d] shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_50px_-28px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.07] backdrop-blur-lg";
 export const GLASS_INK =
-  "border border-white/[0.16] bg-[#0d0d0d]/60 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_24px_60px_-30px_rgba(0,0,0,0.55)] backdrop-blur-xl";
+  "border border-white/[0.16] bg-[#0d0d0d]/60 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_24px_60px_-30px_rgba(0,0,0,0.55)] backdrop-blur-lg";
+
+/* Cheap glass for small chips/pills: tiny blurred area, safe to scatter. */
+export const GLASS_CHIP =
+  "border border-white/60 bg-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(13,13,13,0.04)] ring-1 ring-black/[0.07] backdrop-blur-md";
 
 export function GlassPanel({
   variant = "light",
