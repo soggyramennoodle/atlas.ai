@@ -31,14 +31,15 @@ import {
 } from "@/lib/recording-draft";
 import { uploadSegment } from "@/lib/segment-upload";
 import { setCaptureActivity } from "@/lib/capture-activity";
+import {
+  isMicRecordingSilent,
+  SILENCE_PEAK_THRESHOLD,
+} from "@/lib/recording-silence";
 
 export const BARS = 32;
 const IDLE_LEVELS = () => Array(BARS).fill(0.04) as number[];
 const METER_FRAME_MS = 72;
 const TRANSCRIPT_FRAME_MS = 360;
-const SILENCE_PEAK_THRESHOLD = 0.075;
-const SILENCE_MIN_ACTIVE_MS = 500;
-const SILENCE_MIN_DURATION_SECONDS = 2;
 const RECORDING_DRAFT_SLICE_MS = 4_000;
 // Independent recording segment length. The MediaRecorder is rotated at this
 // interval so each segment is a complete, separately-uploadable WebM. ~5 min
@@ -400,6 +401,21 @@ export function RecordingProvider({
     });
   }, [phase, stage]);
 
+  // Virtual lectures run while this tab is usually in the background; Chrome
+  // may suspend the AudioContext until the user returns.
+  useEffect(() => {
+    const resumeAudio = () => {
+      if (phase !== "recording" && phase !== "paused") return;
+      void audioCtxRef.current?.resume().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", resumeAudio);
+    window.addEventListener("focus", resumeAudio);
+    return () => {
+      document.removeEventListener("visibilitychange", resumeAudio);
+      window.removeEventListener("focus", resumeAudio);
+    };
+  }, [phase]);
+
   const enqueueDraftWrite = useCallback((write: () => Promise<void>) => {
     draftWriteQueueRef.current = draftWriteQueueRef.current
       .catch(() => {})
@@ -495,11 +511,13 @@ export function RecordingProvider({
           url,
           blob,
           mime: draft.metadata.mime,
-          silent:
-            draft.metadata.seconds >= SILENCE_MIN_DURATION_SECONDS &&
-            draft.metadata.audioPeak < SILENCE_PEAK_THRESHOLD &&
-            draft.metadata.activeAudioMs < SILENCE_MIN_ACTIVE_MS &&
-            !transcript.trim(),
+          silent: isMicRecordingSilent({
+            source: draft.metadata.source,
+            seconds: draft.metadata.seconds,
+            audioPeak: draft.metadata.audioPeak,
+            activeAudioMs: draft.metadata.activeAudioMs,
+            liveTranscript: transcript,
+          }),
         });
         setPhase("recorded");
         toast.message("Recovered a recording saved on this device.");
@@ -760,11 +778,13 @@ export function RecordingProvider({
       url,
       blob,
       mime: draft.metadata.mime,
-      silent:
-        draft.metadata.seconds >= SILENCE_MIN_DURATION_SECONDS &&
-        draft.metadata.audioPeak < SILENCE_PEAK_THRESHOLD &&
-        draft.metadata.activeAudioMs < SILENCE_MIN_ACTIVE_MS &&
-        !draft.metadata.liveTranscript.trim(),
+      silent: isMicRecordingSilent({
+        source: draft.metadata.source,
+        seconds: draft.metadata.seconds,
+        audioPeak: draft.metadata.audioPeak,
+        activeAudioMs: draft.metadata.activeAudioMs,
+        liveTranscript: draft.metadata.liveTranscript,
+      }),
     });
     setSeconds(draft.metadata.seconds);
     secondsRef.current = draft.metadata.seconds;
@@ -1153,14 +1173,18 @@ export function RecordingProvider({
         const displaySource = ctx.createMediaStreamSource(display);
         displaySource.connect(destination);
         displaySource.connect(analyser);
-        if (energyNode) displaySource.connect(energyNode);
         if (mic) {
           const micSource = ctx.createMediaStreamSource(mic);
           micSource.connect(destination);
           micSource.connect(analyser);
-          if (energyNode) micSource.connect(energyNode);
         }
         recordStream = destination.stream;
+        // Meter the mixed capture (what MediaRecorder hears), not just the raw
+        // display track — and keep the graph rendering while this tab is
+        // backgrounded during a virtual lecture.
+        if (energyNode) {
+          ctx.createMediaStreamSource(destination.stream).connect(energyNode);
+        }
 
         // If the user hits the browser's native "Stop sharing" bar, end the take.
         display.getAudioTracks()[0]?.addEventListener("ended", () => {
