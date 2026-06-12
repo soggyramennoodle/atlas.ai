@@ -1,15 +1,31 @@
 import { redirect } from "next/navigation";
+import { Inter_Tight, Instrument_Serif } from "next/font/google";
 import { createClient } from "@/lib/supabase/server";
 import { countUnreadFeedback } from "@/lib/admin-feedback-server";
 import { isNewsroomAdmin } from "@/lib/newsroom";
-import { parseThemePreference } from "@/lib/theme";
 import { AppShell } from "@/components/app/app-shell";
 import { RecordingProvider } from "@/components/recording/recording-context";
 import { RecordingDock } from "@/components/recording/recording-dock";
-import { MarketingBackground } from "@/components/marketing-background";
-import { ThemeSync } from "@/components/theme-sync";
+import { MarketingThemeLock } from "@/components/marketing-theme-lock";
 import { AccessRevocationGuard } from "@/components/access-revocation-guard";
 import { PasskeyEnrollmentPrompt } from "@/components/auth/passkey-enrollment-prompt";
+
+/* Cinematic-light language, scoped to the app surface the same way the
+   marketing and auth layouts scope it. The app is light-only: the old theme
+   system (ThemeSync/ThemeSelector) was deliberately retired with the
+   cinematic redesign. */
+const interTight = Inter_Tight({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter-tight",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
+});
 
 export default async function AppLayout({
   children,
@@ -30,25 +46,24 @@ export default async function AppLayout({
   const { data: profile, error: profileError } = await supabase
     .from("user_profiles")
     .select(
-      "display_name, ui_tour_completed_at, theme_preference, avatar_r2_key, passkey_prompt_dismissed_at"
+      "display_name, ui_tour_completed_at, avatar_r2_key, passkey_prompt_dismissed_at"
     )
     .maybeSingle();
   if (!profileError && !profile?.display_name) redirect("/onboarding");
 
-  const savedTheme = parseThemePreference(profile?.theme_preference);
   const isAdmin = isNewsroomAdmin(user.email);
   const adminUnreadReports = isAdmin ? await countUnreadFeedback() : 0;
 
   return (
     <RecordingProvider userId={user.id}>
-      <ThemeSync savedTheme={savedTheme} />
+      <MarketingThemeLock />
       <AccessRevocationGuard userId={user.id} />
       <PasskeyEnrollmentPrompt
         dismissedAt={profile?.passkey_prompt_dismissed_at ?? null}
       />
-      <div className="relative min-h-screen">
-        {/* Clean rivo-light canvas, shared with the marketing surface. */}
-        <MarketingBackground />
+      <div
+        className={`${interTight.variable} ${instrumentSerif.variable} font-heading relative min-h-screen bg-[#fafafa] text-[#0d0d0d]`}
+      >
         <AppShell
           email={user.email ?? ""}
           name={profile?.display_name ?? ""}

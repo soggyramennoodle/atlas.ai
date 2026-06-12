@@ -34,7 +34,8 @@ export function AppShell({
         mobileOpen={mobileOpen}
         onMobileOpenChange={setMobileOpen}
       />
-      <div className="lg:pl-64">
+      {/* Offset for the floating glass rail (left-3 + w-60 + breathing room). */}
+      <div className="lg:pl-[16.5rem]">
         <div className="pt-16 lg:pt-0">{children}</div>
       </div>
       <UiTour active={showUiTour} onMobileSidebarOpen={setMobileOpen} />
