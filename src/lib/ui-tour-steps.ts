@@ -82,13 +82,4 @@ export const UI_TOUR_STEPS: UiTourStep[] = [
     settingsTab: "memory",
     placement: "bottom",
   },
-  {
-    id: "theme",
-    target: '[data-tour="theme-selector"]',
-    title: "Theme",
-    body: "Tap to cycle between system, light, and dark. Pick what feels right for late-night study sessions.",
-    route: "/dashboard",
-    sidebar: true,
-    placement: "right",
-  },
 ];

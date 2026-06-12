@@ -93,7 +93,7 @@ export function HeroBand({
         src="/app/hero-mist.jpg"
         alt=""
         fill
-        priority={priority}
+        loading={priority ? "eager" : undefined}
         sizes="(min-width: 1024px) 72rem, 100vw"
         className="object-cover"
       />

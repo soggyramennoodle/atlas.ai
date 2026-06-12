@@ -5,8 +5,7 @@ import { Fingerprint, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { browserSupportsPasskeys } from "@/lib/passkeys";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { PILL_PRIMARY, PILL_SECONDARY } from "@/components/app/pills";
 
 export function PasskeyEnrollmentPrompt({
   dismissedAt,
@@ -82,50 +81,54 @@ export function PasskeyEnrollmentPrompt({
       aria-modal="true"
       aria-labelledby="passkey-prompt-title"
     >
-      <div aria-hidden className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-      <div className="relative w-full max-w-md rounded-[4px] border border-border bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-[#fafafa]/82 backdrop-blur-sm"
+      />
+      <div className="relative w-full max-w-md rounded-3xl border border-black/[0.08] bg-white p-7 shadow-[0_24px_70px_-42px_rgba(13,13,13,0.45)] sm:p-8">
         <button
           type="button"
           onClick={() => void dismiss()}
           disabled={dismissing || registering}
-          className="absolute right-4 top-4 rounded-[3px] p-1 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+          className="absolute right-4 top-4 grid size-9 place-items-center rounded-full text-[#0d0d0d]/45 outline-none transition hover:bg-black/[0.04] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25 disabled:opacity-60"
           aria-label="Dismiss"
         >
           <X className="size-4" />
         </button>
 
-        <span className="grid size-12 place-items-center rounded-[4px] border border-border bg-background text-foreground">
+        <span className="grid size-12 place-items-center rounded-full border border-black/[0.10] bg-[#fafafa] text-[#0d0d0d]">
           <Fingerprint className="size-6" />
         </span>
+        <p className="mt-5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
+          Faster sign-in
+        </p>
         <h2
           id="passkey-prompt-title"
-          className="mt-5 text-2xl font-bold tracking-tight"
+          className="mt-2 text-3xl font-normal tracking-[-0.02em] text-[#0d0d0d]"
         >
           Save a passkey?
         </h2>
-        <p className="mt-2 text-sm text-muted-foreground text-pretty">
+        <p className="mt-3 text-pretty text-sm leading-6 text-[#0d0d0d]/60">
           Sign in next time with Face ID, Touch ID, or your device PIN — no
           email link required.
         </p>
 
         <div className="mt-6 flex flex-col gap-3">
-          <Button
-            className="w-full"
+          <button
+            type="button"
+            className={PILL_PRIMARY}
             onClick={() => void register()}
             disabled={registering || dismissing}
           >
             {registering && <Loader2 className="size-4 animate-spin" />}
             <Fingerprint className="size-4" />
             Save passkey
-          </Button>
+          </button>
           <button
             type="button"
             onClick={() => void dismiss()}
             disabled={registering || dismissing}
-            className={cn(
-              buttonVariants({ variant: "ghost" }),
-              "w-full text-muted-foreground"
-            )}
+            className={PILL_SECONDARY}
           >
             {dismissing && <Loader2 className="size-4 animate-spin" />}
             Not now

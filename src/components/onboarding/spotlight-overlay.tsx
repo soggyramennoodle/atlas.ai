@@ -3,11 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  PILL_PRIMARY_INLINE,
+  PILL_SECONDARY_INLINE,
+} from "@/components/app/pills";
 import { cn } from "@/lib/utils";
 
 const PAD = 10;
-const RADIUS = 6;
+const RADIUS = 24;
 const MOBILE_MAX = 1023;
 const POPOVER_EST_HEIGHT = 220;
 
@@ -189,7 +192,7 @@ export function SpotlightOverlay({
   }, []);
 
   useEffect(() => {
-    update();
+    Promise.resolve().then(update);
     const t = window.setTimeout(update, 80);
     const t2 = window.setTimeout(update, 320);
     const t3 = window.setTimeout(update, 640);
@@ -231,14 +234,15 @@ export function SpotlightOverlay({
           >
             <motion.div
               layout
-              className="pointer-events-auto absolute rounded-[4px] border-2 border-primary ring-2 ring-primary/30 sm:ring-4"
+              className="pointer-events-auto absolute rounded-3xl border border-white/85 ring-4 ring-white/20"
               style={{
                 top: rect.top,
                 left: rect.left,
                 width: rect.width,
                 height: rect.height,
                 borderRadius: RADIUS,
-                boxShadow: "0 0 0 9999px rgba(15, 23, 42, 0.58)",
+                boxShadow:
+                  "0 0 0 9999px rgba(13, 13, 13, 0.58), 0 18px 60px -28px rgba(255,255,255,0.7)",
               }}
               transition={{ type: "spring", stiffness: 320, damping: 32 }}
             />
@@ -252,7 +256,7 @@ export function SpotlightOverlay({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
-          "pointer-events-auto fixed z-[210] max-h-[min(70vh,420px)] overflow-y-auto rounded-[4px] border border-border bg-card shadow-[0_18px_50px_-24px_rgba(0,0,0,0.45)]",
+          "pointer-events-auto fixed z-[210] max-h-[min(70vh,420px)] overflow-y-auto rounded-3xl border border-white/[0.16] bg-[#0d0d0d]/72 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_24px_70px_-30px_rgba(0,0,0,0.65)] backdrop-blur-2xl",
           narrow
             ? "touch-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
             : "p-5",
@@ -266,40 +270,40 @@ export function SpotlightOverlay({
         style={rect ? popoverStyle : undefined}
       >
         <div className="flex items-start justify-between gap-3">
-          <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-primary">
+          <p className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-white/55">
             Step {stepIndex + 1} of {totalSteps}
           </p>
           <button
             type="button"
             onClick={onSkip}
             aria-label="Skip tour"
-            className="grid size-9 shrink-0 place-items-center rounded-[4px] text-muted-foreground transition hover:bg-secondary hover:text-foreground sm:size-7"
+            className="grid size-9 shrink-0 place-items-center rounded-full text-white/60 outline-none transition hover:bg-white/[0.1] hover:text-white focus-visible:ring-2 focus-visible:ring-white/40 sm:size-7"
           >
             <X className="size-4 sm:size-3.5" />
           </button>
         </div>
-        <h2 className="mt-2 text-base font-bold tracking-tight sm:text-lg">
+        <h2 className="mt-2 text-base font-medium tracking-[-0.01em] sm:text-lg">
           {title}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
+        <p className="mt-2 text-pretty text-sm leading-relaxed text-white/65">
           {body}
         </p>
         <div className="mt-4 flex items-center justify-between gap-3 sm:mt-5">
           <button
             type="button"
             onClick={onSkip}
-            className="min-h-11 px-1 text-xs text-muted-foreground transition hover:text-foreground sm:min-h-0"
+            className={`${PILL_SECONDARY_INLINE} h-10 border-white/[0.16] bg-white/[0.08] px-4 text-xs text-white hover:bg-white/[0.12] focus-visible:ring-white/40 sm:h-9`}
           >
             Skip tour
           </button>
-          <Button
-            size={narrow ? "default" : "sm"}
+          <button
+            type="button"
             onClick={onNext}
-            className="min-h-11 gap-1.5 px-5 sm:min-h-9"
+            className={`${PILL_PRIMARY_INLINE} h-10 bg-white px-4 text-xs text-[#0d0d0d] hover:scale-[1.01] focus-visible:ring-white/40 sm:h-9`}
           >
             {isLast ? "Get started" : "Next"}
             {!isLast && <ArrowRight className="size-4 sm:size-3.5" />}
-          </Button>
+          </button>
         </div>
       </motion.div>
     </div>

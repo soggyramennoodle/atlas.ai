@@ -6,7 +6,7 @@ import { ARROW_BADGE, PILL_PRIMARY } from "@/components/app/pills";
 /** Empty library: a frosted glass invitation floating on the mist imagery. */
 export function EmptyRecordings() {
   return (
-    <HeroBand className="grid place-items-center px-6 py-14">
+    <HeroBand priority className="grid place-items-center px-6 py-14">
       <GlassPanel
         variant="light"
         className="max-w-md px-7 py-9 text-center sm:px-10"

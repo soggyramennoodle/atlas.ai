@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Logo } from "@/components/logo";
-import { MarketingBackground } from "@/components/marketing-background";
+import { AtlasMark } from "@/components/logo";
+import { HeroBand } from "@/components/app/glass";
+import {
+  PILL_INPUT,
+  PILL_PRIMARY_INLINE,
+  PILL_SECONDARY_INLINE,
+} from "@/components/app/pills";
 
 interface Field {
   key: "display_name" | "institution" | "program" | "year" | "grad_year";
@@ -54,6 +56,7 @@ const STEPS: Field[] = [
 
 export function OnboardingFlow() {
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -97,95 +100,141 @@ export function OnboardingFlow() {
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
-      <MarketingBackground />
+    <main className="min-h-svh bg-[#fafafa] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto grid min-h-[calc(100svh-3rem)] w-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center">
+        <HeroBand
+          priority
+          className="min-h-[24rem] lg:min-h-[calc(100svh-6rem)]"
+        >
+          <div className="absolute inset-0 bg-black/[0.18]" aria-hidden />
+          <div className="relative flex min-h-[24rem] flex-col justify-between p-6 text-white sm:p-8 lg:min-h-[calc(100svh-6rem)]">
+            <div className="inline-flex items-center gap-2">
+              <AtlasMark className="size-8" />
+              <span className="text-2xl font-medium leading-none tracking-tight">
+                Atlas
+              </span>
+              <span className="relative -top-2 rounded-full border border-white/25 bg-white/15 px-1.5 py-0.5 text-[0.6rem] font-medium uppercase tracking-[0.12em] text-white/80 backdrop-blur">
+                beta
+              </span>
+            </div>
 
-      <div className="relative w-full max-w-md">
-        <div className="mb-8 flex justify-center">
-          <Logo beta className="scale-110" />
-        </div>
-
-        {/* Progress dots */}
-        <div className="mb-6 flex justify-center gap-2">
-          {STEPS.map((_, i) => (
-            <motion.span
-              key={i}
-              className="h-1.5 rounded-full bg-primary"
-              animate={{
-                width: i === step ? 28 : 8,
-                opacity: i <= step ? 1 : 0.25,
-              }}
-              transition={{ type: "spring", stiffness: 320, damping: 30 }}
-            />
-          ))}
-        </div>
-
-        <div className="overflow-hidden rounded-[4px] border border-border bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
-          <AnimatePresence mode="wait" custom={dir}>
-            <motion.div
-              key={step}
-              custom={dir}
-              initial={{ opacity: 0, x: dir * 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: dir * -40 }}
-              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
-                Step {step + 1} of {STEPS.length}
+            <div className="max-w-xl">
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/65">
+                First setup
               </p>
-              <h1 className="mt-2 text-3xl font-bold tracking-[-0.02em]">
-                {field.title}
+              <h1 className="mt-3 text-balance text-5xl font-normal leading-[0.95] tracking-[-0.03em] sm:text-6xl">
+                Tune Atlas to{" "}
+                <span className="font-instrument italic">your classes</span>
               </h1>
-              <div className="mt-6 space-y-2">
-                <Label htmlFor={field.key}>{field.label}</Label>
-                <Input
-                  id={field.key}
-                  autoFocus
-                  value={value}
-                  placeholder={field.placeholder}
-                  onChange={(e) =>
-                    setValues((v) => ({ ...v, [field.key]: e.target.value }))
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") next();
-                  }}
-                  className="h-12"
-                />
-              </div>
-            </motion.div>
-          </AnimatePresence>
-
-          <div className="mt-8 flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={back}
-              disabled={step === 0 || saving}
-              className="gap-1.5"
-            >
-              <ArrowLeft className="size-4" />
-              Back
-            </Button>
-            <Button onClick={next} disabled={!value.trim() || saving} className="gap-1.5">
-              {saving ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : isLast ? (
-                <>
-                  Finish
-                  <Check className="size-4" />
-                </>
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight className="size-4" />
-                </>
-              )}
-            </Button>
+              <p className="mt-4 max-w-md text-pretty text-sm leading-6 text-white/68">
+                A few details help Atlas understand your program, year, and
+                study context before the first recording.
+              </p>
+            </div>
           </div>
-        </div>
+        </HeroBand>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          You can change any of this later in Settings.
-        </p>
+        <section className="flex flex-col justify-center py-4">
+          <div className="mb-7 flex gap-2">
+            {STEPS.map((_, i) => (
+              <motion.span
+                key={i}
+                className="h-1.5 rounded-full bg-[#0d0d0d]"
+                animate={{
+                  width: i === step ? 30 : 8,
+                  opacity: i <= step ? 1 : 0.18,
+                }}
+                transition={
+                  reduceMotion
+                    ? { duration: 0 }
+                    : { type: "spring", stiffness: 320, damping: 30 }
+                }
+              />
+            ))}
+          </div>
+
+          <div className="border-y border-black/[0.08] py-8">
+            <AnimatePresence mode="wait" custom={dir}>
+              <motion.div
+                key={step}
+                custom={dir}
+                initial={reduceMotion ? false : { opacity: 0, x: dir * 32 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={
+                  reduceMotion ? { opacity: 0 } : { opacity: 0, x: dir * -32 }
+                }
+                transition={{
+                  duration: reduceMotion ? 0 : 0.28,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              >
+                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
+                  Step {step + 1} of {STEPS.length}
+                </p>
+                <h2 className="mt-3 text-4xl font-normal leading-[1] tracking-[-0.02em] text-[#0d0d0d]">
+                  {field.title}
+                </h2>
+                <div className="mt-7 space-y-3">
+                  <label
+                    htmlFor={field.key}
+                    className="block text-sm font-medium text-[#0d0d0d]/72"
+                  >
+                    {field.label}
+                  </label>
+                  <input
+                    id={field.key}
+                    autoFocus
+                    value={value}
+                    placeholder={field.placeholder}
+                    onChange={(e) =>
+                      setValues((v) => ({ ...v, [field.key]: e.target.value }))
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") next();
+                    }}
+                    className={`${PILL_INPUT} h-12`}
+                  />
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            <div className="mt-8 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={back}
+                disabled={step === 0 || saving}
+                className={`${PILL_SECONDARY_INLINE} h-11 px-4 text-xs`}
+              >
+                <ArrowLeft className="size-4" />
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={next}
+                disabled={!value.trim() || saving}
+                className={`${PILL_PRIMARY_INLINE} h-11 px-5 text-xs`}
+              >
+                {saving ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : isLast ? (
+                  <>
+                    Finish
+                    <Check className="size-4" />
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <ArrowRight className="size-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <p className="mt-5 text-sm leading-6 text-[#0d0d0d]/55">
+            You can change any of this later in Settings.
+          </p>
+        </section>
       </div>
     </main>
   );
