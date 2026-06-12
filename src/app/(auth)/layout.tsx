@@ -1,4 +1,5 @@
 import { Inter_Tight, Instrument_Serif } from "next/font/google";
+import { MarketingThemeLock } from "@/components/marketing-theme-lock";
 
 /* Cinematic-light language, scoped to the auth surface exactly like the
    marketing layout scopes it — the app shell never loads these fonts. */
@@ -24,6 +25,7 @@ export default function AuthLayout({
     <div
       className={`${interTight.variable} ${instrumentSerif.variable} font-heading flex min-h-svh flex-1 flex-col bg-[#fafafa] text-[#0d0d0d]`}
     >
+      <MarketingThemeLock />
       {children}
     </div>
   );
