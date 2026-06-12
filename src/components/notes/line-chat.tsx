@@ -21,6 +21,7 @@ import {
   Telescope,
   X,
 } from "lucide-react";
+import { GLASS_LIGHT } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
 
 /** Spring shared with the key-concept cards for a consistent, lightly bouncy feel. */
@@ -94,7 +95,7 @@ export function AskableBlock({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Ask Atlas about this line"
-        className="ml-1.5 inline-flex size-5 translate-y-[2px] items-center justify-center rounded-[3px] border border-primary/30 bg-background/70 text-primary opacity-0 transition hover:-translate-y-px hover:border-primary/60 hover:bg-accent focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover/ask:opacity-100 motion-reduce:transition-none"
+        className="ml-1.5 inline-flex size-5 translate-y-[2px] items-center justify-center rounded-full border border-black/[0.12] bg-white text-[#0d0d0d]/70 opacity-0 transition hover:-translate-y-px hover:border-black/30 hover:text-[#0d0d0d] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 group-hover/ask:opacity-100 motion-reduce:transition-none"
       >
         <Sparkles className="size-3" />
       </button>
@@ -336,7 +337,7 @@ function LineChatPopup({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 z-40 cursor-default bg-background/40 backdrop-blur-[2px]"
+        className="fixed inset-0 z-40 cursor-default bg-[#fafafa]/40 backdrop-blur-[2px]"
       />
 
       <motion.div
@@ -354,37 +355,38 @@ function LineChatPopup({
       >
         <div
           className={cn(
-            "ai-ring relative rounded-[4px] border border-primary/30 bg-card shadow-2xl",
+            "ai-ring relative rounded-2xl",
+            GLASS_LIGHT,
             thinking && "ai-ring--active"
           )}
         >
           <div
-            className="relative overflow-y-auto overflow-x-hidden rounded-[4px] p-4"
+            className="relative overflow-y-auto overflow-x-hidden rounded-2xl p-4"
             style={{ maxHeight: pos.maxHeight }}
           >
             {/* Header: the line + its provenance. */}
             <div className="flex items-start justify-between gap-2">
-              <span className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-                <Sparkles className="size-4 shrink-0 text-primary" />
+              <span className="flex items-center gap-2 text-sm font-medium tracking-tight text-[#0d0d0d]">
+                <Sparkles className="size-4 shrink-0 text-[#0d0d0d]/70" />
                 Ask about this line
               </span>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="grid size-7 shrink-0 place-items-center rounded-[4px] text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                className="grid size-7 shrink-0 place-items-center rounded-full text-[#0d0d0d]/55 outline-none transition hover:bg-black/[0.05] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
               >
                 <X className="size-4" />
               </button>
             </div>
-            <p className="mt-2 text-pretty text-sm leading-relaxed text-foreground/90">
+            <p className="mt-2 text-pretty text-sm leading-relaxed text-[#0d0d0d]/85">
               “{line}”
             </p>
             {sourceExcerpt && (
-              <p className="mt-2 flex gap-1.5 text-pretty text-xs leading-relaxed text-muted-foreground">
-                <Quote className="mt-0.5 size-3 shrink-0 text-primary" />
+              <p className="mt-2 flex gap-1.5 text-pretty text-xs leading-relaxed text-[#0d0d0d]/55">
+                <Quote className="mt-0.5 size-3 shrink-0 text-[#0d0d0d]/50" />
                 <span>
-                  <span className="font-medium text-foreground/70">
+                  <span className="font-medium text-[#0d0d0d]/70">
                     {sourceLabel}:
                   </span>{" "}
                   <span className="italic">{sourceExcerpt}</span>
@@ -409,9 +411,9 @@ function LineChatPopup({
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       transition={{ ...SPRING, delay: 0.05 + idx * 0.07 }}
                       onClick={() => ask(p.prompt(line), p.label, p.deeper)}
-                      className="flex items-center gap-2.5 rounded-[4px] border bg-background/50 px-3 py-2.5 text-left text-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent"
+                      className="flex items-center gap-2.5 rounded-2xl border border-black/[0.1] bg-white/70 px-3 py-2.5 text-left text-sm text-[#0d0d0d] outline-none transition hover:-translate-y-0.5 hover:border-black/25 hover:bg-white focus-visible:ring-2 focus-visible:ring-black/25"
                     >
-                      <p.icon className="size-4 text-primary" />
+                      <p.icon className="size-4 text-[#0d0d0d]/70" />
                       {p.label}
                     </motion.button>
                   ))}
@@ -430,20 +432,20 @@ function LineChatPopup({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     transition={SPRING}
-                    className="rounded-[4px] border bg-background/40"
+                    className="rounded-2xl border border-black/[0.1] bg-white/70"
                   >
                     <button
                       type="button"
                       onClick={() => toggleTurn(turn.id)}
-                      className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
+                      className="flex w-full items-center justify-between gap-2 rounded-2xl px-3 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-black/25"
                     >
-                      <span className="line-clamp-1 text-xs font-medium text-foreground/80">
+                      <span className="line-clamp-1 text-xs font-medium text-[#0d0d0d]/75">
                         {turn.label}
                       </span>
                       <motion.span
                         animate={{ rotate: turn.open ? 0 : -90 }}
                         transition={SPRING}
-                        className="text-muted-foreground"
+                        className="text-[#0d0d0d]/55"
                       >
                         <ChevronDown className="size-4" />
                       </motion.span>
@@ -458,7 +460,7 @@ function LineChatPopup({
                           transition={SPRING}
                           className="overflow-hidden"
                         >
-                          <div className="px-3 pb-3 text-pretty text-sm leading-relaxed text-foreground/90">
+                          <div className="px-3 pb-3 text-pretty text-sm leading-relaxed text-[#0d0d0d]/80">
                             {turn.answer}
                             {turn.streaming && <StreamingCaret />}
                           </div>
@@ -472,7 +474,7 @@ function LineChatPopup({
                                 <button
                                   type="button"
                                   onClick={() => addToNote(turn.answer)}
-                                  className="inline-flex items-center gap-1.5 rounded-[4px] border border-violet-500/40 bg-violet-500/10 px-2.5 py-1.5 text-xs font-medium text-violet-700 transition hover:-translate-y-px hover:bg-violet-500/20 dark:text-violet-300"
+                                  className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-1.5 text-xs font-medium text-violet-700 outline-none transition hover:-translate-y-px hover:bg-violet-500/20 focus-visible:ring-2 focus-visible:ring-black/25"
                                 >
                                   <Plus className="size-3.5" />
                                   Add to note
@@ -509,12 +511,12 @@ function StreamingCaret() {
       aria-hidden
       animate={{ opacity: [1, 0.2, 1] }}
       transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-      className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[2px] rounded-full bg-primary align-baseline"
+      className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[2px] rounded-full bg-[#0d0d0d]/70 align-baseline"
     />
   );
 }
 
-/** Boxy input with a compact up-arrow submit. */
+/** Pill input with a compact up-arrow submit. */
 function ChatInput({
   onSubmit,
   busy,
@@ -534,7 +536,7 @@ function ChatInput({
   }
 
   return (
-    <div className="relative mt-4 flex items-center rounded-[4px] border bg-background/70 pl-3 pr-1 transition focus-within:border-primary/50">
+    <div className="relative mt-4 flex items-center rounded-full border border-black/[0.12] bg-white pl-4 pr-1 transition focus-within:border-black/30">
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -545,14 +547,14 @@ function ChatInput({
           }
         }}
         placeholder={placeholder}
-        className="h-10 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+        className="h-10 flex-1 bg-transparent text-sm text-[#0d0d0d] outline-none placeholder:text-[#0d0d0d]/40"
       />
       <button
         type="button"
         onClick={submit}
         disabled={!value.trim() || busy}
         aria-label="Send"
-        className="grid size-8 shrink-0 place-items-center rounded-[3px] bg-primary text-primary-foreground transition enabled:hover:-translate-y-0.5 enabled:hover:scale-105 disabled:opacity-40"
+        className="grid size-8 shrink-0 place-items-center rounded-full bg-[#0d0d0d] text-white outline-none transition focus-visible:ring-2 focus-visible:ring-black/25 enabled:hover:-translate-y-0.5 enabled:hover:scale-105 disabled:opacity-40"
       >
         <ArrowUp className="size-4" />
       </button>

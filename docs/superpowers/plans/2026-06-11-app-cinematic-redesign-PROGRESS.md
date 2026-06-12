@@ -15,13 +15,23 @@ Full cinematic conversion of the user app (Inter Tight + Instrument Serif, no gr
 | 0 | Primitive kit + fonts + shell (rail, mobile bar/drawer) | DONE | e41747a6 |
 | 1 | Dashboard | DONE | b4b9422f |
 | 2 | Capture (upload, recorder, uploader, processing overlay, dock) | DONE | 6b04352d |
-| 3 | Note view | todo | — |
+| 3 | Note view | DONE | phase 3 commit |
 | 4 | Settings | todo | — |
 | 5 | Onboarding + UI tour + passkey prompt | todo | — |
 | 6 | Admin (7 pages) | todo | — |
 | 7 | Final sweep (theme files, rivo tokens, dead styles) | todo | — |
 
-## ➜ RESUME HERE: Phase 3 (note view) is next
+## ➜ RESUME HERE: Phase 4 (settings) is next
+
+**2026-06-12 Phase 3 DONE:** Note view is converted to the cinematic-light/editorial language and ready to hand off to Phase 4. Completed scope: note page chrome, note-session metadata, title/course controls, summary/concept/transcript/line-chat/source-bubble surfaces, note actions, rich editor shell, processing/held/failed note states, floating edit controls, and legacy structured-section/edit-mode concept fallback. Verification passed: acceptance grep, `git diff --check`, targeted `npx eslint`, `npm test` 92/92, unauthenticated route compile redirects, and authenticated browser smoke on real note `b5789b85-c0cc-4c6a-9b11-88444207a353` at desktop + 390px mobile. Next agent: start Phase 4 settings; do not redo Phase 3 unless product/design QA finds a specific visual issue.
+
+**2026-06-12 continuation start (historical):** Phase 3 resumed from the prior parallel-session note surface restyle. Initial blocker was acceptance grep failing in `src/components/notes/note-view.tsx` for old rivo/shadcn tokens (`rounded-[4px]`, `bg-card`, `text-primary`, `text-muted-foreground`, `font-bold`, etc.) plus an out-of-scope `shadcn` package-lock/package.json change; both are now resolved in the DONE checkpoint above.
+
+**2026-06-12 checkpoint:** `note-view.tsx` cleanup pass is complete and `package.json`/`package-lock.json` are back to clean. Acceptance grep over `src/app/(app)/notes/[id]/page.tsx` and `src/components/notes/` now finds none of the blocked old tokens. Next: run `npx eslint` on the Phase 3 files, `npm test`, and route compile/browser checks; fix any failures before committing.
+
+**2026-06-12 verification checkpoint:** `npm test` passed (92/92). Targeted `npx eslint` over `src/app/(app)/notes/[id]/page.tsx` plus all `src/components/notes/*.tsx` passes after deferring two `AtlasCursor` `setShown` effect updates through `Promise.resolve().then(...)`. Remaining before commit: local route compile/smoke check and final git diff review.
+
+**2026-06-12 browser checkpoint:** Dev server on `http://localhost:3000` compiled `/notes/[id]` cleanly. Curl returned expected `307` for unauthenticated `/notes/phase-3-smoke` and `/dashboard`; authenticated dev-login smoke opened `/dashboard` and real note `/notes/b5789b85-c0cc-4c6a-9b11-88444207a353` with HTTP 200. In-app browser desktop crop and 390px mobile viewport both rendered the note content without obvious overlap or horizontal overflow; browser console logs were empty. Only server warning observed: existing Next/Turbopack multiple-lockfile root inference warning.
 
 **2026-06-11 late update:** a parallel session left UNCOMMITTED Phase 3 conversions in the working tree (all 13 note files, ~3.4k insertions, on-contract per spot-check of course-capsule). Next agent: review that diff against the contract below, run the verification battery, then commit it as the Phase 3 commit — don't redo the work blind, and don't discard it.
 

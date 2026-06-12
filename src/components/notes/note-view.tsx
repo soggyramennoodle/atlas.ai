@@ -20,8 +20,7 @@ import type {
   NoteSection,
   StructuredNotes,
 } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { AuroraPanel } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
 import {
   AI_BLOCK_ATTR,
@@ -68,6 +67,12 @@ const clone = <T,>(v: T): T =>
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 type SaveStatus = "idle" | "saving" | "saved";
+
+const NOTE_GHOST_PILL =
+  "inline-flex h-9 items-center justify-center gap-2 rounded-full border border-black/[0.12] bg-white px-4 text-sm font-medium text-[#0d0d0d] outline-none transition hover:bg-black/[0.03] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-black/25 disabled:pointer-events-none disabled:opacity-60";
+
+const NOTE_INPUT =
+  "w-full rounded-2xl border border-black/[0.12] bg-white px-4 py-3 text-sm text-[#0d0d0d] outline-none transition placeholder:text-[#0d0d0d]/40 focus:border-black/30 focus-visible:ring-2 focus-visible:ring-black/25";
 
 const normText = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
 
@@ -486,14 +491,14 @@ export function NoteView({
   return (
     <div className="relative">
       {enriching && (
-        <div className="mb-4 rounded-[4px] border border-amber-500/25 bg-amber-500/8 px-3 py-2 text-sm text-amber-800 dark:text-amber-200/90">
+        <div className="mb-4 rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-900">
           Adding supplementary context from the web. Your lecture notes are ready to read — new
           highlights may appear shortly.
         </div>
       )}
       {/* Notes-section toolbar */}
       <div ref={toolbarRef} className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        <h2 className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
           {editMode ? "Editing notes" : "Lecture notes"}
         </h2>
         <EditControls
@@ -562,7 +567,9 @@ export function NoteView({
         {/* Key concepts */}
         {(editMode || shown.keyConcepts.length > 0) && (
           <section>
-            <h3 className="text-2xl font-bold tracking-[-0.02em]">Key concepts</h3>
+            <h3 className="text-2xl font-normal tracking-[-0.02em] text-[#0d0d0d]">
+              Key <span className="font-instrument italic">concepts</span>
+            </h3>
             <div className="mt-4">
               {editMode ? (
                 <div className="space-y-4">
@@ -588,7 +595,7 @@ export function NoteView({
                         void d.keyConcepts.push({ term: "", definition: "" })
                       )
                     }
-                    className="inline-flex items-center gap-2 rounded-[4px] border border-dashed px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                    className="inline-flex items-center gap-2 rounded-full border border-dashed border-black/[0.12] bg-white px-4 py-2 text-sm font-medium text-[#0d0d0d]/55 outline-none transition-colors hover:border-black/30 hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
                   >
                     <Plus className="size-4" />
                     Add concept
@@ -622,13 +629,17 @@ function ProcessingNoteState({
   message: string;
 }) {
   const iconClass = failed
-    ? "relative mx-auto grid size-14 place-items-center rounded-[4px] border border-destructive/30 bg-destructive/10 text-destructive"
+    ? "relative mx-auto grid size-14 place-items-center rounded-full border border-black/[0.16] bg-white text-[#0d0d0d]"
     : held
-    ? "relative mx-auto grid size-14 place-items-center rounded-[4px] border border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-400"
-    : "relative mx-auto grid size-14 place-items-center rounded-[4px] border border-primary/30 bg-primary/10 text-primary";
+    ? "relative mx-auto grid size-14 place-items-center rounded-full border border-orange-500/35 bg-orange-500/10 text-orange-700"
+    : "relative mx-auto grid size-14 place-items-center rounded-full border border-black/[0.12] bg-white text-[#0d0d0d]";
 
   return (
-    <div className="relative overflow-hidden rounded-[4px] border border-border bg-card px-6 py-12 text-center">
+    <AuroraPanel
+      active={!failed && !held}
+      className="mx-auto max-w-2xl"
+      panelClassName="px-6 py-12 text-center"
+    >
       <span className={iconClass}>
         {failed || held ? (
           <AlertCircle className="size-6" />
@@ -636,23 +647,23 @@ function ProcessingNoteState({
           <Loader2 className="size-6 animate-spin" />
         )}
       </span>
-      <h2 className="relative mt-5 text-3xl font-bold tracking-[-0.02em]">
+      <h2 className="relative mt-5 text-3xl font-normal tracking-[-0.02em] text-[#0d0d0d]">
         {failed
           ? "Processing failed"
           : held
           ? "Atlas is at capacity right now"
           : "Still processing"}
       </h2>
-      <p className="relative mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+      <p className="relative mx-auto mt-3 max-w-md text-sm leading-relaxed text-[#0d0d0d]/60">
         {message}
       </p>
       {held && (
-        <div className="relative mx-auto mt-5 inline-flex items-center gap-2 rounded-[6px] border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-700 dark:text-emerald-300">
-          <span className="font-semibold">You can safely close this tab</span>
+        <div className="relative mx-auto mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-800">
+          <span className="font-medium">You can safely close this tab</span>
           <span>— we&apos;ll email you when your notes are ready.</span>
         </div>
       )}
-    </div>
+    </AuroraPanel>
   );
 }
 
@@ -929,7 +940,7 @@ function AiStreamBlock({
   }, []);
 
   return (
-    <li className="text-violet-900/90 dark:text-violet-200/90">
+    <li className="text-violet-900/90">
       <SourceBullet text={shown || "…"} status="ai" />
       {!done && (
         <motion.span
@@ -1009,7 +1020,7 @@ function AtlasCursor({
 
   useEffect(() => {
     if (!active || reduce) {
-      if (!finished) setShown(false);
+      if (!finished) Promise.resolve().then(() => setShown(false));
       return;
     }
     const container = containerRef.current;
@@ -1105,7 +1116,7 @@ function AtlasCursor({
   }, [active]);
 
   useEffect(() => {
-    if (finished && !reduce) setShown(true);
+    if (finished && !reduce) Promise.resolve().then(() => setShown(true));
   }, [finished, reduce]);
 
   // `shown` only flips true from a client-side effect, so SSR/hydration always
@@ -1160,7 +1171,7 @@ function AtlasCursor({
           >
             {/* Deliberately larger than the note text so it's unmissable. */}
             <div
-              className="flex items-center gap-2.5 rounded-[8px] border-2 bg-card px-4 py-3 shadow-[0_10px_36px_-10px_rgba(0,0,0,0.3)]"
+              className="flex items-center gap-2.5 rounded-2xl border bg-white px-4 py-3 text-[#0d0d0d] shadow-[0_18px_44px_-26px_rgba(0,0,0,0.45)]"
               style={{ borderColor: ATLAS_AMBER }}
             >
               <span
@@ -1169,7 +1180,7 @@ function AtlasCursor({
               >
                 <Check className="size-4" />
               </span>
-              <span className="text-base font-semibold tracking-tight sm:text-lg">
+              <span className="text-base font-medium tracking-tight sm:text-lg">
                 Atlas finished reading
               </span>
             </div>
@@ -1209,10 +1220,10 @@ function EditControls({
           onClick={doneInProgress ? undefined : onDone}
           disabled={doneInProgress}
           className={cn(
-            "relative inline-flex items-center justify-center overflow-hidden bg-primary text-primary-foreground text-xs font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none",
+            "relative inline-flex items-center justify-center overflow-hidden rounded-full bg-[#0d0d0d] text-xs font-medium text-white outline-none transition active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60",
             doneInProgress
               ? "size-[30px] rounded-full"
-              : "h-[30px] rounded-[4px] px-3 gap-1.5"
+              : "h-[30px] gap-1.5 px-3"
           )}
           transition={{ layout: { type: "spring", stiffness: 420, damping: 30 } }}
         >
@@ -1243,10 +1254,10 @@ function EditControls({
           </AnimatePresence>
         </motion.button>
       ) : (
-        <Button variant="outline" size="sm" onClick={onEdit} className="gap-2">
+        <button type="button" onClick={onEdit} className={NOTE_GHOST_PILL}>
           <Pencil className="size-3.5" />
           Edit notes
-        </Button>
+        </button>
       )}
     </div>
   );
@@ -1282,7 +1293,7 @@ function FloatingEditControls({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: reduce ? 0 : 12, scale: reduce ? 1 : 0.96 }}
           transition={{ type: "spring", stiffness: 360, damping: 28 }}
-          className="fixed bottom-6 right-4 z-40 rounded-[8px] border bg-card/95 px-2.5 py-2 shadow-[0_10px_36px_-10px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:right-6"
+          className="fixed bottom-6 right-4 z-40 rounded-full border border-white/55 bg-white/70 px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_50px_-28px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:right-6"
           style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
         >
           <EditControls
@@ -1309,7 +1320,7 @@ function AutosaveIndicator({ status }: { status: SaveStatus }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.3 }}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
+          className="inline-flex items-center gap-1.5 text-xs text-[#0d0d0d]/55"
         >
           {status === "saving" ? (
             <>
@@ -1370,10 +1381,10 @@ function SectionView({
   return (
     <section className="scroll-mt-24">
       <div className="flex items-baseline gap-3">
-        <span className="font-mono text-sm text-muted-foreground">
+        <span className="font-mono text-sm text-[#0d0d0d]/40">
           {(index + 1).toString().padStart(2, "0")}
         </span>
-        <h3 className="text-2xl font-bold tracking-[-0.02em]">
+        <h3 className="text-2xl font-normal tracking-[-0.02em] text-[#0d0d0d]">
           <AskableBlock text={section.heading}>{section.heading}</AskableBlock>
         </h3>
       </div>
@@ -1398,17 +1409,17 @@ function SectionView({
       </ul>
 
       {section.subsections?.map((sub, k) => (
-        <div key={k} className="mt-5 border-l-2 border-border pl-5">
-          <h4 className="font-medium tracking-tight">
+        <div key={k} className="mt-5 border-l border-black/[0.1] pl-5">
+          <h4 className="font-medium tracking-tight text-[#0d0d0d]">
             <AskableBlock text={sub.heading}>{sub.heading}</AskableBlock>
           </h4>
           <ul className="mt-2.5 space-y-2">
             {sub.points.map((point, j) => (
               <li
                 key={j}
-                className="flex gap-3 text-sm leading-relaxed text-muted-foreground"
+                className="flex gap-3 text-sm leading-relaxed text-[#0d0d0d]/60"
               >
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-border" />
+                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-black/25" />
                 <AskableBlock
                   text={point.text}
                   sourceExcerpt={point.source_excerpt}
@@ -1442,26 +1453,26 @@ function ConceptBlock({
   onRemove: () => void;
 }) {
   return (
-    <div className="group/concept hover-glow icon-animate relative rounded-[4px] border border-border bg-card p-5">
+    <div className="group/concept relative rounded-2xl border border-black/[0.08] bg-white p-5">
       <button
         type="button"
         onClick={onRemove}
         aria-label="Remove concept"
-        className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-[4px] text-muted-foreground/70 opacity-0 transition hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 group-hover/concept:opacity-100 motion-reduce:opacity-100"
+        className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-full text-[#0d0d0d]/45 opacity-0 outline-none transition hover:bg-black/[0.05] hover:text-[#0d0d0d] focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-black/25 group-hover/concept:opacity-100 motion-reduce:opacity-100"
       >
         <X className="size-4" />
       </button>
-      <Input
+      <input
         value={concept.term}
         onChange={(e) => onTerm(e.target.value)}
         placeholder="Concept"
-        className="pr-9 font-semibold"
+        className={cn(NOTE_INPUT, "pr-9 font-medium")}
       />
       <AutoTextarea
         value={concept.definition}
         onChange={onDefinition}
         placeholder="Definition"
-        className="mt-2 w-full resize-none bg-transparent text-sm leading-relaxed text-muted-foreground focus:outline-none"
+        className="mt-2 w-full resize-none rounded-2xl border border-black/[0.08] bg-white px-4 py-3 text-sm leading-relaxed text-[#0d0d0d]/60 outline-none transition placeholder:text-[#0d0d0d]/40 focus:border-black/25 focus-visible:ring-2 focus-visible:ring-black/25"
       />
     </div>
   );

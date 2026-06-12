@@ -35,7 +35,7 @@ export function NoteSession({
           title={title}
           onTitleChange={setTitle}
         />
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-[#0d0d0d]/55">
           <span className="inline-flex items-center gap-1.5">
             <Calendar className="size-4" />
             {created}

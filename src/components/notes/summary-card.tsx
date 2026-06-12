@@ -86,13 +86,13 @@ export function SummaryCard({
   return (
     <section
       className={cn(
-        "ai-ring relative isolate rounded-[6px] border border-border bg-card p-6 sm:p-7",
+        "ai-ring relative isolate rounded-3xl border border-black/[0.08] bg-white p-6 sm:p-7",
         regenerating && "ai-ring--active"
       )}
     >
       <div className="relative">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+          <h2 className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
             <Sparkles className="size-3.5" />
             Summary
           </h2>
@@ -102,10 +102,10 @@ export function SummaryCard({
             onClick={regenerate}
             disabled={regenerating}
             className={cn(
-              "hover-glow icon-animate inline-flex items-center gap-1.5 rounded-[4px] border border-primary/30 bg-primary/10 px-3.5 py-1.5",
-              "text-xs font-medium text-primary transition-colors",
-              "hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-70",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              "inline-flex items-center gap-1.5 rounded-full border border-black/[0.12] bg-white px-3.5 py-1.5",
+              "text-xs font-medium text-[#0d0d0d]/70 transition",
+              "hover:bg-black/[0.03] hover:text-[#0d0d0d] disabled:cursor-not-allowed disabled:opacity-70",
+              "outline-none focus-visible:ring-2 focus-visible:ring-black/25"
             )}
           >
             {regenerating ? (
@@ -117,7 +117,7 @@ export function SummaryCard({
           </button>
         </div>
 
-        <p className="mt-3 text-pretty leading-relaxed text-foreground/90">
+        <p className="mt-3 text-pretty leading-relaxed text-[#0d0d0d]/80">
           {shown}
           {regenerating && <StreamingCaret />}
         </p>
@@ -133,7 +133,7 @@ function StreamingCaret() {
       aria-hidden
       animate={{ opacity: [1, 0.2, 1] }}
       transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-      className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[2px] rounded-full bg-primary align-baseline"
+      className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[2px] rounded-full bg-[#0d0d0d]/70 align-baseline"
     />
   );
 }

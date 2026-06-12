@@ -5,13 +5,16 @@ import { useRouter } from "next/navigation";
 import { Download, FileText, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteNote } from "@/app/(app)/notes/[id]/actions";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+/** Quiet ghost pill for the note header's action row. */
+const GHOST_PILL =
+  "inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium text-[#0d0d0d]/55 outline-none transition hover:bg-black/[0.03] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25 disabled:pointer-events-none disabled:opacity-60";
 
 export function DownloadAudioButton({ id }: { id: string }) {
   const [busy, setBusy] = useState(false);
@@ -42,16 +45,15 @@ export function DownloadAudioButton({ id }: { id: string }) {
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="gap-1.5 text-muted-foreground"
+    <button
+      type="button"
+      className={GHOST_PILL}
       onClick={downloadAudio}
       disabled={busy}
     >
       {busy ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
       Audio
-    </Button>
+    </button>
   );
 }
 
@@ -88,21 +90,32 @@ export function ExportMenu({ id }: { id: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+        <button type="button" className={GHOST_PILL}>
           {busy ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
             <Download className="size-4" />
           )}
           Export
-        </Button>
+        </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuItem onSelect={() => download("pdf")} disabled={!!busy}>
+      <DropdownMenuContent
+        align="end"
+        className="w-44 rounded-2xl border-black/[0.08] bg-white p-1.5 text-[#0d0d0d] shadow-[0_18px_50px_-28px_rgba(0,0,0,0.35)]"
+      >
+        <DropdownMenuItem
+          onSelect={() => download("pdf")}
+          disabled={!!busy}
+          className="rounded-xl focus:bg-black/[0.03]"
+        >
           <FileText className="size-4" />
           Export as PDF
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => download("docx")} disabled={!!busy}>
+        <DropdownMenuItem
+          onSelect={() => download("docx")}
+          disabled={!!busy}
+          className="rounded-xl focus:bg-black/[0.03]"
+        >
           <FileText className="size-4" />
           Export as DOCX
         </DropdownMenuItem>
@@ -138,38 +151,37 @@ export function DeleteNoteButton({ id }: { id: string }) {
 
   if (!confirming) {
     return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-muted-foreground hover:text-destructive"
+      <button
+        type="button"
+        className={GHOST_PILL}
         onClick={() => setConfirming(true)}
       >
         <Trash2 className="size-4" />
         Delete
-      </Button>
+      </button>
     );
   }
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">Delete this note?</span>
-      <Button
-        variant="destructive"
-        size="sm"
+      <span className="text-sm text-[#0d0d0d]/55">Delete this note?</span>
+      <button
+        type="button"
         onClick={onDelete}
         disabled={pending}
+        className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#0d0d0d] px-4 text-sm font-medium text-white outline-none transition hover:scale-[1.01] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60"
       >
         {pending && <Loader2 className="size-4 animate-spin" />}
         Yes, delete
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
+      </button>
+      <button
+        type="button"
+        className={GHOST_PILL}
         onClick={() => setConfirming(false)}
         disabled={pending}
       >
         Cancel
-      </Button>
+      </button>
     </div>
   );
 }

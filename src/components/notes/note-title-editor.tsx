@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Loader2, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type SaveStatus = "idle" | "saving";
+
+/** Small round icon pill used for the save/cancel/edit title controls. */
+const TITLE_ICON_BUTTON =
+  "grid size-8 shrink-0 place-items-center rounded-full text-[#0d0d0d]/60 outline-none transition hover:bg-black/[0.05] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25 disabled:pointer-events-none disabled:opacity-60";
 
 export function NoteTitleEditor({
   noteId,
@@ -105,54 +108,58 @@ export function NoteTitleEditor({
           rows={1}
           aria-label="Lecture title"
           className={cn(
-            "min-h-[3.75rem] flex-1 resize-none overflow-hidden rounded-[4px] border border-primary/35 bg-background px-3 py-2 text-4xl font-bold leading-[1.02] tracking-[-0.02em] outline-none ring-[3px] ring-primary/20 transition sm:text-5xl",
-            "placeholder:text-muted-foreground"
+            "min-h-[3.75rem] flex-1 resize-none overflow-hidden rounded-2xl border border-black/[0.12] bg-white px-3 py-2 text-4xl font-normal leading-[1.02] tracking-[-0.02em] text-[#0d0d0d] outline-none transition focus-visible:ring-2 focus-visible:ring-black/25 sm:text-5xl",
+            "placeholder:text-[#0d0d0d]/40"
           )}
         />
         <div className="flex shrink-0 items-center gap-1 pt-2">
-          <Button
+          <button
             type="button"
-            size="icon-xs"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => void commit()}
             aria-label="Save title"
+            className="grid size-8 shrink-0 place-items-center rounded-full bg-[#0d0d0d] text-white outline-none transition hover:scale-[1.04] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
           >
             <Check className="size-3" />
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            variant="ghost"
-            size="icon-xs"
             onMouseDown={(e) => e.preventDefault()}
             onClick={cancel}
             aria-label="Cancel title edit"
+            className={TITLE_ICON_BUTTON}
           >
             <X className="size-3" />
-          </Button>
+          </button>
         </div>
       </div>
     );
   }
 
+  // The note view's major heading: the user's own title, with the final word
+  // carrying the surface's single serif-italic accent.
+  const words = saved.split(" ");
+  const lead = words.slice(0, -1).join(" ");
+  const accent = words[words.length - 1];
+
   return (
     <div className="group mt-3 flex items-start gap-2">
-      <h1 className="min-w-0 flex-1 text-balance text-4xl font-bold leading-[1.02] tracking-[-0.02em] sm:text-5xl">
-        {saved}
+      <h1 className="min-w-0 flex-1 text-balance text-4xl font-normal leading-[1.05] tracking-[-0.02em] text-[#0d0d0d] sm:text-5xl">
+        {lead ? <>{lead} </> : null}
+        <span className="font-instrument italic">{accent}</span>
       </h1>
-      <Button
+      <button
         type="button"
-        variant="ghost"
-        size="icon-sm"
         onClick={() => setEditing(true)}
         aria-label="Edit title"
-        className="mt-1 opacity-70 transition group-hover:opacity-100"
+        className={cn(TITLE_ICON_BUTTON, "mt-1 opacity-70 transition group-hover:opacity-100")}
       >
         {status === "saving" ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
           <Pencil className="size-4" />
         )}
-      </Button>
+      </button>
     </div>
   );
 }

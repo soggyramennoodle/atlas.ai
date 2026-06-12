@@ -61,7 +61,7 @@ export function CourseCapsule({
           }
         }}
         placeholder="Add a course…"
-        className="rounded-[4px] border border-primary/40 bg-primary/10 px-3 py-1 text-sm font-medium text-primary outline-none ring-2 ring-primary/30"
+        className="rounded-full border border-black/30 bg-white px-3.5 py-1 text-sm font-medium text-[#0d0d0d] outline-none ring-2 ring-black/15 placeholder:text-[#0d0d0d]/40"
       />
     );
   }
@@ -72,10 +72,10 @@ export function CourseCapsule({
       onClick={() => setEditing(true)}
       whileTap={{ scale: 0.97 }}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-[4px] border px-3 py-1 text-sm font-medium transition duration-300 ease-out hover:-translate-y-0.5",
+        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-sm font-medium outline-none transition duration-300 ease-out hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-black/25",
         saved
-          ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
-          : "border-dashed border-border text-muted-foreground hover:text-foreground"
+          ? "border-black/[0.12] bg-white text-[#0d0d0d]/80 hover:border-black/25 hover:bg-black/[0.03]"
+          : "border-dashed border-black/[0.12] text-[#0d0d0d]/55 hover:text-[#0d0d0d]"
       )}
       title="Click to edit course"
     >

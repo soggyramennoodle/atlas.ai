@@ -52,12 +52,12 @@ export function RichNoteEditor({
 
   if (!editor) {
     return (
-      <div className="min-h-[24rem] animate-pulse rounded-[4px] bg-muted/40" />
+      <div className="min-h-[24rem] animate-pulse rounded-3xl bg-black/[0.04]" />
     );
   }
 
   return (
-    <div className="rounded-[4px] border bg-card shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+    <div className="rounded-3xl border border-black/[0.08] bg-white shadow-[0_18px_50px_-32px_rgba(0,0,0,0.25)]">
       <Toolbar editor={editor} />
       <div className="px-5 py-5 sm:px-7">
         <EditorContent editor={editor} />
@@ -68,7 +68,7 @@ export function RichNoteEditor({
 
 function Toolbar({ editor }: { editor: Editor }) {
   return (
-    <div className="sticky top-16 z-10 flex flex-wrap items-center gap-1 rounded-t-[4px] border-b bg-card/90 px-3 py-2 backdrop-blur-xl">
+    <div className="sticky top-16 z-10 flex flex-wrap items-center gap-1 rounded-t-3xl border-b border-black/[0.08] bg-white/90 px-3 py-2 backdrop-blur-xl">
       <ToolButton
         label="Bold"
         active={editor.isActive("bold")}
@@ -91,7 +91,7 @@ function Toolbar({ editor }: { editor: Editor }) {
         <UnderlineIcon className="size-4" />
       </ToolButton>
 
-      <span className="mx-1 h-5 w-px bg-border" />
+      <span className="mx-1 h-5 w-px bg-black/[0.08]" />
 
       <ToolButton
         label="Heading"
@@ -108,7 +108,7 @@ function Toolbar({ editor }: { editor: Editor }) {
         <Heading3 className="size-4" />
       </ToolButton>
 
-      <span className="mx-1 h-5 w-px bg-border" />
+      <span className="mx-1 h-5 w-px bg-black/[0.08]" />
 
       <ToolButton
         label="Bullet list"
@@ -146,8 +146,8 @@ function ToolButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "grid size-8 place-items-center rounded-[4px] text-muted-foreground transition hover:bg-accent hover:text-foreground",
-        active && "bg-foreground text-background"
+        "grid size-8 place-items-center rounded-full text-[#0d0d0d]/55 outline-none transition hover:bg-black/[0.05] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25",
+        active && "bg-[#0d0d0d] text-white hover:bg-[#0d0d0d] hover:text-white"
       )}
     >
       {children}

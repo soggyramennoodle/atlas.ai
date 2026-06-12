@@ -74,17 +74,17 @@ export function SourceBullet({
           "Atlas expanded on this line for you. It was generated, not taken from the lecture."
         : excerpt;
 
-  // AI = violet (matches the AI edge-glow language); research = amber; lecture = brand.
+  // AI = violet (matches the AI edge-glow language); research = amber; lecture = ink.
   const decoration = ai
     ? "decoration-violet-500/50 hover:decoration-violet-500/80"
     : research
       ? "decoration-amber-500/50 hover:decoration-amber-500/80"
-      : "decoration-primary/25 hover:decoration-primary/60";
+      : "decoration-black/20 hover:decoration-black/50";
   const headColor = ai
-    ? "text-violet-600 dark:text-violet-400"
+    ? "text-violet-600"
     : research
-      ? "text-amber-600 dark:text-amber-400"
-      : "text-primary";
+      ? "text-amber-600"
+      : "text-[#0d0d0d]/70";
 
   return (
     <span
@@ -101,28 +101,28 @@ export function SourceBullet({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 4 }}
             transition={{ duration: 0.16, ease: "easeOut" }}
-            className={`absolute top-1/2 z-30 w-72 -translate-y-1/2 rounded-[4px] border bg-popover p-3.5 text-sm shadow-2xl ${
+            className={`absolute top-1/2 z-30 w-72 -translate-y-1/2 rounded-2xl border border-black/[0.08] bg-white p-3.5 text-sm shadow-[0_18px_50px_-28px_rgba(0,0,0,0.35)] ${
               side === "right" ? "left-full ml-3" : "right-full mr-3"
             }`}
           >
             <span
-              className={`mb-1.5 flex items-center gap-1.5 font-mono text-[0.65rem] uppercase tracking-wider ${headColor}`}
+              className={`mb-1.5 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.2em] ${headColor}`}
             >
               {ai ? <Sparkles className="size-3" /> : <Quote className="size-3" />}
               {label}
             </span>
-            <span className="block text-pretty leading-relaxed text-muted-foreground">
+            <span className="block text-pretty leading-relaxed text-[#0d0d0d]/60">
               {research ? (
                 <>
                   {bubbleBody}
-                  <span className="mt-2 block text-xs text-amber-700/90 dark:text-amber-300/90">
+                  <span className="mt-2 block text-xs text-amber-700/90">
                     Verify important details — this was not said in the lecture.
                   </span>
                 </>
               ) : ai ? (
                 <>
                   {bubbleBody}
-                  <span className="mt-2 block text-xs text-violet-700/90 dark:text-violet-300/90">
+                  <span className="mt-2 block text-xs text-violet-700/90">
                     Verify against your course materials.
                   </span>
                 </>
