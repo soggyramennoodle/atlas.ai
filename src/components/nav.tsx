@@ -38,11 +38,8 @@ export function Nav({
       {/* Top fade: keeps the logo legible over scrolled content without a hard bar. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-24"
-      >
-        <div className="absolute inset-0 backdrop-blur-[8px] [mask-image:linear-gradient(to_bottom,black_0%,black_35%,transparent_95%)]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#fafafa]/85 via-[#fafafa]/40 to-[#fafafa]/0" />
-      </div>
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-28 bg-gradient-to-b from-[#fafafa] from-35% via-[#fafafa]/65 to-[#fafafa]/0"
+      />
       <div className="relative flex h-12 items-center">
         {/* Left: mark + wordmark */}
         <Link
