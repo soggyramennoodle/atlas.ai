@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Inter_Tight, Instrument_Serif } from "next/font/google";
 import { Loader2, Lock, LogOut, Mail } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import type { AccessRevocationKind } from "@/lib/types";
 
 /* This modal renders inside the app shell (Geist), so it carries the
@@ -47,6 +47,7 @@ export function AccountLockedModal({
   onExit: () => Promise<void>;
 }) {
   const [pending, setPending] = useState(false);
+  const reduceMotion = useReducedMotion();
   const copy = COPY[kind];
 
   async function handleExit() {
@@ -61,7 +62,7 @@ export function AccountLockedModal({
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={reduceMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className={`${interTight.variable} ${instrumentSerif.variable} font-heading fixed inset-0 z-[200] flex items-center justify-center bg-[#0d0d0d] p-6`}
@@ -91,7 +92,7 @@ export function AccountLockedModal({
         <div className="mt-8 grid gap-3">
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-[#0d0d0d] transition hover:scale-[1.01] active:scale-[0.99]"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-[#0d0d0d] transition hover:scale-[1.01] active:scale-[0.99] outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           >
             <Mail className="size-4" />
             Contact {SUPPORT_EMAIL}
@@ -100,7 +101,7 @@ export function AccountLockedModal({
             type="button"
             onClick={handleExit}
             disabled={pending}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/20 text-sm font-medium text-white transition hover:bg-white/[0.06] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/20 text-sm font-medium text-white transition hover:bg-white/[0.06] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           >
             {pending ? (
               <Loader2 className="size-4 animate-spin" />

@@ -12,7 +12,7 @@ import {
   Mail,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { browserSupportsPasskeys } from "@/lib/passkeys";
 import { lookupAuthEmail } from "@/app/(auth)/login/actions";
@@ -32,11 +32,11 @@ const RESEND_COOLDOWN = 90;
 
 /* Cinematic-light pill primitives for the auth surface. */
 const PILL_SECONDARY =
-  "flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/[0.12] bg-white text-sm font-medium text-[#0d0d0d] transition hover:bg-black/[0.03] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60";
+  "flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/[0.12] bg-white text-sm font-medium text-[#0d0d0d] transition hover:bg-black/[0.03] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2";
 const PILL_PRIMARY =
-  "group flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#0d0d0d] text-sm font-medium text-white transition hover:scale-[1.01] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60";
+  "group flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#0d0d0d] text-sm font-medium text-white transition hover:scale-[1.01] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2";
 const PILL_INPUT =
-  "h-11 w-full rounded-full border border-black/[0.12] bg-white px-5 text-sm text-[#0d0d0d] outline-none transition placeholder:text-[#0d0d0d]/40 focus:border-black/30";
+  "h-11 w-full rounded-full border border-black/[0.12] bg-white px-5 text-sm text-[#0d0d0d] outline-none focus-visible:ring-2 focus-visible:ring-black/25 transition placeholder:text-[#0d0d0d]/40 focus:border-black/30";
 const INK_LINK = "font-medium text-[#0d0d0d] underline-offset-4 hover:underline";
 const ARROW_BADGE = (
   <span className="grid size-6 shrink-0 place-items-center rounded-full bg-white">
@@ -57,6 +57,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const params = useSearchParams();
   const next = params.get("next") || "/dashboard";
   const isSignup = mode === "signup";
+  const reduceMotion = useReducedMotion();
   const [passkeysSupported, setPasskeysSupported] = useState(false);
 
   const [email, setEmail] = useState(() => params.get("email")?.trim() ?? "");
@@ -422,6 +423,19 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           </p>
         )}
 
+        {isSignup && (
+          <p className="mt-3 text-xs text-[#0d0d0d]/45 text-pretty">
+            Trouble signing up?{" "}
+            <Link
+              href="/sign-in-help"
+              className="group inline-flex items-center gap-1 font-medium text-[#0d0d0d] underline-offset-4 hover:underline"
+            >
+              Learn more
+              <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </p>
+        )}
+
         <p className="mt-6 text-sm text-[#0d0d0d]/55">
           {isSignup ? "Already have an account? " : "New to Atlas? "}
           <Link href={isSignup ? "/login" : "/signup"} className={INK_LINK}>
@@ -436,10 +450,14 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={step}
-        initial={{ opacity: 0, filter: "blur(8px)", y: 8 }}
+        initial={reduceMotion ? false : { opacity: 0, filter: "blur(8px)", y: 8 }}
         animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-        exit={{ opacity: 0, filter: "blur(8px)", y: -6 }}
-        transition={{ duration: 0.45, ease: EASE }}
+        exit={
+          reduceMotion
+            ? { opacity: 0, transition: { duration: 0 } }
+            : { opacity: 0, filter: "blur(8px)", y: -6 }
+        }
+        transition={{ duration: reduceMotion ? 0 : 0.45, ease: EASE }}
       >
         {renderStep()}
       </motion.div>

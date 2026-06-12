@@ -126,7 +126,7 @@ export function AuthStoryPanel({ compact = false }: { compact?: boolean }) {
       {/* Headline — re-mounts per slide on desktop, static when compact */}
       <motion.h3
         key={compact ? "static" : slide}
-        initial={compact ? false : { opacity: 0, y: 12 }}
+        initial={compact || reduce ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: EASE }}
         className="absolute z-10 text-white"
