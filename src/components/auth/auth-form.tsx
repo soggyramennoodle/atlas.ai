@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpRight,
   Fingerprint,
   Loader2,
   Mail,
@@ -14,8 +15,6 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { browserSupportsPasskeys } from "@/lib/passkeys";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { lookupAuthEmail } from "@/app/(auth)/login/actions";
 import { authErrorMessage } from "@/lib/auth-errors";
@@ -31,6 +30,25 @@ type AuthStep =
   | "sign-in-choice";
 
 const RESEND_COOLDOWN = 90;
+
+/* Cinematic-light pill primitives for the auth surface. */
+const PILL_SECONDARY =
+  "flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/[0.12] bg-white text-sm font-medium text-[#0d0d0d] transition hover:bg-black/[0.03] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60";
+const PILL_PRIMARY =
+  "group flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#0d0d0d] text-sm font-medium text-white transition hover:scale-[1.01] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60";
+const PILL_INPUT =
+  "h-11 w-full rounded-full border border-black/[0.12] bg-white px-5 text-sm text-[#0d0d0d] outline-none transition placeholder:text-[#0d0d0d]/40 focus:border-black/30";
+const INK_LINK = "font-medium text-[#0d0d0d] underline-offset-4 hover:underline";
+const ARROW_BADGE = (
+  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-white">
+    <ArrowUpRight
+      size={13}
+      color="#000"
+      strokeWidth={2.5}
+      className="transition-transform duration-300 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+    />
+  </span>
+);
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
@@ -297,20 +315,32 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   }
 
   return (
-    <div className="rounded-[4px] border border-border bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-24px_rgba(0,0,0,0.25)]">
-      <h1 className="text-3xl font-bold tracking-[-0.02em]">
-        {isSignup ? "Create your account" : "Welcome back"}
+    <div>
+      <p className="text-xs font-medium uppercase tracking-[2px] text-[#0d0d0d]/45">
+        {isSignup ? "Get started" : "Welcome back"}
+      </p>
+      <h1 className="mt-3 text-[2.35rem] font-normal leading-[1.02] tracking-[-0.03em] text-balance">
+        {isSignup ? (
+          <>
+            Start <span className="font-instrument italic">learning smarter</span>
+          </>
+        ) : (
+          <>
+            Pick up{" "}
+            <span className="font-instrument italic">where you left off</span>
+          </>
+        )}
       </h1>
-      <p className="mt-1.5 text-sm text-muted-foreground">
+      <p className="mt-3 text-sm text-[#0d0d0d]/55">
         {isSignup
           ? "Start turning lectures into notes in minutes."
           : "Sign in to your Atlas library."}
       </p>
 
-      <div className="mt-6 grid gap-3">
-        <Button
-          variant="outline"
-          className="h-11 w-full"
+      <div className="mt-8 grid gap-3">
+        <button
+          type="button"
+          className={PILL_SECONDARY}
           onClick={() => signInWith("google")}
           disabled={authBusy}
         >
@@ -320,12 +350,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             <GoogleIcon />
           )}
           Continue with Google
-        </Button>
+        </button>
 
         {!isSignup && passkeysSupported && (
-          <Button
-            variant="outline"
-            className="h-11 w-full gap-2"
+          <button
+            type="button"
+            className={PILL_SECONDARY}
             onClick={() => void signInWithPasskey()}
             disabled={authBusy}
           >
@@ -335,65 +365,63 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
               <Fingerprint className="size-4" />
             )}
             Sign in with passkey
-          </Button>
+          </button>
         )}
       </div>
 
-      <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-        <span className="h-px flex-1 bg-border" />
+      <div className="my-6 flex items-center gap-3 text-xs text-[#0d0d0d]/45">
+        <span className="h-px flex-1 bg-black/[0.08]" />
         or with email
-        <span className="h-px flex-1 bg-border" />
+        <span className="h-px flex-1 bg-black/[0.08]" />
       </div>
 
-      <form onSubmit={(e) => void handleEmailContinue(e)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            required
-            placeholder="you@university.edu"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <Button type="submit" disabled={authBusy} className="h-11 w-full">
-          {(continuing || sending) && <Loader2 className="size-4 animate-spin" />}
+      <form onSubmit={(e) => void handleEmailContinue(e)} className="space-y-3">
+        <label htmlFor="email" className="sr-only">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          autoComplete="email"
+          required
+          placeholder="you@university.edu"
+          className={PILL_INPUT}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <button type="submit" disabled={authBusy} className={PILL_PRIMARY}>
+          {(continuing || sending) && (
+            <Loader2 className="size-4 animate-spin" />
+          )}
           Continue
-        </Button>
+          {ARROW_BADGE}
+        </button>
       </form>
 
-      <p className="mt-5 text-center text-xs text-muted-foreground text-pretty">
+      <p className="mt-5 text-xs text-[#0d0d0d]/45 text-pretty">
         {isSignup
           ? "We'll email you a secure link to finish creating your account."
           : "Enter your email to sign in with a passkey or magic link."}
       </p>
 
       {!isSignup && (
-        <p className="mt-3 text-center text-xs text-muted-foreground text-pretty">
+        <p className="mt-3 text-xs text-[#0d0d0d]/45 text-pretty">
           Institutional emails (e.g. @mcmaster.ca, @mail.utoronto.ca) may be
-          blocked by your school&apos;s security filters. Use a personal email for
-          the best experience.
+          blocked by your school&apos;s security filters. Use a personal email
+          for the best experience.{" "}
+          <Link
+            href="/sign-in-help"
+            className="group inline-flex items-center gap-1 font-medium text-[#0d0d0d] underline-offset-4 hover:underline"
+          >
+            Learn more
+            <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </p>
       )}
 
-      <p className="mt-2 text-center text-xs">
-        <Link
-          href="/sign-in-help"
-          className="group inline-flex items-center gap-1 font-medium text-primary hover:underline"
-        >
-          Learn more
-          <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-        </Link>
-      </p>
-
-      <p className="mt-4 text-center text-sm text-muted-foreground">
+      <p className="mt-6 text-sm text-[#0d0d0d]/55">
         {isSignup ? "Already have an account? " : "New to Atlas? "}
-        <Link
-          href={isSignup ? "/login" : "/signup"}
-          className="font-medium text-primary hover:underline"
-        >
+        <Link href={isSignup ? "/login" : "/signup"} className={INK_LINK}>
           {isSignup ? "Sign in" : "Create one"}
         </Link>
       </p>
