@@ -96,20 +96,20 @@ export function NewsroomList({ articles }: { articles: ListArticle[] }) {
                   aria-selected={active}
                   onClick={() => setFilter(tab.value)}
                   className={cn(
-                    "font-heading relative rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40",
+                    "font-heading relative isolate overflow-hidden rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40",
                     active
-                      ? "border-[#0d0d0d] text-white"
-                      : "border-black/10 text-black/60 hover:border-black/20 hover:text-[#0d0d0d]"
+                      ? "border-[#0d0d0d] bg-[#0d0d0d] text-white shadow-[0_10px_30px_-18px_rgba(0,0,0,0.65)]"
+                      : "border-black/10 bg-white/70 text-black/60 hover:border-black/20 hover:text-[#0d0d0d]"
                   )}
                 >
                   {active && (
                     <motion.span
                       layoutId="newsroom-tab"
-                      className="absolute inset-0 -z-10 rounded-full bg-[#0d0d0d]"
+                      className="absolute inset-0 z-0 rounded-full bg-[#0d0d0d]"
                       transition={{ type: "spring", stiffness: 420, damping: 34 }}
                     />
                   )}
-                  {tab.label}
+                  <span className="relative z-10">{tab.label}</span>
                 </button>
               );
             })}
