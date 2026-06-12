@@ -553,14 +553,24 @@
     pointer-events: none;
     animation: ai-ring-hue var(--ai-ring-flow) linear infinite;
   }
+  /* Masked to a ring (like .processing-glow::after): negative-z children
+     paint ABOVE the host's own background, so an unmasked rectangle here
+     washes color across the panel interior. The xor mask cuts the middle
+     out — the blurred bloom hugs the border and bleeds outward only. */
   .ai-ring::after {
     content: "";
     position: absolute;
     inset: -1px;
     z-index: -1;
     border-radius: inherit;
+    padding: 2.5px;
     background: linear-gradient(120deg, #12a36b, #1ac4c0, #3b82f6, #8b5cf6, #fb6f4c, #ffb22e);
-    opacity: 0.3;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.45;
     pointer-events: none;
     animation: ai-ring-bloom var(--ai-ring-flow) linear infinite;
   }
@@ -573,7 +583,8 @@
   }
   .ai-ring--active::after {
     inset: -2px;
-    opacity: 0.55;
+    padding: 3.5px;
+    opacity: 0.8;
     animation-name: ai-ring-bloom-active;
   }
 
