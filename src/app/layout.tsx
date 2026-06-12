@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import {
   ATLAS_DEFAULT_TITLE,
   ATLAS_DESCRIPTION,
-  ATLAS_EMERALD,
+  ATLAS_CANVAS,
   ATLAS_SITE_NAME,
   ATLAS_SITE_URL,
 } from "@/lib/atlas-brand";
@@ -35,14 +35,14 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: ATLAS_SITE_NAME,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: ATLAS_EMERALD },
-    { media: "(prefers-color-scheme: dark)", color: ATLAS_EMERALD },
+    { media: "(prefers-color-scheme: light)", color: ATLAS_CANVAS },
+    { media: "(prefers-color-scheme: dark)", color: ATLAS_CANVAS },
   ],
 };
 

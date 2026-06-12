@@ -1,6 +1,11 @@
 /** Territory A brand emerald — matches `--primary` in globals.css. */
 export const ATLAS_EMERALD = "#0a5736";
 
+/** Cinematic-light identity colors used by the redesigned app surface. */
+export const ATLAS_CANVAS = "#f4f3f1";
+
+export const ATLAS_INK = "#0d0d0d";
+
 export const ATLAS_SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://atlasai.ca";
 
