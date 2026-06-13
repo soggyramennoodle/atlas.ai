@@ -99,15 +99,17 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-14">
+    <main className="px-4 pb-24 pt-8 lg:px-12 lg:pt-14 2xl:px-16">
       <DashboardStaleRefresh />
       <RealtimeRefresh userId={user.id} hasProcessing={hasProcessing} />
-      {/* Left-anchored, wider than the old centered 6xl island so the page
-          reads as an app rather than a marketing column. */}
-      <div className="max-w-[84rem]">
+      {/* Fills the area beside the sidebar (no centered cap) so the right side
+          isn't left empty; the wider gutters above push it off the sidebar. */}
+      <div>
         {/* Masthead: oversized editorial greeting straight on the canvas, with
-            the mist imagery condensed into the glowing record tile beside it. */}
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+            the mist imagery condensed into the glowing record tile beside it.
+            Capped narrower than the library so the record tile sits beside the
+            greeting instead of flying out to the far right edge. */}
+        <div className="flex max-w-5xl flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div className="max-w-2xl">
             <Greeting name={name} />
             {profileIncomplete && (
@@ -173,7 +175,7 @@ export default async function DashboardPage() {
               <EmptyRecordings />
             </div>
           ) : (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
               {notes.map((note, i) => (
                 <Reveal
                   key={note.id}
