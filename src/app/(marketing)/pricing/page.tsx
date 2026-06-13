@@ -40,8 +40,8 @@ type Plan = {
   description: string;
   icon: LucideIcon;
   features: string[];
-  cta: string;
-  href: string;
+  cta?: string;
+  href?: string;
   state: "live" | "soon";
 };
 
@@ -73,8 +73,8 @@ const INCLUDED = [
   },
   {
     icon: LockKeyhole,
-    title: "The Atlas Enclave",
-    body: "Your audio is deleted once your notes are made. Notes stay scoped to your account alone — never sold, never used to train outside models.",
+    title: "Atlas Enclave",
+    body: "Your lecture recordings are deleted once your notes are written. Your notes stay secure, so that only you can see them. Never sold, and never used to train our models.",
   },
 ];
 
@@ -85,25 +85,55 @@ const QUESTIONS = [
   },
   {
     q: "Is it actually free, or just a trial?",
-    a: "Genuinely free right now — not a seven-day trial that locks you out afterward. There's no checkout in Atlas yet, and we'll give you plenty of notice before any plan starts costing money.",
+    a: "Atlas really is free, with all its features. We'll give you plenty of notice before Pro and Max plans come out.",
   },
   {
     q: "What happens to my lecture audio?",
-    a: "It's transcribed into notes and then deleted from our processor. We keep your notes, not your recordings — and nothing is ever sold or used to train third-party models. That's the Atlas Enclave.",
+    a: "It's transcribed into notes and then deleted from our processor. We keep your notes, not your recordings — and nothing is ever sold or used to train third-party models. That's Atlas Enclave.",
   },
   {
     q: "Will Free still work during exams?",
-    a: "Yes. Free keeps running through finals. The heavier, jump-the-queue usage is what the upcoming Pro and Max plans are for — Free isn't going to leave you stranded mid-cram.",
+    a: "Yes, Atlas Free will continue to run through finals, subject to longer queues. Our upcoming Pro and Max plans will get priority access to our servers.",
   },
   {
     q: "Can my club, course, or school use Atlas?",
-    a: "Yes. Email hello@atlasai.ca and we'll set up a small pilot, walk through the privacy questions, and figure out what actually fits your group.",
+    a: "Let's talk! Email founder@atlasai.ca and we can discuss details for a pilot program, answer your questions on privacy, and find out what actually fits your group.",
   },
   {
     q: "What changes when Pro and Max launch?",
-    a: "The core record-to-notes workflow is meant to stay reachable on Free. Pro and Max add headroom — higher limits, priority at crunch time, and advanced study tools — on top of what's already here.",
+    a: "The core features of Atlas will always remain free, subject to usage limits. Pro and Max plans provide higher usage limits, priority access at peak hours, and advanced study tools with an AI personalized for you.",
   },
 ];
+
+const FOOTNOTES: { id: string; n: number; body: string }[] = [
+  {
+    id: "verify",
+    n: 1,
+    body: "Payment information may be used to verify your identity and prevent abuse — such as one person opening multiple accounts to stack free usage — so we can keep the free tier sustainable for everyone. You will not be charged while Atlas is in beta.",
+  },
+];
+
+/** Superscript marker that links down to the matching footnote and back. */
+function FootnoteRef({ id }: { id: string }) {
+  const fn = FOOTNOTES.find((f) => f.id === id);
+  if (!fn) return null;
+  return (
+    <sup
+      id={`fnref-${id}`}
+      className="font-heading ml-0.5 align-super text-[0.7em] font-medium"
+      style={{ lineHeight: 0 }}
+    >
+      <a
+        href={`#fn-${id}`}
+        aria-label={`Footnote ${fn.n}`}
+        className="text-current no-underline transition-opacity hover:opacity-100"
+        style={{ opacity: 0.7 }}
+      >
+        {fn.n}
+      </a>
+    </sup>
+  );
+}
 
 export default async function PricingPage() {
   const supabase = await createClient();
@@ -113,12 +143,11 @@ export default async function PricingPage() {
 
   const primaryHref = user ? "/upload" : "/signup";
   const primaryLabel = user ? "Record a lecture" : "Start for free";
-  const earlyAccess = "mailto:hello@atlasai.ca?subject=Atlas%20early%20access";
 
   const plans: Plan[] = [
     {
       name: "Atlas Free",
-      altitude: "On the ground",
+      altitude: "Available for everyone",
       badge: "Live now",
       price: "$0",
       priceNote: "while in beta · no card",
@@ -129,8 +158,7 @@ export default async function PricingPage() {
         "Record in your browser, or upload audio you already have",
         "Thorough notes every time — summary, detailed sections, key concepts",
         "Ask Atlas about any lecture and get answers from your notes",
-        "Edit, export to PDF or Word, and keep a private library",
-        "Atlas Enclave — audio deleted after notes, never sold",
+        "Edit, export to PDF or Word",
       ],
       cta: primaryLabel,
       href: primaryHref,
@@ -138,12 +166,12 @@ export default async function PricingPage() {
     },
     {
       name: "Atlas Pro",
-      altitude: "Above the clouds",
+      altitude: "For the full experience",
       badge: "Coming soon",
       price: "Soon",
       priceNote: "for a full course load",
       description:
-        "For students who live in Atlas all semester and need more room to work.",
+        "For students who use Atlas all semester, and need more room to work.",
       icon: Cloud,
       features: [
         "Higher recording and upload limits",
@@ -151,18 +179,16 @@ export default async function PricingPage() {
         "Deeper course memory and study tools",
         "Earliest access to new features",
       ],
-      cta: "Get early access",
-      href: earlyAccess,
       state: "soon",
     },
     {
       name: "Atlas Max",
-      altitude: "At the summit",
+      altitude: "For those who want even more",
       badge: "Coming soon",
       price: "Soon",
-      priceNote: "no limits, nothing held back",
+      priceNote: "even higher usage limits for the dedicated",
       description:
-        "Everything Atlas can do, uncapped — built for the heaviest study loads.",
+        "Experience Atlas with all its features, built for the heaviest workloads.",
       icon: MountainSnow,
       features: [
         "Unlimited recordings and notes",
@@ -170,8 +196,6 @@ export default async function PricingPage() {
         "Advanced study tools as they ship",
         "Everything in Pro, included",
       ],
-      cta: "Get early access",
-      href: earlyAccess,
       state: "soon",
     },
   ];
@@ -217,15 +241,11 @@ export default async function PricingPage() {
                   />
                 </span>
               </Link>
-              <Link
-                href="mailto:hello@atlasai.ca?subject=Atlas%20campus%20pilot"
-                className="rounded-full border border-black/15 px-5 py-2.5 text-[14px] font-medium text-[#0d0d0d] transition-colors hover:bg-black/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40"
-              >
-                Talk about a campus pilot
-              </Link>
             </div>
             <p className="mt-4 text-[13px] text-black/45">
-              No card required. Your recordings stay private.
+              No card required. Future payments to be processed by our payment
+              partner, Stripe.
+              <FootnoteRef id="verify" />
             </p>
           </div>
 
@@ -302,7 +322,7 @@ export default async function PricingPage() {
               </span>
             </h2>
             <p className="mx-auto mt-4 max-w-[56ch] text-pretty text-[15px] leading-[1.6] text-black/60">
-              Atlas Free is avaialble today. Pro and Max are still up in development — here&rsquo;s where they&rsquo;re headed.
+              Atlas Free is available today. Pro and Max are still in development — here&rsquo;s where they&rsquo;re headed.
             </p>
           </Reveal>
 
@@ -329,18 +349,18 @@ export default async function PricingPage() {
                 className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
                 style={{ fontSize: "clamp(2rem, 4.5vw, 52px)" }}
               >
-                The free beta isn&rsquo;t a{" "}
+                Here&rsquo;s what&rsquo;s really free for{" "}
               </span>
               <span
                 className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
                 style={{ fontSize: "clamp(2rem, 4.5vw, 52px)" }}
               >
-                teaser.
+                now.
               </span>
             </h2>
             <p className="mt-4 max-w-[52ch] text-pretty text-[15px] leading-[1.6] text-black/60">
-              It&rsquo;s the whole thing Atlas was built to do — capture a
-              lecture, hand you notes worth studying from, and keep them yours.
+              Experience the core features of Atlas — capture a lecture, get
+              fully written notes, and make them yours.
             </p>
           </Reveal>
 
@@ -377,7 +397,7 @@ export default async function PricingPage() {
                   className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
                   style={{ fontSize: "clamp(2rem, 4.5vw, 50px)" }}
                 >
-                  Free now, no surprise bills{" "}
+                  Free now, not so free{" "}
                 </span>
                 <span
                   className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
@@ -387,15 +407,15 @@ export default async function PricingPage() {
                 </span>
               </h2>
               <p className="mt-5 max-w-[56ch] text-pretty text-[15px] leading-[1.7] text-white/65">
-                Atlas doesn&rsquo;t even have a checkout yet. The beta is free
-                because we&rsquo;re still learning what students actually need.
-                When Pro and Max are ready, you&rsquo;ll hear about it first —
-                nobody gets charged out of nowhere, and Free is built to stay.
+                Atlas doesn&rsquo;t even have a checkout yet. We&rsquo;re still
+                working on building the features that students really care about.
+                When our Pro and Max plans are ready, you&rsquo;ll be the first
+                to hear about them — no surprise charges. Free is built to stay.
               </p>
             </div>
             <ul className="grid gap-3">
               {[
-                "No card to sign up, no trial countdown",
+                "No card to sign up",
                 "We’ll tell you before anything changes",
                 "Your notes stay yours, on every plan",
               ].map((line) => (
@@ -490,10 +510,42 @@ export default async function PricingPage() {
             </Link>
           </div>
           <p className="mt-5 text-[12px] text-black/45">
-            Free while in beta. We&rsquo;ll announce Pro and Max before they go
-            live.
+            Free while in beta. We&rsquo;ll announce Pro and Max when
+            they&rsquo;re ready.
           </p>
         </Reveal>
+      </section>
+
+      {/* Footnotes */}
+      <section
+        aria-label="Footnotes"
+        className="border-t border-black/10 bg-[#fafafa]"
+      >
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6">
+          <ol className="space-y-3">
+            {FOOTNOTES.map((f) => (
+              <li
+                key={f.id}
+                id={`fn-${f.id}`}
+                className="flex scroll-mt-28 gap-3 text-pretty text-[12.5px] leading-[1.6] text-black/55"
+              >
+                <span className="font-heading shrink-0 tabular-nums text-black/35">
+                  {f.n}.
+                </span>
+                <span>
+                  {f.body}{" "}
+                  <a
+                    href={`#fnref-${f.id}`}
+                    aria-label="Back to reference"
+                    className="text-black/35 no-underline transition-colors hover:text-black/70"
+                  >
+                    ↩
+                  </a>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
     </main>
   );
@@ -588,18 +640,20 @@ function PlanCard({ plan }: { plan: Plan }) {
         )}
       </div>
 
-      <Link
-        href={plan.href}
-        className={cn(
-          "mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-[14px] font-medium transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40 active:scale-[0.98]",
-          locked
-            ? "border border-black/15 text-[#0d0d0d] hover:bg-black/[0.04]"
-            : "bg-[#0d0d0d] text-white hover:scale-[1.01]"
-        )}
-      >
-        {plan.cta}
-        <ArrowUpRight className="size-3.5" strokeWidth={2.3} />
-      </Link>
+      {plan.cta && plan.href && (
+        <Link
+          href={plan.href}
+          className={cn(
+            "mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-[14px] font-medium transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40 active:scale-[0.98]",
+            locked
+              ? "border border-black/15 text-[#0d0d0d] hover:bg-black/[0.04]"
+              : "bg-[#0d0d0d] text-white hover:scale-[1.01]"
+          )}
+        >
+          {plan.cta}
+          <ArrowUpRight className="size-3.5" strokeWidth={2.3} />
+        </Link>
+      )}
     </article>
   );
 }
