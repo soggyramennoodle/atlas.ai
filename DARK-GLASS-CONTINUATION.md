@@ -186,13 +186,30 @@ white. The note box must grow with content (no clipped/fixed height).
 
 ---
 
-## Stage 3 — Record / upload screen (TODO)
+## Stage 3 — Record / upload screen ✅ DONE
 
-Entry: `src/app/(app)/upload/page.tsx` (light header text at lines ~20/29).
-Recording UI: `src/components/recording/` — `wave-ribbon.tsx`,
-`recording-dock.tsx`, `recording-context.tsx`. Apply the same dark-glass system;
-keep the primary record/stop action prominent (white solid or the brand glow).
-Not yet scoped in detail with the user — confirm specifics before building.
+Converted the whole capture + processing flow to dark glass (build passes):
+- `glass.tsx` — added `CTA_WHITE` (white solid primary, size-agnostic).
+- `upload/page.tsx` — heading/intro → white + dark halo.
+- `capture-panel.tsx` — Record/Upload toggle → dark glass track, active segment
+  = white pill.
+- `recorder.tsx` — control box → `GLASS_DARK`; status chip/clock/badges → white;
+  `WaveRibbon` flipped to `tone="light"`; SourcePicker cards → dark glass; primary
+  actions (Stop/Finish/Generate) → `CTA_WHITE`, secondary → `GLASS_DARK_PILL`
+  (local `REC_ICON`/`REC_SECONDARY`); FluidTranscript words → white + dark halo.
+- `uploader.tsx` — dropzone + selected-file card → dark glass; Generate → `CTA_WHITE`.
+- `processing-overlay.tsx` — scrim flipped DARK (`bg-[#0a0c10]/85`) so the AiGlow
+  aurora blooms through; panel → `GlassPanel variant="ink"`; progress/chips/buttons
+  recolored (local `PO_PRIMARY`/`PO_SECONDARY`).
+- `thinking-status.tsx` — default text → white.
+- `recording-dock.tsx` — already dark glass (the reference); untouched.
+- `wave-ribbon.tsx` — already had `tone` support; untouched (callers pass tone).
+
+Note: a stray untracked `src/components/upload/capture-panel 2.tsx` (duplicate,
+unused, not imported) exists — left alone, not committed. Safe to delete.
+
+**Migration complete.** Background tuner already removed; if anything still reads
+light, grep `text-\[#0d0d0d\]|bg-white\b|border-black` per surface.
 
 ---
 

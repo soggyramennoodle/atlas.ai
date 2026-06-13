@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { PILL_PRIMARY } from "@/components/app/pills";
+import { CTA_WHITE, GLASS_DARK } from "@/components/app/glass";
 import { ProcessingOverlay } from "@/components/upload/processing-overlay";
 import { cn } from "@/lib/utils";
 import {
@@ -382,25 +382,26 @@ export function Uploader({ userId }: { userId: string }) {
           tabIndex={0}
           onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
           className={cn(
-            "group flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-black/[0.15] bg-white px-6 py-16 text-center transition-colors",
+            GLASS_DARK,
+            "group flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-white/25 px-6 py-16 text-center transition-colors",
             dragging
-              ? "border-[#0d0d0d] bg-black/[0.02]"
-              : "hover:border-black/40 hover:bg-black/[0.015]"
+              ? "border-white/60 bg-white/[0.08]"
+              : "hover:border-white/40 hover:bg-white/[0.04]"
           )}
         >
           <motion.span
             animate={reduceMotion ? undefined : { y: dragging ? -4 : 0 }}
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="grid size-16 place-items-center rounded-full border border-black/[0.1] text-[#0d0d0d]/75"
+            className="grid size-16 place-items-center rounded-full border border-white/20 text-white/80"
           >
             <UploadCloud className="size-8" />
           </motion.span>
-          <p className="mt-5 text-lg font-medium">
+          <p className="mt-5 text-lg font-medium text-white">
             Drop your lecture recording here
           </p>
-          <p className="mt-1 text-sm text-[#0d0d0d]/55">
+          <p className="mt-1 text-sm text-white/60">
             or{" "}
-            <span className="font-medium text-[#0d0d0d] underline-offset-2 group-hover:underline">
+            <span className="font-medium text-white underline-offset-2 group-hover:underline">
               browse your files
             </span>{" "}
             · MP3, MP4, M4A, WAV, AAC, OGG, WebM up to {formatBytes(MAX_BYTES)}
@@ -413,15 +414,15 @@ export function Uploader({ userId }: { userId: string }) {
           initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
-          className="rounded-3xl border border-black/[0.08] bg-white p-5"
+          className={cn(GLASS_DARK, "rounded-3xl p-5")}
         >
           <div className="flex items-start gap-4">
-            <span className="grid size-12 shrink-0 place-items-center rounded-full border border-black/[0.1] text-[#0d0d0d]/75">
+            <span className="grid size-12 shrink-0 place-items-center rounded-full border border-white/20 text-white/80">
               <FileAudio className="size-6" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-medium">{file.name}</p>
-              <p className="mt-0.5 text-sm text-[#0d0d0d]/55">
+              <p className="truncate font-medium text-white">{file.name}</p>
+              <p className="mt-0.5 text-sm text-white/55">
                 {formatBytes(file.size)}
                 {durationLoading
                   ? " · reading file…"
@@ -431,15 +432,15 @@ export function Uploader({ userId }: { userId: string }) {
                 {hasVideo ? " · video (audio only will be used)" : ""}
               </p>
               {durationLoading ? (
-                <div className="mt-3 h-1 overflow-hidden rounded-full bg-black/[0.08]">
-                  <div className="h-full w-1/3 animate-pulse rounded-full bg-[#0d0d0d]/60" />
+                <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/[0.12]">
+                  <div className="h-full w-1/3 animate-pulse rounded-full bg-white/50" />
                 </div>
               ) : null}
             </div>
             {!busy && (
               <button
                 onClick={reset}
-                className="grid size-8 place-items-center rounded-full text-[#0d0d0d]/50 outline-none transition-colors hover:bg-black/[0.05] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
+                className="grid size-8 place-items-center rounded-full text-white/50 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
                 aria-label="Remove file"
               >
                 <X className="size-4" />
@@ -469,7 +470,7 @@ export function Uploader({ userId }: { userId: string }) {
             <button
               onClick={generate}
               disabled={busy || durationLoading || !fileReady}
-              className={cn(PILL_PRIMARY, "h-12 text-base")}
+              className={cn(CTA_WHITE, "h-12 w-full text-base")}
             >
               {busy || durationLoading ? (
                 <Loader2 className="size-4 animate-spin" />

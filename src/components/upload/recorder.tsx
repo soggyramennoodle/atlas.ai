@@ -16,12 +16,16 @@ import {
   Square,
   Trash2,
 } from "lucide-react";
-import {
-  PILL_ICON,
-  PILL_PRIMARY_INLINE,
-  PILL_SECONDARY_INLINE,
-} from "@/components/app/pills";
+import { CTA_WHITE, GLASS_DARK, GLASS_DARK_PILL } from "@/components/app/glass";
 import { cn, type DeviceAudioSupport } from "@/lib/utils";
+
+/* Pills tuned for the dark-glass recorder box: white primary (brightest = the
+   action), dark-glass secondary + round icon. Mirrors the recording dock. */
+const REC_ICON = cn(GLASS_DARK_PILL, "grid size-12 place-items-center rounded-full");
+const REC_SECONDARY = cn(
+  GLASS_DARK_PILL,
+  "inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium"
+);
 import {
   useRecording,
   type RecordingSource,
@@ -95,28 +99,29 @@ export function Recorder() {
         {/* Control box */}
         <div
           className={cn(
-            "relative z-10 overflow-hidden rounded-3xl border border-black/[0.08] bg-white p-6 shadow-[0_1px_2px_rgba(13,13,13,0.04),0_24px_60px_-44px_rgba(13,13,13,0.35)] transition-transform duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] sm:p-8 motion-reduce:transition-none lg:will-change-transform",
+            GLASS_DARK,
+            "relative z-10 overflow-hidden rounded-3xl p-6 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] sm:p-8 motion-reduce:transition-none lg:will-change-transform",
             !live && "lg:translate-x-[calc(50%+0.625rem)]",
-            phase === "paused" && "border-amber-500/50"
+            phase === "paused" && "border-amber-400/50"
           )}
         >
-          <div className="relative flex flex-col items-center text-center">
+          <div className="relative flex flex-col items-center text-center text-white">
             <span
               className={cn(
                 "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em]",
                 phase === "paused"
-                  ? "border-amber-500/40 bg-amber-500/10 text-amber-700"
-                  : "border-black/[0.12] bg-black/[0.03] text-[#0d0d0d]/70"
+                  ? "border-amber-400/40 bg-amber-400/15 text-amber-200"
+                  : "border-white/15 bg-white/[0.06] text-white/70"
               )}
             >
               <span
                 className={cn(
                   "size-1.5 rounded-full",
                   phase === "paused"
-                    ? "bg-amber-500"
+                    ? "bg-amber-400"
                     : phase === "recording"
                       ? "bg-red-500"
-                      : "bg-[#0d0d0d]/60",
+                      : "bg-white/60",
                   phase === "recording" && "animate-pulse"
                 )}
               />
@@ -135,7 +140,7 @@ export function Recorder() {
               className="mt-7 h-24 w-full transition-opacity duration-300"
               style={{ opacity: live ? 1 : 0.35 }}
             >
-              <WaveRibbon paused={phase === "paused"} tone="ink" />
+              <WaveRibbon paused={phase === "paused"} tone="light" />
             </div>
 
             <div className="mt-5 text-4xl font-light tabular-nums tracking-tight">
@@ -154,12 +159,12 @@ export function Recorder() {
 
               {phase === "recording" && (
                 <>
-                  <button onClick={pause} className={PILL_ICON} aria-label="Pause">
+                  <button onClick={pause} className={REC_ICON} aria-label="Pause">
                     <Pause className="size-5" />
                   </button>
                   <button
                     onClick={stop}
-                    className={cn(PILL_PRIMARY_INLINE, "h-14 px-7 text-base")}
+                    className={cn(CTA_WHITE, "h-14 px-7 text-base")}
                   >
                     <Square className="size-4 fill-current" />
                     Stop
@@ -169,12 +174,12 @@ export function Recorder() {
 
               {phase === "paused" && (
                 <>
-                  <button onClick={resume} className={PILL_ICON} aria-label="Resume">
+                  <button onClick={resume} className={REC_ICON} aria-label="Resume">
                     <Play className="size-5" />
                   </button>
                   <button
                     onClick={stop}
-                    className={cn(PILL_PRIMARY_INLINE, "h-14 px-7 text-base")}
+                    className={cn(CTA_WHITE, "h-14 px-7 text-base")}
                   >
                     <Square className="size-4 fill-current" />
                     Finish
@@ -185,17 +190,17 @@ export function Recorder() {
               {phase === "recorded" && (
                 <div className="w-full space-y-5">
                   {recoveredDraft && (
-                    <div className="space-y-3 rounded-2xl border border-black/[0.1] bg-black/[0.02] p-4 text-left">
+                    <div className="space-y-3 rounded-2xl border border-white/15 bg-white/[0.04] p-4 text-left">
                       <div>
-                        <p className="text-sm font-medium">Recovered recording</p>
-                        <p className="mt-1 text-xs text-[#0d0d0d]/55">
+                        <p className="text-sm font-medium text-white">Recovered recording</p>
+                        <p className="mt-1 text-xs text-white/55">
                           {formatSavedAt(lastSavedAt)}
                         </p>
                       </div>
                       <button
                         onClick={resumeDraft}
                         disabled={busy}
-                        className={cn(PILL_SECONDARY_INLINE, "h-11 w-full")}
+                        className={cn(REC_SECONDARY, "h-11 w-full")}
                       >
                         <Play className="size-4" />
                         Resume recording
@@ -210,7 +215,7 @@ export function Recorder() {
                     <button
                       onClick={generate}
                       disabled={busy}
-                      className={cn(PILL_PRIMARY_INLINE, "flex-1 text-base")}
+                      className={cn(CTA_WHITE, "h-12 flex-1 text-base")}
                     >
                       {busy ? (
                         <Loader2 className="size-4 animate-spin" />
@@ -222,7 +227,7 @@ export function Recorder() {
                     <button
                       onClick={discard}
                       disabled={busy}
-                      className={PILL_SECONDARY_INLINE}
+                      className={REC_SECONDARY}
                     >
                       <Trash2 className="size-4" />
                       Discard
@@ -232,14 +237,14 @@ export function Recorder() {
                   {/* Escape hatch when processing fails: save the audio locally
                       so it can be re-uploaded later. */}
                   {failed && (
-                    <div className="space-y-3 rounded-2xl border border-black/[0.15] bg-black/[0.03] p-4 text-left">
-                      <p className="text-sm text-[#0d0d0d]/65">
+                    <div className="space-y-3 rounded-2xl border border-white/20 bg-white/[0.05] p-4 text-left">
+                      <p className="text-sm text-white/70">
                         Atlas couldn&apos;t process this recording. Download it now
                         and upload it again later, so you won&apos;t lose the audio.
                       </p>
                       <button
                         onClick={download}
-                        className={cn(PILL_SECONDARY_INLINE, "h-11 w-full")}
+                        className={cn(REC_SECONDARY, "h-11 w-full")}
                       >
                         <Download className="size-4" />
                         Download recording
@@ -251,12 +256,12 @@ export function Recorder() {
             </div>
 
             {/* Atlas Enclave — private & encrypted session badge (§7). */}
-            <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-black/[0.1] px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/55">
+            <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.16em] text-white/55">
               <Lock className="size-3" />
               Secured by Atlas Enclave
             </span>
             {(live || recoveredDraft) && (
-              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-black/[0.1] px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/55">
+              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.16em] text-white/55">
                 <Save className="size-3" />
                 {formatSavedAt(lastSavedAt)}
               </span>
@@ -321,7 +326,7 @@ function SourcePicker({
 }) {
   return (
     <div className="w-full space-y-3 text-left">
-      <p className="text-center text-sm text-[#0d0d0d]/60">
+      <p className="text-center text-sm text-white/65 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)]">
         How are you attending this lecture?
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -352,22 +357,22 @@ function SourcePicker({
           }
         />
       </div>
-      <p className="px-1 text-center text-xs text-[#0d0d0d]/50">
+      <p className="px-1 text-center text-xs text-white/55 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)]">
         {deviceSupported ? (
           <>
             Virtual lectures ask you to share a browser tab and tick{" "}
-            <span className="font-medium text-[#0d0d0d]/75">
+            <span className="font-medium text-white/75">
               “Share tab audio.”
             </span>{" "}
-            <span className="text-[#0d0d0d]/45">
+            <span className="text-white/45">
               (Sharing a whole screen only carries audio on Windows.)
             </span>
           </>
         ) : deviceSupport === "browser" ? (
           <>
             Safari and Firefox can&apos;t capture a tab&apos;s audio. Open Atlas
-            in <span className="font-medium text-[#0d0d0d]/75">Chrome</span> or{" "}
-            <span className="font-medium text-[#0d0d0d]/75">Edge</span> to record
+            in <span className="font-medium text-white/75">Chrome</span> or{" "}
+            <span className="font-medium text-white/75">Edge</span> to record
             a lecture playing on your screen.
           </>
         ) : (
@@ -403,29 +408,30 @@ function SourceCard({
       disabled={disabled}
       aria-disabled={disabled}
       className={cn(
-        "group flex h-full flex-col items-start gap-2.5 rounded-2xl border border-black/[0.08] bg-white p-4 text-left transition-[border-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 motion-reduce:transition-none",
+        GLASS_DARK,
+        "group flex h-full flex-col items-start gap-2.5 rounded-3xl p-4 text-left transition-[border-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 motion-reduce:transition-none",
         disabled
           ? "cursor-not-allowed opacity-55"
-          : "hover:border-black/25 hover:shadow-[0_14px_36px_-26px_rgba(0,0,0,0.35)]"
+          : "hover:border-white/30 hover:shadow-[0_18px_44px_-26px_rgba(0,0,0,0.65)]"
       )}
     >
       <span
         className={cn(
-          "grid size-10 place-items-center rounded-full border border-black/[0.1] transition-colors duration-200",
-          disabled ? "text-[#0d0d0d]/40" : "text-[#0d0d0d]/80"
+          "grid size-10 place-items-center rounded-full border border-white/20 transition-colors duration-200",
+          disabled ? "text-white/40" : "text-white/80"
         )}
       >
         <Icon className="size-5" />
       </span>
-      <span className="flex items-center gap-2 text-base font-medium leading-none">
+      <span className="flex items-center gap-2 text-base font-medium leading-none text-white">
         {title}
         {badge && (
-          <span className="rounded-full border border-black/[0.1] bg-black/[0.03] px-2 py-0.5 text-[0.6rem] font-medium uppercase tracking-[0.12em] text-[#0d0d0d]/55">
+          <span className="rounded-full border border-white/15 bg-white/[0.08] px-2 py-0.5 text-[0.6rem] font-medium uppercase tracking-[0.12em] text-white/60">
             {badge}
           </span>
         )}
       </span>
-      <span className="text-pretty text-xs leading-relaxed text-[#0d0d0d]/55">
+      <span className="text-pretty text-xs leading-relaxed text-white/60">
         {desc}
       </span>
     </button>
@@ -477,14 +483,14 @@ function FluidTranscript() {
     <div className="absolute inset-0 z-10 grid place-items-center px-8">
       <div
         className="flex max-w-md flex-col items-center justify-end gap-2 text-center"
-        style={{ textShadow: "0 1px 18px rgba(255,255,255,0.75)" }}
+        style={{ textShadow: "0 1px 20px rgba(0,0,0,0.6)" }}
       >
         {placeholder ? (
           <motion.p
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 0.7 }}
             transition={{ duration: reduceMotion ? 0 : 0.2 }}
-            className="text-pretty text-sm text-[#0d0d0d]/70"
+            className="text-pretty text-sm text-white/75"
           >
             {placeholder}
           </motion.p>
@@ -500,7 +506,7 @@ function FluidTranscript() {
                   animate={{ opacity, y: 0 }}
                   exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
                   transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-pretty text-lg font-medium leading-snug text-[#0d0d0d]"
+                  className="text-pretty text-lg font-medium leading-snug text-white"
                   style={{ scale: 0.92 + 0.08 * t }}
                 >
                   {line.text}

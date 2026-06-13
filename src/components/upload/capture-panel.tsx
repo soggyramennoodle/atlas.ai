@@ -34,7 +34,7 @@ export function CapturePanel({ userId }: { userId: string }) {
             {/* Segmented control — recording leads, upload is the quieter option. */}
             <div
               data-tour="capture-modes"
-              className="mx-auto grid w-full max-w-sm grid-cols-2 gap-1 rounded-full border border-black/[0.12] bg-white p-1"
+              className="mx-auto grid w-full max-w-sm grid-cols-2 gap-1 rounded-full border border-white/15 bg-[#0d0d0d]/40 p-1 backdrop-blur-md"
             >
               {(
                 [
@@ -48,16 +48,16 @@ export function CapturePanel({ userId }: { userId: string }) {
                     key={t.id}
                     onClick={() => setMode(t.id)}
                     className={cn(
-                      "relative flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-black/25",
+                      "relative flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white/40",
                       active
-                        ? "text-white"
-                        : "text-[#0d0d0d]/55 hover:text-[#0d0d0d]"
+                        ? "text-[#0d0d0d]"
+                        : "text-white/55 hover:text-white"
                     )}
                   >
                     {active && (
                       <motion.span
                         layoutId="capture-pill"
-                        className="absolute inset-0 rounded-full bg-[#0d0d0d]"
+                        className="absolute inset-0 rounded-full bg-white"
                         transition={
                           reduceMotion
                             ? { duration: 0 }
@@ -94,11 +94,11 @@ export function CapturePanel({ userId }: { userId: string }) {
             transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
           >
             <Uploader userId={userId} />
-            <p className="mt-4 text-center text-xs text-[#0d0d0d]/55">
+            <p className="mt-4 text-center text-xs text-white/60 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)]">
               Already have a recording? Drop it in. Most students just{" "}
               <button
                 onClick={() => setMode("record")}
-                className="font-medium text-[#0d0d0d] underline-offset-2 hover:underline"
+                className="font-medium text-white underline-offset-2 hover:underline"
               >
                 record in the browser
               </button>

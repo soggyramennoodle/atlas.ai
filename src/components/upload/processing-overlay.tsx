@@ -5,14 +5,17 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AlertCircle, ArrowLeft, Clock, Download, Mic, RefreshCcw, Sparkles, Trash2, TriangleAlert } from "lucide-react";
 import { AiGlow } from "@/components/ui/ai-glow";
-import { GlassPanel } from "@/components/app/glass";
-import {
-  PILL_PRIMARY_INLINE,
-  PILL_SECONDARY_INLINE,
-} from "@/components/app/pills";
+import { CTA_WHITE, GLASS_DARK_PILL, GlassPanel } from "@/components/app/glass";
 import { ThinkingStatus } from "@/components/upload/thinking-status";
 import { cn } from "@/lib/utils";
 import type { CaptureStage } from "@/lib/upload-lecture";
+
+/* Pills for the dark processing scrim: white primary, dark-glass secondary. */
+const PO_PRIMARY = cn(CTA_WHITE, "h-12 px-6 text-sm");
+const PO_SECONDARY = cn(
+  GLASS_DARK_PILL,
+  "inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium"
+);
 
 /* Stage titles carry the single serif-italic accent of this surface. */
 const STAGE_TITLE: Record<Exclude<CaptureStage, "idle">, React.ReactNode> = {
@@ -107,7 +110,7 @@ export function ProcessingOverlay({
           transition={{ duration: reduceMotion ? 0 : 0.18, ease: "easeOut" }}
           // blur-sm: a full-viewport backdrop blur is the priciest surface
           // possible; at /90 fill opacity the larger radius was invisible.
-          className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-[#f4f3f1]/90 px-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-[#0a0c10]/85 px-4 backdrop-blur-md"
         >
           {capacity ? (
             <div
@@ -117,7 +120,7 @@ export function ProcessingOverlay({
           ) : failed ? (
             <div
               aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2 size-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/[0.08] blur-3xl"
+              className="pointer-events-none absolute left-1/2 top-1/2 size-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/[0.06] blur-3xl"
             />
           ) : (
             // The living multicolor AI glow blooms on the compositor behind the
@@ -138,7 +141,7 @@ export function ProcessingOverlay({
             className="relative w-full max-w-xl"
           >
             <GlassPanel
-              variant="light"
+              variant="ink"
               className="flex w-full flex-col items-center px-6 py-10 text-center sm:px-10"
             >
               <motion.div
@@ -153,12 +156,12 @@ export function ProcessingOverlay({
                     : { duration: 2.6, ease: "easeInOut", repeat: Infinity }
                 }
                 className={cn(
-                  "grid size-16 place-items-center rounded-full border border-black/[0.1] bg-white/85 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_18px_50px_-22px_rgba(0,0,0,0.25)]",
+                  "grid size-16 place-items-center rounded-full border border-white/20 bg-white/10 shadow-[0_18px_50px_-22px_rgba(0,0,0,0.6)]",
                   capacity
-                    ? "text-orange-500"
+                    ? "text-orange-300"
                     : failed
-                      ? "text-[#0d0d0d]"
-                      : "text-[#0d0d0d]/80"
+                      ? "text-white"
+                      : "text-white/80"
                 )}
               >
                 {failed || capacity ? (
@@ -172,31 +175,31 @@ export function ProcessingOverlay({
                 {title}
               </p>
               {!failed && stage === "analyzing" ? (
-                <ThinkingStatus className="max-w-md text-pretty text-sm leading-6 text-[#0d0d0d]/60" />
+                <ThinkingStatus className="max-w-md text-pretty text-sm leading-6 text-white/65" />
               ) : (
-                <p className="mt-3 max-w-md text-pretty text-sm leading-6 text-[#0d0d0d]/60">
+                <p className="mt-3 max-w-md text-pretty text-sm leading-6 text-white/65">
                   {detail}
                 </p>
               )}
               {!failed && subLabel ? (
-                <p className="mt-2 text-xs font-medium text-[#0d0d0d]/70">
+                <p className="mt-2 text-xs font-medium text-white/75">
                   {subLabel}
                 </p>
               ) : null}
 
               {!failed && (stage === "preparing" || stage === "uploading") ? (
                 <div className="mt-5 w-full max-w-sm">
-                  <div className="h-1.5 overflow-hidden rounded-full bg-black/[0.08]">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.12]">
                     {typeof progress === "number" ? (
                       <motion.div
-                        className="h-full rounded-full bg-[#0d0d0d]"
+                        className="h-full rounded-full bg-white"
                         initial={false}
                         animate={{ width: `${Math.round(Math.min(1, Math.max(0, progress)) * 100)}%` }}
                         transition={{ duration: reduceMotion ? 0 : 0.2, ease: "easeOut" }}
                       />
                     ) : (
                       <motion.div
-                        className="h-full w-1/3 rounded-full bg-[#0d0d0d]"
+                        className="h-full w-1/3 rounded-full bg-white"
                         animate={reduceMotion ? undefined : { x: ["-100%", "350%"] }}
                         transition={
                           reduceMotion
@@ -207,7 +210,7 @@ export function ProcessingOverlay({
                     )}
                   </div>
                   {typeof progress === "number" ? (
-                    <p className="mt-1.5 text-[0.65rem] tabular-nums text-[#0d0d0d]/55">
+                    <p className="mt-1.5 text-[0.65rem] tabular-nums text-white/55">
                       {Math.round(Math.min(1, Math.max(0, progress)) * 100)}%
                     </p>
                   ) : null}
@@ -219,7 +222,7 @@ export function ProcessingOverlay({
                   the job is fully server-side, so the "safe to leave" hint and
                   the dashboard button take over. */}
               {!failed && !capacity && stage !== "idle" && !(safeToLeave && showLongRunHint) && (
-                <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3.5 py-2 text-sm text-amber-700">
+                <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/15 px-3.5 py-2 text-sm text-amber-200">
                   <TriangleAlert className="size-4 shrink-0" />
                   <span>
                     <span className="font-medium">Keep this tab open</span> for now.
@@ -230,13 +233,13 @@ export function ProcessingOverlay({
               {failed && onDiscard && onDownload && (
                 <div className="mt-7 flex w-full max-w-md flex-col gap-3 sm:flex-row sm:justify-center">
                   {issue?.kind === "silent" ? (
-                    <button onClick={onDiscard} className={PILL_PRIMARY_INLINE}>
+                    <button onClick={onDiscard} className={PO_PRIMARY}>
                       <Mic className="size-4" />
                       Record again
                     </button>
                   ) : (
                     onRetry && (
-                      <button onClick={onRetry} className={PILL_PRIMARY_INLINE}>
+                      <button onClick={onRetry} className={PO_PRIMARY}>
                         <RefreshCcw className="size-4" />
                         Try again
                       </button>
@@ -247,14 +250,14 @@ export function ProcessingOverlay({
                       onDownload();
                       onClear?.();
                     }}
-                    className={PILL_SECONDARY_INLINE}
+                    className={PO_SECONDARY}
                   >
                     <Download className="size-4" />
                     Download audio
                   </button>
                   <button
                     onClick={onDiscard}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full px-4 text-sm text-[#0d0d0d]/55 outline-none transition hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full px-4 text-sm text-white/55 outline-none transition hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
                   >
                     <Trash2 className="size-4" />
                     Discard
@@ -264,13 +267,13 @@ export function ProcessingOverlay({
 
               {capacity && (
                 <>
-                  <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-600/35 bg-emerald-600/10 px-3.5 py-2 text-sm text-emerald-700">
+                  <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/15 px-3.5 py-2 text-sm text-emerald-200">
                     <Clock className="size-4 shrink-0" />
                     <span>
                       <span className="font-medium">You can safely close this tab</span> — we&apos;ll finish your notes and email you when they&apos;re ready.
                     </span>
                   </div>
-                  <Link href="/dashboard" className={cn(PILL_SECONDARY_INLINE, "mt-7")}>
+                  <Link href="/dashboard" className={cn(PO_SECONDARY, "mt-7")}>
                     <ArrowLeft className="size-4" />
                     Back to dashboard
                   </Link>
@@ -278,7 +281,7 @@ export function ProcessingOverlay({
               )}
 
               {!failed && safeToLeave && showLongRunHint && (
-                <Link href="/dashboard" className={cn(PILL_SECONDARY_INLINE, "mt-7")}>
+                <Link href="/dashboard" className={cn(PO_SECONDARY, "mt-7")}>
                   <ArrowLeft className="size-4" />
                   Back to dashboard
                 </Link>
@@ -298,13 +301,13 @@ export function ProcessingOverlay({
                 className="absolute bottom-6 left-1/2 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 sm:bottom-8"
               >
                 <GlassPanel
-                  variant="light"
+                  variant="ink"
                   className="flex items-start gap-3 rounded-2xl px-4 py-3.5"
                 >
-                  <Clock className="mt-0.5 size-4 shrink-0 text-[#0d0d0d]/50" />
-                  <p className="text-left text-sm leading-relaxed text-[#0d0d0d]/60">
+                  <Clock className="mt-0.5 size-4 shrink-0 text-white/50" />
+                  <p className="text-left text-sm leading-relaxed text-white/65">
                     Longer lectures can take a few minutes to process.{" "}
-                    <span className="font-medium text-emerald-700">
+                    <span className="font-medium text-emerald-200">
                       It&apos;s safe to close this tab or return to the dashboard.
                     </span>
                   </p>

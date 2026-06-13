@@ -135,6 +135,11 @@ export const GLASS_DARK_PILL =
 export const DARK_FIELD =
   "border border-white/20 bg-white/[0.06] text-white caret-white outline-none transition placeholder:text-white/40 focus:border-white/40 focus-visible:ring-2 focus-visible:ring-white/30";
 
+/** White solid primary CTA — the brightest thing on a dark surface (the one
+ *  primary action). Size-agnostic: add height/padding/text at the call site. */
+export const CTA_WHITE =
+  "inline-flex items-center justify-center gap-2 rounded-full bg-white font-medium text-[#0d0d0d] outline-none transition hover:bg-white/90 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 disabled:pointer-events-none disabled:opacity-60";
+
 export function GlassPanel({
   variant = "light",
   className,
