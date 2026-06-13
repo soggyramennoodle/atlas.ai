@@ -102,7 +102,9 @@ export default async function DashboardPage() {
     <main className="px-4 pb-24 pt-8 lg:px-8 lg:pt-14">
       <DashboardStaleRefresh />
       <RealtimeRefresh userId={user.id} hasProcessing={hasProcessing} />
-      <div className="mx-auto max-w-6xl">
+      {/* Left-anchored, wider than the old centered 6xl island so the page
+          reads as an app rather than a marketing column. */}
+      <div className="max-w-[84rem]">
         {/* Masthead: oversized editorial greeting straight on the canvas, with
             the mist imagery condensed into the glowing record tile beside it. */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
@@ -171,7 +173,7 @@ export default async function DashboardPage() {
               <EmptyRecordings />
             </div>
           ) : (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {notes.map((note, i) => (
                 <Reveal
                   key={note.id}

@@ -95,7 +95,7 @@ export function Recorder() {
         {/* Control box */}
         <div
           className={cn(
-            "relative z-10 overflow-hidden rounded-3xl border border-black/[0.08] bg-white p-6 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] sm:p-8 motion-reduce:transition-none lg:will-change-transform",
+            "relative z-10 overflow-hidden rounded-3xl border border-black/[0.08] bg-white p-6 shadow-[0_1px_2px_rgba(13,13,13,0.04),0_24px_60px_-44px_rgba(13,13,13,0.35)] transition-transform duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] sm:p-8 motion-reduce:transition-none lg:will-change-transform",
             !live && "lg:translate-x-[calc(50%+0.625rem)]",
             phase === "paused" && "border-amber-500/50"
           )}
