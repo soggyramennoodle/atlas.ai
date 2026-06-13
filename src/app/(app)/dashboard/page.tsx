@@ -149,7 +149,7 @@ export default async function DashboardPage() {
             </div>
             <Link
               href="/upload"
-              className="group flex h-11 items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-[#0d0d0d] outline-none transition hover:scale-[1.02] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 motion-reduce:hover:scale-100"
+              className="group flex h-11 items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-[#0d0d0d] outline-none transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.6)] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 motion-reduce:transition-none motion-reduce:hover:scale-100"
             >
               <Mic className="size-4" />
               Record a lecture

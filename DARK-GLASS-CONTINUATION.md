@@ -57,26 +57,22 @@ Use these — never hand-roll a glass surface.
 
 ---
 
-## Background slider protocol (the round-trip with the user)
+## Background — LOCKED ✅ (slider removed)
 
-`src/components/app/bg-debug-panel.tsx` is a **dev-only** panel (rendered by
-`AppCanvas` only when `NODE_ENV==="development"`, bottom-right). It writes CSS
-vars on `:root` that the background + glass read live:
+The dev `BgDebugPanel` has been **deleted** and the dialed-in values baked into the
+`var()` fallbacks in `glass.tsx`:
 
-| var | what | default fallback | where baked |
-|---|---|---|---|
-| `--atlas-bg-dim` | dark veil over scene (tone DOWN) | `0.2` | `glass.tsx` AppCanvas dark-veil layer |
-| `--atlas-bg-haze` | white veil (fade paler) | `0` | AppCanvas haze layer |
-| `--atlas-bg-blur` | px blur on scene image | `0` | AppCanvas `<Image>` filter |
-| `--atlas-glass` | dark glass fill alpha | `0.46` | `GLASS_DARK` |
+| var | locked value |
+|---|---|
+| `--atlas-bg-dim` | `0.48` (AppCanvas dark-veil layer) |
+| `--atlas-bg-haze` | `0` |
+| `--atlas-bg-blur` | `0` |
+| `--atlas-glass` | `0.49` (GLASS_DARK fill) |
 
-**Flow:** user slides → clicks "copy values" → tells the agent the 4 numbers →
-agent bakes each into the matching `var(..., FALLBACK)` in `glass.tsx` → then
-**delete `bg-debug-panel.tsx` and its `{process.env.NODE_ENV...}` render in
-`AppCanvas`**. Until the user gives final numbers, leave the panel in.
-
-> ⚠️ As of this writing the user has **not yet** locked in the 4 values. Don't
-> delete the panel; remind them to dial it in.
+Also: the old white bottom fade (`#f4f3f1` → transparent) was replaced with a soft
+**black bottom vignette** (`rgba(0,0,0,0.5)` → transparent, `h-[26vh]`) so the foot
+of the scene grounds instead of fading to a flat band. To re-tune later, just edit
+those fallbacks (or temporarily re-add a slider that sets the same `:root` vars).
 
 ---
 
