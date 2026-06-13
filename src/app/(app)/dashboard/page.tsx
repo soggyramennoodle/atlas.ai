@@ -159,7 +159,7 @@ export default async function DashboardPage() {
         {/* The library is the hero of this page. */}
         <section className="mt-14">
           <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-3xl font-normal tracking-[-0.02em] sm:text-4xl">
+            <h2 className="text-3xl font-normal tracking-[-0.02em] [text-shadow:0_2px_16px_rgba(255,255,255,0.7)] sm:text-4xl">
               Your <span className="font-instrument italic">library</span>
             </h2>
             {notes.length > 0 && (

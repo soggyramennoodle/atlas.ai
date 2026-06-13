@@ -30,22 +30,23 @@ const GRAIN_SVG =
 export function AppCanvas() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-      {/* The scene. object-cover, centered; tolerant of crop on any viewport. */}
+      {/* The scene. object-cover, centered; tolerant of crop on any viewport.
+          The CSS contrast/saturate boost gives the translucent liquid glass
+          stronger tonal variation to refract — this is the background-contrast
+          dial (raise contrast()/saturate() for more punch). */}
       <Image
-        src="/app/meadow-atmosphere.jpg"
+        src="/app/meadow-scene.jpg"
         alt=""
         fill
         priority
         sizes="100vw"
-        className="object-cover"
+        className="object-cover [filter:contrast(1.08)_saturate(1.12)]"
       />
-      {/* Faint veil: barely mutes the scene so it reads as backdrop, not photo.
-          Raise toward 0.2 to quiet it; lower toward 0 to make it more scenic. */}
-      <div className="absolute inset-0 bg-white/[0.06]" />
-      {/* Top wash — a soft white lift over just the masthead band so the big
-          heading stays high-contrast. The scene must still show through, so this
-          is light. Primary presence + legibility dial. */}
-      <div className="absolute inset-x-0 top-0 h-[34vh] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.55),rgba(255,255,255,0.12)_55%,rgba(255,255,255,0)_100%)]" />
+      {/* No flat white veil anymore — liquid glass needs the scene at full
+          contrast. Only a light top wash remains so the big dark masthead
+          heading (which sits straight on the canvas, not on glass) stays
+          readable. */}
+      <div className="absolute inset-x-0 top-0 h-[30vh] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.5),rgba(255,255,255,0.1)_55%,rgba(255,255,255,0)_100%)]" />
       {/* Bottom fade — dissolves the hills into the warm canvas instead of a
           hard photo edge. */}
       <div className="absolute inset-x-0 bottom-0 h-[18vh] bg-[linear-gradient(to_top,#f4f3f1,rgba(244,243,241,0)_100%)]" />
@@ -64,22 +65,36 @@ export function AppCanvas() {
 export const CARD =
   "rounded-3xl border border-black/[0.08] bg-white shadow-[0_1px_2px_rgba(13,13,13,0.04),0_24px_60px_-44px_rgba(13,13,13,0.35)]";
 
-/* Perf budget: backdrop-filter cost scales with blurred area × radius, and
-   in-flow glass re-samples on every scroll frame. blur-lg (16px) reads the
-   same as blur-xl over our low-frequency canvas at ~2/3 the GPU cost — don't
-   raise these without checking scroll perf on a low-end device. */
-/* Floating chrome (hero tile, masthead glass, panels) — NOT text-heavy reading
-   surfaces, which stay on opaque CARD. Fill dropped to /40 so the meadow shows
-   through, and backdrop saturate/brightness make light bending through the pane
-   gain the faint colour-lift of real glass. Don't raise blur radius (perf). */
-export const GLASS_LIGHT =
-  "border border-white/55 bg-white/40 text-[#0d0d0d] shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_50px_-28px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.07] backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-105";
-export const GLASS_INK =
-  "border border-white/[0.16] bg-[#0d0d0d]/55 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_24px_60px_-30px_rgba(0,0,0,0.55)] backdrop-blur-lg backdrop-saturate-150";
+/* LIQUID GLASS, not frost. The look is clarity + refraction, not blur: tiny
+   blur radius, low white fill so the scene reads THROUGH the pane, heavy
+   saturate/brightness so refracted light comes alive, and a bright specular
+   rim + top highlight + inner lens glow that sell it as a curved sheet of
+   glass. Legibility on the clear fill is carried by TEXT_ON_GLASS (a white
+   text halo), not by frosting the surface opaque.
+   Perf: blur radius is now SMALL, so backdrop-filter cost is well under the
+   old blur-lg budget even with saturate added. */
 
-/* Cheap glass for small chips/pills: tiny blurred area, safe to scatter. */
+/** White text-halo so dark text stays legible on clear light glass over a
+ *  contrasty scene. text-shadow is inherited, so set it on the glass root. */
+export const TEXT_ON_GLASS = "[text-shadow:0_1px_3px_rgba(255,255,255,0.65)]";
+/** Dark text-halo for white text on the clear ink glass. */
+export const TEXT_ON_INK = "[text-shadow:0_1px_3px_rgba(0,0,0,0.45)]";
+
+/* Floating chrome (hero tile, masthead glass, panels). Clear, low blur. */
+export const GLASS_LIGHT =
+  "border border-white/70 bg-white/20 text-[#0d0d0d] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-10px_24px_-14px_rgba(255,255,255,0.55),0_18px_45px_-26px_rgba(0,0,0,0.4)] ring-1 ring-black/[0.05] backdrop-blur-[3px] backdrop-saturate-[1.8] backdrop-brightness-[1.08] [text-shadow:0_1px_3px_rgba(255,255,255,0.65)]";
+export const GLASS_INK =
+  "border border-white/25 bg-[#0d0d0d]/42 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.3),inset_0_-10px_24px_-14px_rgba(255,255,255,0.12),0_24px_55px_-30px_rgba(0,0,0,0.6)] backdrop-blur-[3px] backdrop-saturate-[1.6] backdrop-brightness-[1.04] [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]";
+
+/* Cheap glass for small chips/pills. */
 export const GLASS_CHIP =
-  "border border-white/60 bg-white/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(13,13,13,0.04)] ring-1 ring-black/[0.07] backdrop-blur-md backdrop-saturate-150";
+  "border border-white/70 bg-white/22 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(13,13,13,0.06)] ring-1 ring-black/[0.05] backdrop-blur-[2px] backdrop-saturate-[1.8] backdrop-brightness-[1.06] [text-shadow:0_1px_3px_rgba(255,255,255,0.65)]";
+
+/** Liquid-glass reading card for the dashboard library (NoteCard / QuickRecord).
+ *  A hair more fill than the chrome so titles + meta stay readable (the
+ *  "middle" clarity), still clearly see-through. Pair with TEXT_ON_GLASS. */
+export const GLASS_LIQUID_CARD =
+  "rounded-3xl border border-white/70 bg-white/28 text-[#0d0d0d] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-12px_28px_-16px_rgba(255,255,255,0.5),0_20px_50px_-30px_rgba(0,0,0,0.42)] ring-1 ring-black/[0.05] backdrop-blur-[3px] backdrop-saturate-[1.7] backdrop-brightness-[1.06] [text-shadow:0_1px_3px_rgba(255,255,255,0.65)]";
 
 export function GlassPanel({
   variant = "light",

@@ -47,7 +47,11 @@ export function Greeting({ name }: { name: string }) {
   }, []);
 
   return (
-    <div data-tour="dashboard-greeting">
+    <div
+      data-tour="dashboard-greeting"
+      // Soft white backlight so the dark heading lifts off the contrasty scene.
+      className="[text-shadow:0_2px_16px_rgba(255,255,255,0.7)]"
+    >
       <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
         {local?.date || " "}
       </p>

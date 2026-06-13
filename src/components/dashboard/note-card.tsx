@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlertCircle, BookOpen, Clock, Loader2, TriangleAlert } from "lucide-react";
 import type { NoteRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { GLASS_LIQUID_CARD } from "@/components/app/glass";
 
 type NoteCardData = Pick<
   NoteRecord,
@@ -117,7 +118,8 @@ export function NoteCard({
     <Link
       href={`/notes/${note.id}`}
       className={cn(
-        "group relative flex flex-col rounded-3xl border border-black/[0.08] bg-white p-5 shadow-[0_1px_2px_rgba(13,13,13,0.04),0_22px_55px_-42px_rgba(13,13,13,0.35)] outline-none transition-[border-color,box-shadow] duration-300 hover:border-black/20 hover:shadow-[0_2px_4px_rgba(13,13,13,0.05),0_26px_60px_-34px_rgba(13,13,13,0.4)] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2",
+        GLASS_LIQUID_CARD,
+        "group relative flex flex-col p-5 outline-none transition-[border-color,box-shadow,background-color] duration-300 hover:border-white/90 hover:bg-white/40 focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2",
         className
       )}
     >
