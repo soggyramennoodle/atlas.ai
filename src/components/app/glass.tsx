@@ -66,10 +66,11 @@ export function AppCanvas() {
         style={{ backgroundImage: `url("${GRAIN_SVG}")`, backgroundSize: "160px 160px" }}
       />
     </div>
-    {/* Dev-only: live background/glass tuning sliders. Rendered OUTSIDE the
-        -z-10 layer so it's clickable. Removed once values are locked into the
-        var() fallbacks above + in GLASS_DARK. */}
-    {process.env.NODE_ENV === "development" && <BgDebugPanel />}
+    {/* TEMP: shown in prod so the user can tune on the hosted build. Rendered
+        OUTSIDE the -z-10 layer so it's clickable. RE-GATE with
+        `process.env.NODE_ENV === "development" &&` (or delete) once the values
+        are locked into the var() fallbacks above + in GLASS_DARK. */}
+    <BgDebugPanel />
     </>
   );
 }
