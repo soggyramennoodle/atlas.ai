@@ -20,8 +20,18 @@ Use these — never hand-roll a glass surface.
   `rounded-3xl` (cards/tiles/panels) or `rounded-full` (chips/pills) at the call
   site. Fill alpha is the live var `--atlas-glass` (see slider protocol).
 - **`GLASS_HOVER`** — clean hover for *interactive* dark-glass surfaces (cards,
-  buttons): small lift + brighter top edge + deeper shadow. Reduced-motion safe.
-  Add it alongside `GLASS_DARK` on links/buttons, NOT on static panels (Tips).
+  buttons): slow easeOutExpo lift + brighter top edge + deeper shadow. Add it
+  alongside `GLASS_DARK` on links/buttons, NOT on static panels (Tips). It's just
+  the string `"glass-lift"` → the real CSS class lives in `globals.css`.
+
+> ⚠️ **Tailwind v4 gotcha (cost a round-trip):** arbitrary values with TOP-LEVEL
+> commas silently emit nothing — `transition-[transform,box-shadow,border-color]`
+> and `[transition:a,b,c]` both produced NO transition, so hovers read as
+> *instant*. Commas inside `cubic-bezier(...)` / `ease-[...]` are fine (inside
+> parens). Rules: for multi-property transitions use a real CSS class (see
+> `.glass-lift`) or the bare `transition` utility (it covers transform/shadow/
+> border/opacity/etc. with no comma) + `duration-* ease-[...]`. Don't hand-write
+> comma'd `transition-[...]`.
 - **`TEXT_ON_INK`** — dark text-halo (`text-shadow`) for white text; already
   inside `GLASS_DARK`. For **floating** white text that sits directly on the
   scene (headings, not on glass), use a stronger glow:

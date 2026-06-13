@@ -28,7 +28,7 @@ export function EmptyRecordings() {
         </p>
         <Link
           href="/upload"
-          className="group mx-auto mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-medium text-[#0d0d0d] outline-none transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.6)] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 motion-reduce:transition-none motion-reduce:hover:scale-100"
+          className="group mx-auto mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-medium text-[#0d0d0d] outline-none transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:shadow-[0_16px_40px_-18px_rgba(0,0,0,0.6)] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 motion-reduce:transition-none motion-reduce:hover:scale-100"
         >
           Record your first lecture
           <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0" />

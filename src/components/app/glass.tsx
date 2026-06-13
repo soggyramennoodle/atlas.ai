@@ -118,12 +118,12 @@ export const GLASS_DARK =
   "border border-white/20 bg-[rgba(13,13,13,var(--atlas-glass,0.49))] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28),inset_0_-12px_30px_-18px_rgba(255,255,255,0.12),0_22px_55px_-30px_rgba(0,0,0,0.62)] ring-1 ring-white/[0.06] backdrop-blur-[5px] backdrop-saturate-[1.6] [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]";
 
 /** Clean hover for interactive dark-glass surfaces (cards, buttons): a slow,
- *  weighty lift with a brighter top edge and deeper shadow. The longer duration
- *  + soft-settle easing (easeOutExpo) reads as "premium" vs. a snappy 150ms
- *  default; will-change keeps the transform on the compositor. The same curve
- *  governs the hover-OUT so it eases back, never snaps. Reduced-motion safe. */
-export const GLASS_HOVER =
-  "[transition:transform_500ms_cubic-bezier(0.16,1,0.3,1),box-shadow_500ms_cubic-bezier(0.16,1,0.3,1),border-color_500ms_cubic-bezier(0.16,1,0.3,1)] will-change-transform hover:-translate-y-1.5 hover:border-white/35 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_38px_84px_-30px_rgba(0,0,0,0.78)] motion-reduce:transition-none motion-reduce:hover:translate-y-0";
+ *  weighty lift with a brighter top edge and deeper shadow. Implemented as the
+ *  real `.glass-lift` CSS class in globals.css — Tailwind v4 silently drops
+ *  arbitrary transition values with top-level commas, which had made the hover
+ *  read as instant. The easeOutExpo settle reads "premium" vs. a snappy default;
+ *  the same curve eases the pointer-out. Reduced-motion safe (global block). */
+export const GLASS_HOVER = "glass-lift";
 
 export function GlassPanel({
   variant = "light",
