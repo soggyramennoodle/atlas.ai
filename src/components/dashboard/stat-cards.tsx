@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Mic, Clock, Sparkles, Flame, type LucideIcon } from "lucide-react";
-import { GLASS_CHIP } from "@/components/app/glass";
+import { GLASS_DARK } from "@/components/app/glass";
 
 export interface Stat {
   icon: "mic" | "clock" | "sparkles" | "flame";
@@ -52,18 +52,18 @@ function StatPill({ stat, index }: { stat: Stat; index: number }) {
       initial={reduce ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className={`flex items-center gap-2.5 rounded-full px-4 py-2.5 ${GLASS_CHIP}`}
+      className={`flex items-center gap-2.5 rounded-full px-4 py-2.5 ${GLASS_DARK}`}
     >
-      <Icon className="size-4 shrink-0 text-[#0d0d0d]/50" />
-      <span className="text-base font-medium tabular-nums tracking-tight">
+      <Icon className="size-4 shrink-0 text-white/60" />
+      <span className="text-base font-medium tabular-nums tracking-tight text-white">
         {display}
         {stat.suffix && (
-          <span className="ml-0.5 text-sm font-normal text-[#0d0d0d]/55">
+          <span className="ml-0.5 text-sm font-normal text-white/65">
             {stat.suffix}
           </span>
         )}
       </span>
-      <span className="text-sm text-[#0d0d0d]/55">{stat.label}</span>
+      <span className="text-sm text-white/65">{stat.label}</span>
     </motion.div>
   );
 }

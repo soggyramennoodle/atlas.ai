@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { AiGlow } from "@/components/ui/ai-glow";
+import { BgDebugPanel } from "@/components/app/bg-debug-panel";
 
 /**
  * Liquid-glass surface recipes (spec: app cinematic redesign). Tuned once
@@ -27,28 +28,37 @@ const GRAIN_SVG =
  * regenerate the scene with more contrast) if glass reads flat — see the design
  * doc's escape hatch.
  */
+/*
+ * Background tuning is driven by CSS custom properties so the dev BgDebugPanel
+ * can dial them live, then the chosen values get baked into the fallbacks here:
+ *   --atlas-bg-dim   dark veil opacity over the scene (tones it DOWN)   default .2
+ *   --atlas-bg-haze  white veil opacity over the scene (fades it)       default 0
+ *   --atlas-bg-blur  px blur applied to the scene image                 default 0
+ *   --atlas-glass    dark liquid-glass fill alpha (see GLASS_DARK)       default .46
+ * To lock a value: change the fallback in the relevant var() below (bg layers)
+ * or in GLASS_DARK (glass fill), then the panel can be removed.
+ */
 export function AppCanvas() {
   return (
+    <>
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
       {/* The scene. object-cover, centered; tolerant of crop on any viewport.
-          The CSS contrast/saturate boost gives the translucent liquid glass
-          stronger tonal variation to refract — this is the background-contrast
-          dial (raise contrast()/saturate() for more punch). */}
+          contrast/saturate give the glass tonal variation to refract; blur is
+          the tunable softness dial. */}
       <Image
         src="/app/meadow-scene.jpg"
         alt=""
         fill
         priority
         sizes="100vw"
-        className="object-cover [filter:contrast(1.08)_saturate(1.12)]"
+        className="object-cover [filter:contrast(1.08)_saturate(1.12)_blur(calc(var(--atlas-bg-blur,0)*1px))]"
       />
-      {/* No flat white veil anymore — liquid glass needs the scene at full
-          contrast. Only a light top wash remains so the big dark masthead
-          heading (which sits straight on the canvas, not on glass) stays
-          readable. */}
-      <div className="absolute inset-x-0 top-0 h-[30vh] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.5),rgba(255,255,255,0.1)_55%,rgba(255,255,255,0)_100%)]" />
-      {/* Bottom fade — dissolves the hills into the warm canvas instead of a
-          hard photo edge. */}
+      {/* Dark veil — the primary "tone it down" dial. Dimming the scene lets the
+          dark liquid glass cohere instead of fighting a bright photo. */}
+      <div className="absolute inset-0 bg-[rgba(10,12,16,var(--atlas-bg-dim,0.2))]" />
+      {/* Haze veil — optional white fade if the scene should read paler. */}
+      <div className="absolute inset-0 bg-[rgba(255,255,255,var(--atlas-bg-haze,0))]" />
+      {/* Bottom fade — dissolves the hills into the warm canvas. */}
       <div className="absolute inset-x-0 bottom-0 h-[18vh] bg-[linear-gradient(to_top,#f4f3f1,rgba(244,243,241,0)_100%)]" />
       {/* Film grain, on top of everything. */}
       <div
@@ -56,6 +66,11 @@ export function AppCanvas() {
         style={{ backgroundImage: `url("${GRAIN_SVG}")`, backgroundSize: "160px 160px" }}
       />
     </div>
+    {/* Dev-only: live background/glass tuning sliders. Rendered OUTSIDE the
+        -z-10 layer so it's clickable. Removed once values are locked into the
+        var() fallbacks above + in GLASS_DARK. */}
+    {process.env.NODE_ENV === "development" && <BgDebugPanel />}
+    </>
   );
 }
 
@@ -95,6 +110,22 @@ export const GLASS_CHIP =
  *  "middle" clarity), still clearly see-through. Pair with TEXT_ON_GLASS. */
 export const GLASS_LIQUID_CARD =
   "rounded-3xl border border-white/70 bg-white/28 text-[#0d0d0d] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-12px_28px_-16px_rgba(255,255,255,0.5),0_20px_50px_-30px_rgba(0,0,0,0.42)] ring-1 ring-black/[0.05] backdrop-blur-[3px] backdrop-saturate-[1.7] backdrop-brightness-[1.06] [text-shadow:0_1px_3px_rgba(255,255,255,0.65)]";
+
+/**
+ * DARK liquid glass — the primary app surface now (cards, tiles, chips,
+ * buttons). White text on a translucent dark fill reads cleanly over ANY part
+ * of the scene (bright sky or dark hills), which light glass could not. Same
+ * family as the sidebar RAIL_GLASS. Fill alpha is the live-tunable `--atlas-glass`
+ * (BgDebugPanel); bake the chosen value into the fallback below. No radius here
+ * — add `rounded-*` at the call site. Pair interactive surfaces with GLASS_HOVER.
+ */
+export const GLASS_DARK =
+  "border border-white/20 bg-[rgba(13,13,13,var(--atlas-glass,0.46))] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28),inset_0_-12px_30px_-18px_rgba(255,255,255,0.12),0_22px_55px_-30px_rgba(0,0,0,0.62)] ring-1 ring-white/[0.06] backdrop-blur-[5px] backdrop-saturate-[1.6] [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]";
+
+/** Clean hover for interactive dark-glass surfaces (cards, buttons): a small
+ *  lift, brighter top edge, deeper shadow. Reduced-motion safe. */
+export const GLASS_HOVER =
+  "transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-white/35 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_32px_72px_-30px_rgba(0,0,0,0.72)] motion-reduce:transition-none motion-reduce:hover:translate-y-0";
 
 export function GlassPanel({
   variant = "light",

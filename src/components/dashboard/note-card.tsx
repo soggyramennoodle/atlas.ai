@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AlertCircle, BookOpen, Clock, Loader2, TriangleAlert } from "lucide-react";
 import type { NoteRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { GLASS_LIQUID_CARD } from "@/components/app/glass";
+import { GLASS_DARK, GLASS_HOVER } from "@/components/app/glass";
 
 type NoteCardData = Pick<
   NoteRecord,
@@ -118,8 +118,9 @@ export function NoteCard({
     <Link
       href={`/notes/${note.id}`}
       className={cn(
-        GLASS_LIQUID_CARD,
-        "group relative flex flex-col p-5 outline-none transition-[border-color,box-shadow,background-color] duration-300 hover:border-white/90 hover:bg-white/40 focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2",
+        GLASS_DARK,
+        GLASS_HOVER,
+        "group relative flex flex-col rounded-3xl p-5 outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-0",
         className
       )}
     >
@@ -135,7 +136,7 @@ export function NoteCard({
       )}
       <div className="relative z-[1] flex flex-col">
         <div className="flex items-center justify-between">
-          <span className="grid size-10 place-items-center rounded-full border border-black/[0.1] text-[#0d0d0d]/80 transition-colors duration-200 group-hover:border-black/25">
+          <span className="grid size-10 place-items-center rounded-full border border-white/20 text-white/85 transition-colors duration-200 group-hover:border-white/40">
             {failed ? (
               <AlertCircle className="size-5" />
             ) : atCapacity ? (
@@ -149,12 +150,12 @@ export function NoteCard({
           <span
             className={
               failed
-                ? `${STATUS_CHIP_BASE} bg-[#0d0d0d] text-white`
+                ? `${STATUS_CHIP_BASE} border border-red-400/40 bg-red-500/15 text-red-200`
                 : atCapacity
                   ? `${STATUS_CHIP_BASE} border border-orange-500/35 bg-orange-500/10 text-orange-600`
                   : processing
-                    ? `${STATUS_CHIP_BASE} border border-black/[0.12] bg-black/[0.03] text-[#0d0d0d]/60`
-                    : `${STATUS_CHIP_BASE} border border-black/[0.12] text-[#0d0d0d]/70`
+                    ? `${STATUS_CHIP_BASE} border border-white/20 bg-white/10 text-white/70`
+                    : `${STATUS_CHIP_BASE} border border-white/25 text-white/75`
             }
           >
             <span className="size-1.5 rounded-full bg-current" />
@@ -170,10 +171,10 @@ export function NoteCard({
         <h3 className="mt-4 line-clamp-2 text-lg font-medium leading-snug tracking-tight">
           {note.title}
         </h3>
-        <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-[#0d0d0d]/55">
+        <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-white/65">
           {note.content?.summary}
         </p>
-        <div className="mt-4 flex items-center gap-3 text-xs text-[#0d0d0d]/50">
+        <div className="mt-4 flex items-center gap-3 text-xs text-white/55">
           <span>{formatDate(note.created_at)}</span>
           {formatDuration(note.duration_seconds) && (
             <span className="inline-flex items-center gap-1">
@@ -182,7 +183,7 @@ export function NoteCard({
             </span>
           )}
           {note.subject && (
-            <span className="ml-auto inline-flex max-w-[45%] items-center truncate rounded-full border border-black/[0.1] px-2.5 py-0.5 text-[0.7rem] text-[#0d0d0d]/60 transition-colors group-hover:border-black/20">
+            <span className="ml-auto inline-flex max-w-[45%] items-center truncate rounded-full border border-white/20 px-2.5 py-0.5 text-[0.7rem] text-white/65 transition-colors group-hover:border-white/35">
               {note.subject}
             </span>
           )}

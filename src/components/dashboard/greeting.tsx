@@ -49,17 +49,18 @@ export function Greeting({ name }: { name: string }) {
   return (
     <div
       data-tour="dashboard-greeting"
-      // Soft white backlight so the dark heading lifts off the contrasty scene.
-      className="[text-shadow:0_2px_16px_rgba(255,255,255,0.7)]"
+      // White heading on the scene; soft dark backlight lifts it off the
+      // brighter parts of the photo without needing a glass plate behind it.
+      className="text-white [text-shadow:0_2px_20px_rgba(0,0,0,0.5)]"
     >
-      <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
+      <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/55">
         {local?.date || " "}
       </p>
       <h1 className="mt-3 inline-block text-balance text-4xl font-normal leading-[1.02] tracking-[-0.025em] sm:text-5xl lg:text-6xl">
         {local?.greeting ?? "Welcome back"},{" "}
         <span className="font-instrument italic">{name}</span>
       </h1>
-      <p className="mt-3 text-base text-[#0d0d0d]/60">{local?.line ?? " "}</p>
+      <p className="mt-3 text-base text-white/70">{local?.line ?? " "}</p>
     </div>
   );
 }

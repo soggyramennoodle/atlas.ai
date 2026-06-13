@@ -1,32 +1,39 @@
 import Link from "next/link";
-import { Mic } from "lucide-react";
-import { GlassPanel, HeroBand } from "@/components/app/glass";
-import { ARROW_BADGE, PILL_PRIMARY } from "@/components/app/pills";
+import { Mic, ArrowRight } from "lucide-react";
+import { GLASS_DARK } from "@/components/app/glass";
+import { cn } from "@/lib/utils";
 
-/** Empty library: a frosted glass invitation floating on the mist imagery. */
+/** Empty library: a dark liquid-glass invitation, same surface family as every
+ *  other element (no image of its own). The white CTA stays the brightest
+ *  thing — the one primary action, matching the dashboard record tile. */
 export function EmptyRecordings() {
   return (
-    <HeroBand priority className="grid place-items-center px-6 py-14">
-      <GlassPanel
-        variant="light"
-        className="max-w-md px-7 py-9 text-center sm:px-10"
+    <div className="grid place-items-center">
+      <div
+        className={cn(
+          GLASS_DARK,
+          "max-w-md rounded-3xl px-7 py-10 text-center sm:px-10"
+        )}
       >
-        <span className="mx-auto grid size-12 place-items-center rounded-full bg-[#0d0d0d] text-white">
+        <span className="mx-auto grid size-12 place-items-center rounded-full bg-white text-[#0d0d0d]">
           <Mic className="size-5" />
         </span>
-        <h2 className="mt-5 text-2xl font-normal tracking-tight">
+        <h2 className="mt-5 text-2xl font-normal tracking-tight text-white">
           Your library is{" "}
           <span className="font-instrument italic">empty, for now</span>
         </h2>
-        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[#0d0d0d]/60 text-pretty">
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-white/65 text-pretty">
           Record your first lecture and Atlas will turn it into thorough,
           structured notes that land right here.
         </p>
-        <Link href="/upload" className={`${PILL_PRIMARY} mt-6 px-6`}>
+        <Link
+          href="/upload"
+          className="group mx-auto mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-medium text-[#0d0d0d] outline-none transition hover:scale-[1.02] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 motion-reduce:hover:scale-100"
+        >
           Record your first lecture
-          {ARROW_BADGE}
+          <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0" />
         </Link>
-      </GlassPanel>
-    </HeroBand>
+      </div>
+    </div>
   );
 }

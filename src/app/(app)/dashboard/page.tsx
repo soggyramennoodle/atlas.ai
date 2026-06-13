@@ -3,7 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Mic } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { GLASS_CHIP, GlassPanel, HeroBand } from "@/components/app/glass";
+import { cn } from "@/lib/utils";
+import { GLASS_DARK } from "@/components/app/glass";
 import { Greeting } from "@/components/dashboard/greeting";
 import { StatCards, type Stat } from "@/components/dashboard/stat-cards";
 import { QuickRecord } from "@/components/dashboard/quick-record";
@@ -114,7 +115,7 @@ export default async function DashboardPage() {
             {profileIncomplete && (
               <Link
                 href="/settings"
-                className="group mt-4 inline-flex items-center gap-1 text-sm text-[#0d0d0d]/60 transition hover:text-[#0d0d0d]"
+                className="group mt-4 inline-flex items-center gap-1 text-sm text-white/65 transition hover:text-white [text-shadow:0_1px_8px_rgba(0,0,0,0.45)]"
               >
                 Complete your profile for a personalized experience
                 <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -127,43 +128,43 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* The record tile: a small window of light holding the session CTA. */}
-          <HeroBand priority className="shrink-0 lg:w-80">
-            <div className="p-3">
-              <GlassPanel
-                variant="ink"
-                className="flex flex-col justify-between gap-6 px-6 py-5"
-              >
-                <div>
-                  <p className="text-3xl font-normal tabular-nums tracking-tight sm:text-4xl">
-                    {hours.toFixed(1)}
-                    <span className="ml-1.5 text-base text-white/60">hrs</span>
-                  </p>
-                  <p className="mt-1 text-sm text-white/60">
-                    of lectures{" "}
-                    <span className="font-instrument italic">captured</span>
-                  </p>
-                </div>
-                <Link
-                  href="/upload"
-                  className="group flex h-11 items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-[#0d0d0d] outline-none transition hover:scale-[1.02] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 motion-reduce:hover:scale-100"
-                >
-                  <Mic className="size-4" />
-                  Record a lecture
-                </Link>
-              </GlassPanel>
+          {/* The record tile: pure dark liquid glass (no image of its own — it
+              reads as the same glass family as every other surface). The white
+              CTA stays the brightest thing on the page — the one primary action. */}
+          <div
+            className={cn(
+              GLASS_DARK,
+              "flex shrink-0 flex-col justify-between gap-6 rounded-3xl px-6 py-5 lg:w-80"
+            )}
+          >
+            <div>
+              <p className="text-3xl font-normal tabular-nums tracking-tight text-white sm:text-4xl">
+                {hours.toFixed(1)}
+                <span className="ml-1.5 text-base text-white/60">hrs</span>
+              </p>
+              <p className="mt-1 text-sm text-white/60">
+                of lectures{" "}
+                <span className="font-instrument italic">captured</span>
+              </p>
             </div>
-          </HeroBand>
+            <Link
+              href="/upload"
+              className="group flex h-11 items-center justify-center gap-2 rounded-full bg-white text-sm font-medium text-[#0d0d0d] outline-none transition hover:scale-[1.02] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 motion-reduce:hover:scale-100"
+            >
+              <Mic className="size-4" />
+              Record a lecture
+            </Link>
+          </div>
         </div>
 
         {/* The library is the hero of this page. */}
         <section className="mt-14">
           <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-3xl font-normal tracking-[-0.02em] [text-shadow:0_2px_16px_rgba(255,255,255,0.7)] sm:text-4xl">
+            <h2 className="text-3xl font-normal tracking-[-0.02em] text-white [text-shadow:0_2px_20px_rgba(0,0,0,0.5)] sm:text-4xl">
               Your <span className="font-instrument italic">library</span>
             </h2>
             {notes.length > 0 && (
-              <span className={`rounded-full px-2.5 py-1 text-xs tabular-nums text-[#0d0d0d]/55 ${GLASS_CHIP}`}>
+              <span className={`rounded-full px-2.5 py-1 text-xs tabular-nums text-white/70 ${GLASS_DARK}`}>
                 {notes.length} total
               </span>
             )}
