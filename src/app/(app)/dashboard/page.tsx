@@ -105,11 +105,10 @@ export default async function DashboardPage() {
       {/* Fills the area beside the sidebar (no centered cap) so the right side
           isn't left empty; the wider gutters above push it off the sidebar. */}
       <div>
-        {/* Masthead: oversized editorial greeting straight on the canvas, with
-            the mist imagery condensed into the glowing record tile beside it.
-            Capped narrower than the library so the record tile sits beside the
-            greeting instead of flying out to the far right edge. */}
-        <div className="flex max-w-5xl flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+        {/* Masthead: oversized editorial greeting on the left, the glowing
+            hours/record tile anchored to the top-right corner so it lines up
+            with the library grid's right edge instead of floating orphaned. */}
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div className="max-w-2xl">
             <Greeting name={name} />
             {profileIncomplete && (
