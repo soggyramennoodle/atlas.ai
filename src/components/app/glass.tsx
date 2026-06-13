@@ -125,6 +125,16 @@ export const GLASS_DARK =
  *  the same curve eases the pointer-out. Reduced-motion safe (global block). */
 export const GLASS_HOVER = "glass-lift";
 
+/** Small interactive pill on the dark surface (ghost actions, presets, capsules):
+ *  translucent white fill, white text, brighter on hover. Add `rounded-full` (or
+ *  `rounded-2xl`) at the call site. */
+export const GLASS_DARK_PILL =
+  "border border-white/20 bg-white/[0.08] text-white/85 outline-none transition-colors duration-200 hover:bg-white/[0.16] hover:text-white focus-visible:ring-2 focus-visible:ring-white/40 disabled:pointer-events-none disabled:opacity-60";
+
+/** Text field / input on the dark surface: faint fill, white text, white caret. */
+export const DARK_FIELD =
+  "border border-white/20 bg-white/[0.06] text-white caret-white outline-none transition placeholder:text-white/40 focus:border-white/40 focus-visible:ring-2 focus-visible:ring-white/30";
+
 export function GlassPanel({
   variant = "light",
   className,
@@ -155,12 +165,15 @@ export function GlassPanel({
  */
 export function AuroraPanel({
   active = false,
+  variant = "light",
   className,
   panelClassName,
   children,
 }: {
   /** "active" speeds + brightens the bloom (processing in flight). */
   active?: boolean;
+  /** Glass tone of the panel the color blooms through. "ink" = dark surface. */
+  variant?: "light" | "ink";
   className?: string;
   panelClassName?: string;
   children: React.ReactNode;
@@ -173,7 +186,7 @@ export function AuroraPanel({
       >
         <AiGlow mode={active ? "active" : "idle"} density="standard" blur={56} />
       </div>
-      <GlassPanel variant="light" className={panelClassName}>
+      <GlassPanel variant={variant} className={panelClassName}>
         {children}
       </GlassPanel>
     </div>

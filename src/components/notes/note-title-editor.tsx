@@ -9,7 +9,7 @@ type SaveStatus = "idle" | "saving";
 
 /** Small round icon pill used for the save/cancel/edit title controls. */
 const TITLE_ICON_BUTTON =
-  "grid size-8 shrink-0 place-items-center rounded-full text-[#0d0d0d]/60 outline-none transition hover:bg-black/[0.05] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25 disabled:pointer-events-none disabled:opacity-60";
+  "grid size-8 shrink-0 place-items-center rounded-full text-white/70 outline-none transition hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40 disabled:pointer-events-none disabled:opacity-60";
 
 export function NoteTitleEditor({
   noteId,
@@ -108,8 +108,8 @@ export function NoteTitleEditor({
           rows={1}
           aria-label="Lecture title"
           className={cn(
-            "min-h-[3.75rem] flex-1 resize-none overflow-hidden rounded-2xl border border-black/[0.12] bg-white px-3 py-2 text-4xl font-normal leading-[1.02] tracking-[-0.02em] text-[#0d0d0d] outline-none transition focus-visible:ring-2 focus-visible:ring-black/25 sm:text-5xl",
-            "placeholder:text-[#0d0d0d]/40"
+            "min-h-[3.75rem] flex-1 resize-none overflow-hidden rounded-2xl border border-white/20 bg-white/[0.08] px-3 py-2 text-4xl font-normal leading-[1.02] tracking-[-0.02em] text-white caret-white outline-none backdrop-blur-md transition focus-visible:border-white/40 focus-visible:ring-2 focus-visible:ring-white/30 sm:text-5xl",
+            "placeholder:text-white/40"
           )}
         />
         <div className="flex shrink-0 items-center gap-1 pt-2">
@@ -118,7 +118,7 @@ export function NoteTitleEditor({
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => void commit()}
             aria-label="Save title"
-            className="grid size-8 shrink-0 place-items-center rounded-full bg-[#0d0d0d] text-white outline-none transition hover:scale-[1.04] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
+            className="grid size-8 shrink-0 place-items-center rounded-full bg-white text-[#0d0d0d] outline-none transition hover:scale-[1.04] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-white/50"
           >
             <Check className="size-3" />
           </button>
@@ -144,7 +144,7 @@ export function NoteTitleEditor({
 
   return (
     <div className="group mt-3 flex items-start gap-2">
-      <h1 className="min-w-0 flex-1 text-balance text-4xl font-normal leading-[1.05] tracking-[-0.02em] text-[#0d0d0d] sm:text-5xl">
+      <h1 className="min-w-0 flex-1 text-balance text-4xl font-normal leading-[1.05] tracking-[-0.02em] text-white [text-shadow:0_2px_20px_rgba(0,0,0,0.5)] sm:text-5xl">
         {lead ? <>{lead} </> : null}
         <span className="font-instrument italic">{accent}</span>
       </h1>

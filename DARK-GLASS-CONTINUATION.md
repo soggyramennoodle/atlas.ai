@@ -108,7 +108,41 @@ the one color accent on dark glass.
 
 ---
 
-## Stage 2 — Notes view (TODO)
+## Stage 2 — Notes view ✅ DONE
+
+Converted the whole notes view to dark glass + white text (build passes):
+- `glass.tsx` — added `GLASS_DARK_PILL` + `DARK_FIELD` primitives; `AuroraPanel`
+  gained a `variant` prop (used `ink` for the processing state).
+- `globals.css` — scoped `.note-surface .note-prose` dark theme (white text/
+  headings/bullets/caret/selection) so the body + TipTap editor read white-on-dark
+  only inside the dark plate; newsroom/other prose untouched.
+- `notes/[id]/page.tsx` — "Library" back link → dark glass pill; ReportButton given
+  a dark className override (its REPORT_PILL supports it via tailwind-merge).
+- `note-actions.tsx` — ghost pills, export dropdown, delete-confirm (red) → dark.
+- `note-session.tsx` / `note-title-editor.tsx` / `course-capsule.tsx` — meta + the
+  big title sit on the scene → white + dark halo; inline editors → dark fields;
+  save buttons → white solid.
+- `summary-card.tsx` — `GLASS_DARK`, kept the rainbow `processing-glow`; regenerate
+  pill + caret recolored.
+- `transcript-panel.tsx` — `GLASS_DARK`, white text, white-on-dark icon badge.
+- `note-view.tsx` — note body now wrapped in one `GLASS_DARK .note-surface` plate
+  that grows with content; `NOTE_GHOST_PILL`/`NOTE_INPUT`, headings, enriching
+  banner, SectionView, ConceptBlock, Add-concept, ProcessingNoteState (AuroraPanel
+  `ink`), Done button (white), floating edit pill (dark), autosave + AI-stream text.
+- `rich-note-editor.tsx` — editor box + sticky toolbar → dark glass; active tool
+  button = white solid; `.note-surface` wrapper so editing is white-on-dark.
+- `concept-card.tsx` — base cards → `GLASS_DARK` + `rounded-3xl` (rounder); the
+  OPENED overlay stays dark (`GLASS_DARK`, was flipping to white) with `ai-ring`
+  kept; dismiss scrim darkened; inner chat surfaces + send button recolored.
+- `line-chat.tsx` — ask button, popup panel (`GLASS_DARK` + `ai-ring`), presets,
+  turns, Add-to-note (violet on dark), caret, chat input → dark.
+- `source-bubble.tsx` — hover excerpt bubble → dark glass; decoration/label colors
+  for lecture/research/ai recolored for dark.
+
+Deliberately kept bright: the "Atlas finished reading" cursor popup (meant to pop)
+and all primary send/save CTAs (white solid).
+
+## Stage 2 — Notes view (original notes, now done)
 
 Entry: `src/app/(app)/notes/[id]/page.tsx` (back-link at line ~64 is
 `text-[#0d0d0d]/55` → white). Components in `src/components/notes/`. The user

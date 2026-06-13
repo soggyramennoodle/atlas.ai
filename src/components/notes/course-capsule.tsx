@@ -61,7 +61,7 @@ export function CourseCapsule({
           }
         }}
         placeholder="Add a course…"
-        className="rounded-full border border-black/30 bg-white px-3.5 py-1 text-sm font-medium text-[#0d0d0d] outline-none ring-2 ring-black/15 placeholder:text-[#0d0d0d]/40"
+        className="rounded-full border border-white/35 bg-white/[0.1] px-3.5 py-1 text-sm font-medium text-white caret-white outline-none ring-2 ring-white/20 backdrop-blur-md placeholder:text-white/40"
       />
     );
   }
@@ -72,10 +72,10 @@ export function CourseCapsule({
       onClick={() => setEditing(true)}
       whileTap={{ scale: 0.97 }}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-sm font-medium outline-none transition duration-300 ease-out hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-black/25",
+        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-sm font-medium outline-none backdrop-blur-md transition duration-300 ease-out hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-white/40",
         saved
-          ? "border-black/[0.12] bg-white text-[#0d0d0d]/80 hover:border-black/25 hover:bg-black/[0.03]"
-          : "border-dashed border-black/[0.12] text-[#0d0d0d]/55 hover:text-[#0d0d0d]"
+          ? "border-white/20 bg-white/[0.08] text-white/85 hover:bg-white/[0.16]"
+          : "border-dashed border-white/25 text-white/60 hover:text-white"
       )}
       title="Click to edit course"
     >

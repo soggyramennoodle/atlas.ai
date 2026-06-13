@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
+import { GLASS_DARK_PILL } from "@/components/app/glass";
 import { ReportButton } from "@/components/feedback/report-dialog";
 import { DeleteNoteButton, DownloadAudioButton, ExportMenu } from "@/components/notes/note-actions";
 import { NoteSession } from "@/components/notes/note-session";
@@ -61,7 +63,11 @@ export default async function NotePage({
         <div className="flex items-center justify-between">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 rounded-full text-sm text-[#0d0d0d]/55 outline-none transition hover:-translate-x-0.5 hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm",
+              GLASS_DARK_PILL,
+              "hover:-translate-x-0.5"
+            )}
           >
             <ArrowLeft className="size-4" />
             Library
@@ -71,6 +77,7 @@ export default async function NotePage({
               context="note"
               noteId={note.id}
               noteTitle={note.title}
+              className="border-white/20 bg-white/[0.08] text-white/80 hover:bg-white/[0.16] hover:text-white focus-visible:ring-white/40"
             />
             {failed && <DownloadAudioButton id={note.id} />}
             <ExportMenu id={note.id} />

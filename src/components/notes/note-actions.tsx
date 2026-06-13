@@ -12,9 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-/** Quiet ghost pill for the note header's action row. */
+/** Quiet ghost pill for the note header's action row — dark liquid glass. */
 const GHOST_PILL =
-  "inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium text-[#0d0d0d]/55 outline-none transition hover:bg-black/[0.03] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25 disabled:pointer-events-none disabled:opacity-60";
+  "inline-flex h-9 items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.08] px-3.5 text-sm font-medium text-white/80 outline-none transition-colors duration-200 hover:bg-white/[0.16] hover:text-white focus-visible:ring-2 focus-visible:ring-white/40 disabled:pointer-events-none disabled:opacity-60";
 
 export function DownloadAudioButton({ id }: { id: string }) {
   const [busy, setBusy] = useState(false);
@@ -101,12 +101,12 @@ export function ExportMenu({ id }: { id: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-44 rounded-2xl border-black/[0.08] bg-white p-1.5 text-[#0d0d0d] shadow-[0_18px_50px_-28px_rgba(0,0,0,0.35)]"
+        className="w-44 rounded-2xl border-white/15 bg-[#161616]/90 p-1.5 text-white shadow-[0_18px_50px_-28px_rgba(0,0,0,0.6)] backdrop-blur-xl"
       >
         <DropdownMenuItem
           onSelect={() => download("pdf")}
           disabled={!!busy}
-          className="rounded-xl focus:bg-black/[0.03]"
+          className="rounded-xl text-white/85 focus:bg-white/[0.1] focus:text-white"
         >
           <FileText className="size-4" />
           Export as PDF
@@ -114,7 +114,7 @@ export function ExportMenu({ id }: { id: string }) {
         <DropdownMenuItem
           onSelect={() => download("docx")}
           disabled={!!busy}
-          className="rounded-xl focus:bg-black/[0.03]"
+          className="rounded-xl text-white/85 focus:bg-white/[0.1] focus:text-white"
         >
           <FileText className="size-4" />
           Export as DOCX
@@ -164,12 +164,12 @@ export function DeleteNoteButton({ id }: { id: string }) {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-[#0d0d0d]/55">Delete this note?</span>
+      <span className="text-sm text-white/70">Delete this note?</span>
       <button
         type="button"
         onClick={onDelete}
         disabled={pending}
-        className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#0d0d0d] px-4 text-sm font-medium text-white outline-none transition hover:scale-[1.01] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60"
+        className="inline-flex h-9 items-center gap-1.5 rounded-full border border-red-400/40 bg-red-500/85 px-4 text-sm font-medium text-white outline-none transition hover:bg-red-500 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-red-300/50 disabled:pointer-events-none disabled:opacity-60"
       >
         {pending && <Loader2 className="size-4 animate-spin" />}
         Yes, delete

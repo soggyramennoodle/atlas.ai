@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import type { KeyConcept } from "@/lib/types";
 import { MathText } from "./math-text";
-import { GLASS_LIGHT } from "@/components/app/glass";
+import { GLASS_DARK } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
 
 type Mode = "simple" | "analogy" | "why";
@@ -83,7 +83,7 @@ export function KeyConceptsGrid({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSelected(null)}
-            className="fixed inset-0 z-30 cursor-default bg-[#f4f3f1]/45 backdrop-blur-[2px]"
+            className="fixed inset-0 z-30 cursor-default bg-[#0d0d0d]/45 backdrop-blur-[2px]"
           />
         )}
       </AnimatePresence>
@@ -226,22 +226,25 @@ function ConceptCard({
         }}
         whileHover={dimmed || selected ? undefined : { y: -4, scale: 1.015 }}
         transition={SPRING}
-        // Clear glass, not frost: a barely-there 3px refraction (cheap — blur
-        // cost scales with radius), gradient fill, crisp specular edge, and a
-        // light-catch sheen. Heavier blur stays on the single popped overlay.
-        className="group relative block w-full overflow-hidden rounded-2xl border border-white/70 bg-[linear-gradient(160deg,rgba(255,255,255,0.72),rgba(255,255,255,0.38))] p-5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(13,13,13,0.04),0_1px_2px_rgba(13,13,13,0.04),0_18px_44px_-30px_rgba(13,13,13,0.3)] ring-1 ring-black/[0.07] backdrop-blur-[3px] transition-[box-shadow] duration-300 ease-out hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(13,13,13,0.04),0_2px_4px_rgba(13,13,13,0.05),0_24px_60px_-30px_rgba(13,13,13,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
+        // Dark liquid glass, rounder than before; the framer whileHover carries
+        // the lift (transform) so CSS only animates the shadow. A soft white
+        // light-catch sweep sells it as a curved pane.
+        className={cn(
+          GLASS_DARK,
+          "group relative block w-full overflow-hidden rounded-3xl p-5 text-left transition-[box-shadow] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        )}
         style={{ visibility: selected ? "hidden" : "visible" }}
       >
-        {/* Light catching the pane — the liquid-glass specular sweep. */}
+        {/* Light catching the pane — a soft specular sweep on the dark glass. */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(130%_90%_at_18%_-10%,rgba(255,255,255,0.9),rgba(255,255,255,0)_55%)] opacity-70"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(130%_90%_at_18%_-10%,rgba(255,255,255,0.28),rgba(255,255,255,0)_55%)] opacity-70"
         />
         <div className="relative flex items-start justify-between gap-2">
-          <span className="font-medium tracking-tight text-[#0d0d0d]">{concept.term}</span>
-          <Sparkles className="size-4 shrink-0 text-[#0d0d0d]/45 opacity-0 transition group-hover:text-[#0d0d0d]/70 group-hover:opacity-100" />
+          <span className="font-medium tracking-tight text-white">{concept.term}</span>
+          <Sparkles className="size-4 shrink-0 text-white/45 opacity-0 transition group-hover:text-white/80 group-hover:opacity-100" />
         </div>
-        <p className="relative mt-1.5 text-pretty text-sm leading-relaxed text-[#0d0d0d]/55">
+        <p className="relative mt-1.5 text-pretty text-sm leading-relaxed text-white/65">
           <MathText text={concept.definition} />
         </p>
       </motion.button>
@@ -266,28 +269,27 @@ function ConceptCard({
                 carries the scroll. */}
             <div
               className={cn(
-                "ai-ring relative rounded-2xl",
-                GLASS_LIGHT,
-                "bg-white/90",
+                "ai-ring relative rounded-3xl",
+                GLASS_DARK,
                 thinking && "ai-ring--active"
               )}
             >
-              <div className="relative max-h-[72vh] overflow-y-auto overflow-x-hidden rounded-2xl p-5">
+              <div className="relative max-h-[72vh] overflow-y-auto overflow-x-hidden rounded-3xl p-5">
                 <div className="flex items-start justify-between gap-2">
-                  <span className="flex items-center gap-2 font-medium tracking-tight text-[#0d0d0d]">
-                    <Sparkles className="size-4 text-[#0d0d0d]/70" />
+                  <span className="flex items-center gap-2 font-medium tracking-tight text-white">
+                    <Sparkles className="size-4 text-white/70" />
                     {concept.term}
                   </span>
                   <button
                     type="button"
                     onClick={onDismiss}
                     aria-label="Close"
-                    className="grid size-7 shrink-0 place-items-center rounded-full text-[#0d0d0d]/55 outline-none transition hover:bg-black/[0.05] hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
+                    className="grid size-7 shrink-0 place-items-center rounded-full text-white/55 outline-none transition hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
                   >
                     <X className="size-4" />
                   </button>
                 </div>
-                <p className="mt-1.5 text-pretty text-sm leading-relaxed text-[#0d0d0d]/55">
+                <p className="mt-1.5 text-pretty text-sm leading-relaxed text-white/65">
                   <MathText text={concept.definition} />
                 </p>
 
@@ -308,9 +310,9 @@ function ConceptCard({
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ ...SPRING, delay: 0.05 + idx * 0.07 }}
                           onClick={() => ask(a.prompt(concept.term), a.label)}
-                          className="flex items-center gap-2.5 rounded-2xl border border-black/[0.1] bg-white/70 px-3 py-2.5 text-left text-sm text-[#0d0d0d] outline-none transition hover:-translate-y-0.5 hover:border-black/25 hover:bg-white focus-visible:ring-2 focus-visible:ring-black/25"
+                          className="flex items-center gap-2.5 rounded-2xl border border-white/15 bg-white/[0.06] px-3 py-2.5 text-left text-sm text-white outline-none transition hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/[0.12] focus-visible:ring-2 focus-visible:ring-white/40"
                         >
-                          <a.icon className="size-4 text-[#0d0d0d]/70" />
+                          <a.icon className="size-4 text-white/70" />
                           {a.label}
                         </motion.button>
                       ))}
@@ -329,20 +331,20 @@ function ConceptCard({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
                         transition={SPRING}
-                        className="rounded-2xl border border-black/[0.1] bg-white/70"
+                        className="rounded-2xl border border-white/15 bg-white/[0.06]"
                       >
                         <button
                           type="button"
                           onClick={() => toggleTurn(turn.id)}
-                          className="flex w-full items-center justify-between gap-2 rounded-2xl px-3 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-black/25"
+                          className="flex w-full items-center justify-between gap-2 rounded-2xl px-3 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                         >
-                          <span className="line-clamp-1 text-xs font-medium text-[#0d0d0d]/75">
+                          <span className="line-clamp-1 text-xs font-medium text-white/75">
                             {turn.label}
                           </span>
                           <motion.span
                             animate={{ rotate: turn.open ? 0 : -90 }}
                             transition={SPRING}
-                            className="text-[#0d0d0d]/55"
+                            className="text-white/55"
                           >
                             <ChevronDown className="size-4" />
                           </motion.span>
@@ -357,7 +359,7 @@ function ConceptCard({
                               transition={SPRING}
                               className="overflow-hidden"
                             >
-                              <div className="px-3 pb-3 text-pretty text-sm leading-relaxed text-[#0d0d0d]/80">
+                              <div className="px-3 pb-3 text-pretty text-sm leading-relaxed text-white/85">
                                 <MathText text={turn.answer} />
                                 {turn.streaming && <StreamingCaret />}
                               </div>
@@ -395,7 +397,7 @@ function StreamingCaret() {
       aria-hidden
       animate={{ opacity: [1, 0.2, 1] }}
       transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-      className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[2px] rounded-full bg-[#0d0d0d]/70 align-baseline"
+      className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[2px] rounded-full bg-white/70 align-baseline"
     />
   );
 }
@@ -421,7 +423,7 @@ function ChatInput({
 
   return (
     <div className="group relative mt-4">
-      <div className="relative flex items-center rounded-full border border-black/[0.12] bg-white pl-4 pr-1 transition group-focus-within:border-black/30">
+      <div className="relative flex items-center rounded-full border border-white/20 bg-white/[0.08] pl-4 pr-1 backdrop-blur-md transition group-focus-within:border-white/40">
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -432,14 +434,14 @@ function ChatInput({
             }
           }}
           placeholder={placeholder}
-          className="h-11 flex-1 bg-transparent text-sm text-[#0d0d0d] outline-none placeholder:text-[#0d0d0d]/40"
+          className="h-11 flex-1 bg-transparent text-sm text-white caret-white outline-none placeholder:text-white/40"
         />
         <button
           type="button"
           onClick={submit}
           disabled={!value.trim() || busy}
           aria-label="Send"
-          className="grid size-9 shrink-0 place-items-center rounded-full bg-[#0d0d0d] text-white outline-none transition focus-visible:ring-2 focus-visible:ring-black/25 enabled:hover:-translate-y-0.5 enabled:hover:scale-105 disabled:opacity-40"
+          className="grid size-9 shrink-0 place-items-center rounded-full bg-white text-[#0d0d0d] outline-none transition focus-visible:ring-2 focus-visible:ring-white/50 enabled:hover:-translate-y-0.5 enabled:hover:scale-105 disabled:opacity-40"
         >
           <ArrowUp className="size-4" />
         </button>

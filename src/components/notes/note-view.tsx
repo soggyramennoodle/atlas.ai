@@ -20,7 +20,7 @@ import type {
   NoteSection,
   StructuredNotes,
 } from "@/lib/types";
-import { AuroraPanel } from "@/components/app/glass";
+import { AuroraPanel, GLASS_DARK } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
 import {
   AI_BLOCK_ATTR,
@@ -70,10 +70,10 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 type SaveStatus = "idle" | "saving" | "saved";
 
 const NOTE_GHOST_PILL =
-  "inline-flex h-9 items-center justify-center gap-2 rounded-full border border-black/[0.12] bg-white px-4 text-sm font-medium text-[#0d0d0d] outline-none transition hover:bg-black/[0.03] active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-black/25 disabled:pointer-events-none disabled:opacity-60";
+  "inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/[0.08] px-4 text-sm font-medium text-white/85 outline-none transition-colors duration-200 hover:bg-white/[0.16] hover:text-white active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/40 disabled:pointer-events-none disabled:opacity-60";
 
 const NOTE_INPUT =
-  "w-full rounded-2xl border border-black/[0.12] bg-white px-4 py-3 text-sm text-[#0d0d0d] outline-none transition placeholder:text-[#0d0d0d]/40 focus:border-black/30 focus-visible:ring-2 focus-visible:ring-black/25";
+  "w-full rounded-2xl border border-white/20 bg-white/[0.06] px-4 py-3 text-sm text-white caret-white outline-none transition placeholder:text-white/40 focus:border-white/40 focus-visible:ring-2 focus-visible:ring-white/30";
 
 const normText = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
 
@@ -492,14 +492,14 @@ export function NoteView({
   return (
     <div className="relative">
       {enriching && (
-        <div className="mb-4 rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-900">
+        <div className="mb-4 rounded-2xl border border-amber-400/30 bg-amber-500/15 px-4 py-3 text-sm text-amber-100 backdrop-blur-md">
           Adding supplementary context from the web. Your lecture notes are ready to read — new
           highlights may appear shortly.
         </div>
       )}
       {/* Notes-section toolbar */}
       <div ref={toolbarRef} className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
+        <h2 className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/55 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)]">
           {editMode ? "Editing notes" : "Lecture notes"}
         </h2>
         <EditControls
@@ -544,31 +544,41 @@ export function NoteView({
           <TranscriptPanel transcript={saved.transcript} />
         )}
 
-        {/* Note body — one continuous canvas in edit mode */}
+        {/* Note body — contained in one dark liquid-glass plate that grows with
+            its content. One continuous canvas in edit mode. */}
         {editMode ? (
           <RichNoteEditor
             initialHtml={editorSeed}
             onChange={(html) => update((d) => void (d.bodyHtml = html))}
           />
-        ) : saved.bodyHtml ? (
-          <EditedNoteBody
-            html={saved.bodyHtml}
-            sources={saved.bodySources ?? []}
-            replaceLine={aiStream?.lineText}
-            streamNode={aiStreamNode}
-          />
         ) : (
-          <div className="space-y-9">
-            {saved.sections.map((section, i) => (
-              <SectionView key={i} index={i} section={section} />
-            ))}
+          <div
+            className={cn(
+              GLASS_DARK,
+              "note-surface rounded-3xl p-6 sm:p-8"
+            )}
+          >
+            {saved.bodyHtml ? (
+              <EditedNoteBody
+                html={saved.bodyHtml}
+                sources={saved.bodySources ?? []}
+                replaceLine={aiStream?.lineText}
+                streamNode={aiStreamNode}
+              />
+            ) : (
+              <div className="space-y-9">
+                {saved.sections.map((section, i) => (
+                  <SectionView key={i} index={i} section={section} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* Key concepts */}
         {(editMode || shown.keyConcepts.length > 0) && (
           <section>
-            <h3 className="text-2xl font-normal tracking-[-0.02em] text-[#0d0d0d]">
+            <h3 className="text-2xl font-normal tracking-[-0.02em] text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.5)]">
               Key <span className="font-instrument italic">concepts</span>
             </h3>
             <div className="mt-4">
@@ -596,7 +606,7 @@ export function NoteView({
                         void d.keyConcepts.push({ term: "", definition: "" })
                       )
                     }
-                    className="inline-flex items-center gap-2 rounded-full border border-dashed border-black/[0.12] bg-white px-4 py-2 text-sm font-medium text-[#0d0d0d]/55 outline-none transition-colors hover:border-black/30 hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
+                    className="inline-flex items-center gap-2 rounded-full border border-dashed border-white/25 bg-white/[0.06] px-4 py-2 text-sm font-medium text-white/60 outline-none backdrop-blur-md transition-colors hover:border-white/40 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
                   >
                     <Plus className="size-4" />
                     Add concept
@@ -630,14 +640,15 @@ function ProcessingNoteState({
   message: string;
 }) {
   const iconClass = failed
-    ? "relative mx-auto grid size-14 place-items-center rounded-full border border-black/[0.16] bg-white text-[#0d0d0d]"
+    ? "relative mx-auto grid size-14 place-items-center rounded-full border border-white/20 bg-white/10 text-white"
     : held
-    ? "relative mx-auto grid size-14 place-items-center rounded-full border border-orange-500/35 bg-orange-500/10 text-orange-700"
-    : "relative mx-auto grid size-14 place-items-center rounded-full border border-black/[0.12] bg-white text-[#0d0d0d]";
+    ? "relative mx-auto grid size-14 place-items-center rounded-full border border-orange-400/35 bg-orange-500/15 text-orange-200"
+    : "relative mx-auto grid size-14 place-items-center rounded-full border border-white/20 bg-white/10 text-white";
 
   return (
     <AuroraPanel
       active={!failed && !held}
+      variant="ink"
       className="mx-auto max-w-2xl"
       panelClassName="px-6 py-12 text-center"
     >
@@ -648,18 +659,18 @@ function ProcessingNoteState({
           <Loader2 className="size-6 animate-spin" />
         )}
       </span>
-      <h2 className="relative mt-5 text-3xl font-normal tracking-[-0.02em] text-[#0d0d0d]">
+      <h2 className="relative mt-5 text-3xl font-normal tracking-[-0.02em] text-white">
         {failed
           ? "Processing failed"
           : held
           ? "Atlas is at capacity right now"
           : "Still processing"}
       </h2>
-      <p className="relative mx-auto mt-3 max-w-md text-sm leading-relaxed text-[#0d0d0d]/60">
+      <p className="relative mx-auto mt-3 max-w-md text-sm leading-relaxed text-white/65">
         {message}
       </p>
       {held && (
-        <div className="relative mx-auto mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-800">
+        <div className="relative mx-auto mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/15 px-4 py-2 text-sm text-emerald-100">
           <span className="font-medium">You can safely close this tab</span>
           <span>— we&apos;ll email you when your notes are ready.</span>
         </div>
@@ -942,7 +953,7 @@ function AiStreamBlock({
   }, []);
 
   return (
-    <li className="text-violet-900/90">
+    <li className="text-violet-200">
       <SourceBullet text={shown || "…"} status="ai" />
       {!done && (
         <motion.span
@@ -1222,7 +1233,7 @@ function EditControls({
           onClick={doneInProgress ? undefined : onDone}
           disabled={doneInProgress}
           className={cn(
-            "relative inline-flex items-center justify-center overflow-hidden rounded-full bg-[#0d0d0d] text-xs font-medium text-white outline-none transition active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60",
+            "relative inline-flex items-center justify-center overflow-hidden rounded-full bg-white text-xs font-medium text-[#0d0d0d] outline-none transition active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white/50 disabled:pointer-events-none disabled:opacity-60",
             doneInProgress
               ? "size-[30px] rounded-full"
               : "h-[30px] gap-1.5 px-3"
@@ -1295,7 +1306,7 @@ function FloatingEditControls({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: reduce ? 0 : 12, scale: reduce ? 1 : 0.96 }}
           transition={{ type: "spring", stiffness: 360, damping: 28 }}
-          className="fixed bottom-6 right-4 z-40 rounded-full border border-white/55 bg-white/70 px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_50px_-28px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.07] backdrop-blur-md sm:right-6"
+          className="fixed bottom-6 right-4 z-40 rounded-full border border-white/15 bg-[#0d0d0d]/70 px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_18px_50px_-28px_rgba(0,0,0,0.6)] ring-1 ring-white/[0.06] backdrop-blur-xl sm:right-6"
           style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
         >
           <EditControls
@@ -1322,7 +1333,7 @@ function AutosaveIndicator({ status }: { status: SaveStatus }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.3 }}
-          className="inline-flex items-center gap-1.5 text-xs text-[#0d0d0d]/55"
+          className="inline-flex items-center gap-1.5 text-xs text-white/60"
         >
           {status === "saving" ? (
             <>
@@ -1383,18 +1394,18 @@ function SectionView({
   return (
     <section className="scroll-mt-24">
       <div className="flex items-baseline gap-3">
-        <span className="font-mono text-sm text-[#0d0d0d]/40">
+        <span className="font-mono text-sm text-white/40">
           {(index + 1).toString().padStart(2, "0")}
         </span>
-        <h3 className="text-2xl font-normal tracking-[-0.02em] text-[#0d0d0d]">
+        <h3 className="text-2xl font-normal tracking-[-0.02em] text-white">
           <AskableBlock text={section.heading}>{section.heading}</AskableBlock>
         </h3>
       </div>
 
       <ul className="mt-4 space-y-2.5">
         {section.points.map((point, j) => (
-          <li key={j} className="flex gap-3 leading-relaxed">
-            <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-[#0d0d0d]/40" />
+          <li key={j} className="flex gap-3 leading-relaxed text-white/85">
+            <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-white/45" />
             <AskableBlock
               text={point.text}
               sourceExcerpt={point.source_excerpt}
@@ -1411,17 +1422,17 @@ function SectionView({
       </ul>
 
       {section.subsections?.map((sub, k) => (
-        <div key={k} className="mt-5 border-l border-black/[0.1] pl-5">
-          <h4 className="font-medium tracking-tight text-[#0d0d0d]">
+        <div key={k} className="mt-5 border-l border-white/15 pl-5">
+          <h4 className="font-medium tracking-tight text-white">
             <AskableBlock text={sub.heading}>{sub.heading}</AskableBlock>
           </h4>
           <ul className="mt-2.5 space-y-2">
             {sub.points.map((point, j) => (
               <li
                 key={j}
-                className="flex gap-3 text-sm leading-relaxed text-[#0d0d0d]/60"
+                className="flex gap-3 text-sm leading-relaxed text-white/65"
               >
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-black/25" />
+                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-white/35" />
                 <AskableBlock
                   text={point.text}
                   sourceExcerpt={point.source_excerpt}
@@ -1455,12 +1466,12 @@ function ConceptBlock({
   onRemove: () => void;
 }) {
   return (
-    <div className="group/concept relative rounded-2xl border border-black/[0.08] bg-white p-5">
+    <div className={cn(GLASS_DARK, "group/concept relative rounded-3xl p-5")}>
       <button
         type="button"
         onClick={onRemove}
         aria-label="Remove concept"
-        className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-full text-[#0d0d0d]/45 opacity-0 outline-none transition hover:bg-black/[0.05] hover:text-[#0d0d0d] focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-black/25 group-hover/concept:opacity-100 motion-reduce:opacity-100"
+        className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-full text-white/50 opacity-0 outline-none transition hover:bg-white/10 hover:text-white focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/40 group-hover/concept:opacity-100 motion-reduce:opacity-100"
       >
         <X className="size-4" />
       </button>
@@ -1474,7 +1485,7 @@ function ConceptBlock({
         value={concept.definition}
         onChange={onDefinition}
         placeholder="Definition"
-        className="mt-2 w-full resize-none rounded-2xl border border-black/[0.08] bg-white px-4 py-3 text-sm leading-relaxed text-[#0d0d0d]/60 outline-none transition placeholder:text-[#0d0d0d]/40 focus:border-black/25 focus-visible:ring-2 focus-visible:ring-black/25"
+        className="mt-2 w-full resize-none rounded-2xl border border-white/20 bg-white/[0.06] px-4 py-3 text-sm leading-relaxed text-white/85 caret-white outline-none transition placeholder:text-white/40 focus:border-white/40 focus-visible:ring-2 focus-visible:ring-white/30"
       />
     </div>
   );

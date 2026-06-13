@@ -796,6 +796,38 @@
   pointer-events: none;
 }
 
+/* Dark note surface: the read-only body AND the TipTap editor now render inside a
+   dark liquid-glass plate, so .note-prose flips to white-on-dark whenever it sits
+   under .note-surface. Scoped (not the global --foreground token) so newsroom and
+   other prose stay untouched. */
+.note-surface .note-prose {
+  color: rgba(255, 255, 255, 0.86);
+  caret-color: #fff;
+}
+.note-surface .note-prose h2,
+.note-surface .note-prose strong {
+  color: #fff;
+}
+.note-surface .note-prose h3 {
+  color: rgba(255, 255, 255, 0.92);
+}
+.note-surface .note-prose li::marker {
+  color: rgba(255, 255, 255, 0.5);
+}
+.note-surface .note-prose ul > li::before {
+  background: rgba(255, 255, 255, 0.55);
+}
+.note-surface .note-prose u {
+  text-decoration-color: rgba(255, 255, 255, 0.55);
+}
+.note-surface .note-prose ::selection {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.note-surface .note-prose p.is-editor-empty:first-child::before {
+  color: rgba(255, 255, 255, 0.42);
+}
+
 /* Newsroom article body - rendered from sanitized Markdown HTML. Editorial,
    readable measure with restrained accents matching the glass language. */
 .article-prose {
