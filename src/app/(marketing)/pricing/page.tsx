@@ -202,8 +202,7 @@ export default async function PricingPage() {
             </h1>
             <p className="mt-5 max-w-[54ch] text-pretty text-[17px] leading-[1.6] text-black/60">
               Record class, get thorough notes, and ask Atlas anything about
-              them — free while we&rsquo;re in beta. Pro and Max are on the way;
-              they only show up once they&rsquo;re worth paying for.
+              them — free while we&rsquo;re in beta. Pro and Max plans coming soon.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
@@ -293,18 +292,17 @@ export default async function PricingPage() {
                 className="font-heading font-normal leading-[1.02] tracking-[-1.02px]"
                 style={{ fontSize: "clamp(2.25rem, 5vw, 60px)" }}
               >
-                One plan today. Two more in the{" "}
+                One plan today. Two more in {" "}
               </span>
               <span
                 className="font-instrument italic font-normal leading-[1.02] tracking-[-1.02px]"
                 style={{ fontSize: "clamp(2.25rem, 5vw, 60px)" }}
               >
-                clouds.
+                development.
               </span>
             </h2>
             <p className="mx-auto mt-4 max-w-[56ch] text-pretty text-[15px] leading-[1.6] text-black/60">
-              Atlas Free is live and complete. Pro and Max are still up in the
-              clouds — here&rsquo;s where they&rsquo;re headed.
+              Atlas Free is avaialble today. Pro and Max are still up in development — here&rsquo;s where they&rsquo;re headed.
             </p>
           </Reveal>
 
