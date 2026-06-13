@@ -134,8 +134,8 @@ export function Insights() {
           initial={{ opacity: 0, x: -60 }}
           animate={isInView ? { opacity: 1, x: 0 } : undefined}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-          className="relative overflow-hidden lg:flex-[1.4]"
-          style={{ borderRadius: 24, minHeight: 480 }}
+          className="relative min-h-[640px] overflow-hidden lg:min-h-[480px] lg:flex-[1.4]"
+          style={{ borderRadius: 24 }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
