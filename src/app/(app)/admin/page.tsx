@@ -5,6 +5,7 @@ import {
   Activity,
   Flag,
   ListOrdered,
+  Mail,
   Megaphone,
   ShieldCheck,
   Users,
@@ -59,6 +60,13 @@ const ACTIONS = [
     title: "Site",
     description:
       "Landing status pill, global sign-out queue, and broadcast messaging.",
+  },
+  {
+    href: "/admin/signature",
+    icon: Mail,
+    title: "Email signature",
+    description:
+      "Generate a consistent, on-brand Atlas email signature to copy into your mail client.",
   },
 ] as const;
 
