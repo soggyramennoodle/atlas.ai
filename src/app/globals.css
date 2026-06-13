@@ -1194,8 +1194,9 @@
   filter: none;
 }
 
-/* Cinematic-light Sonner toasts (marketing + auth only). Scoped via
-   data-atlas-surface set by MarketingThemeLock; the app keeps richColors. */
+/* Cinematic-light Sonner toasts (marketing + auth + onboarding). Scoped via
+   data-atlas-surface="cinematic" set by MarketingThemeLock. The signed-in app
+   uses the dark-glass variant below (data-atlas-surface="app"). */
 [data-atlas-surface="cinematic"] [data-sonner-toaster] {
   font-family: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
 }
@@ -1327,6 +1328,130 @@
   [data-close-button]:hover {
   background: rgba(0, 0, 0, 0.04);
   color: #0d0d0d;
+}
+
+/* Dark liquid-glass Sonner toasts — the signed-in app surface only
+   (data-atlas-surface="app"). White text on translucent dark glass, the same
+   family as the app's panels; per-type accent lives on the icon chip only.
+   `align-items: center` + the centered icon chip fix the icon alignment. */
+[data-atlas-surface="app"] [data-sonner-toaster] {
+  font-family: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-atlas-surface="app"] [data-sonner-toast][data-styled="true"] {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 16px;
+  font-size: 13px;
+  border-radius: 18px;
+  color: #ffffff;
+  background: rgba(18, 18, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 24px 60px -28px rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+}
+
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-styled="true"]
+  [data-content] {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-styled="true"]
+  [data-title] {
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-styled="true"]
+  [data-description] {
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.5;
+}
+
+/* Icon chip: fixed square, glyph dead-centre, vertically centred with the text. */
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-styled="true"]
+  [data-icon] {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  height: 26px;
+  width: 26px;
+  flex-shrink: 0;
+  margin: 0 2px 0 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-styled="true"]
+  [data-icon]
+  svg {
+  display: block;
+  margin: 0;
+}
+
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-type="error"][data-styled="true"] {
+  border-color: rgba(248, 113, 113, 0.3);
+}
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-type="error"][data-styled="true"]
+  [data-icon] {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(239, 68, 68, 0.2);
+  color: rgb(252, 165, 165);
+}
+
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-type="success"][data-styled="true"]
+  [data-icon] {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(16, 185, 129, 0.2);
+  color: rgb(110, 231, 183);
+}
+
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-type="warning"][data-styled="true"]
+  [data-icon] {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(245, 158, 11, 0.2);
+  color: rgb(253, 224, 71);
+}
+
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-type="info"][data-styled="true"]
+  [data-icon] {
+  border-color: rgba(96, 165, 250, 0.45);
+  background: rgba(59, 130, 246, 0.2);
+  color: rgb(147, 197, 253);
+}
+
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-styled="true"]
+  [data-close-button] {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 9999px;
+}
+[data-atlas-surface="app"]
+  [data-sonner-toast][data-styled="true"]
+  [data-close-button]:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -57,7 +57,7 @@ export default async function AppLayout({
 
   return (
     <RecordingProvider userId={user.id}>
-      <MarketingThemeLock />
+      <MarketingThemeLock surface="app" />
       <AccessRevocationGuard userId={user.id} />
       <PasskeyEnrollmentPrompt
         dismissedAt={profile?.passkey_prompt_dismissed_at ?? null}

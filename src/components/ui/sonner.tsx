@@ -10,17 +10,19 @@ import {
 } from "lucide-react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-/** True when marketing/auth layouts have tagged the document for cinematic UI. */
-function useCinematicSurface() {
-  const [cinematic, setCinematic] = useState(false);
+/** The document's Atlas surface tag (set by MarketingThemeLock): "cinematic" for
+ *  the light marketing/auth surfaces, "app" for the dark-glass signed-in app. */
+function useAtlasSurface(): "cinematic" | "app" | null {
+  const [surface, setSurface] = useState<"cinematic" | "app" | null>(null);
 
   useEffect(() => {
-    const read = () =>
-      document.documentElement.getAttribute("data-atlas-surface") ===
-      "cinematic";
+    const read = () => {
+      const s = document.documentElement.getAttribute("data-atlas-surface");
+      return s === "cinematic" || s === "app" ? s : null;
+    };
     // Microtask defer satisfies the no-sync-setState-in-effect rule; the
     // observer now actually writes state (it previously only re-read).
-    const update = () => setCinematic(read());
+    const update = () => setSurface(read());
     void Promise.resolve().then(update);
     const observer = new MutationObserver(update);
     observer.observe(document.documentElement, {
@@ -30,11 +32,15 @@ function useCinematicSurface() {
     return () => observer.disconnect();
   }, []);
 
-  return cinematic;
+  return surface;
 }
 
 const Toaster = ({ richColors = true, ...props }: ToasterProps) => {
-  const cinematic = useCinematicSurface();
+  const surface = useAtlasSurface();
+  // Both scoped surfaces drop richColors + take the Atlas font; the dark vs light
+  // look is carried by the data-atlas-surface CSS in globals.css.
+  const cinematic = surface === "cinematic" || surface === "app";
+  const isApp = surface === "app";
 
   return (
     <Sonner
@@ -70,19 +76,26 @@ const Toaster = ({ richColors = true, ...props }: ToasterProps) => {
           : undefined
       }
       style={
-        cinematic
+        isApp
           ? ({
-              "--border-radius": "20px",
-              "--normal-bg": "#ffffff",
-              "--normal-text": "#0d0d0d",
-              "--normal-border": "rgba(0, 0, 0, 0.08)",
+              "--border-radius": "18px",
+              "--normal-bg": "rgba(18, 18, 20, 0.72)",
+              "--normal-text": "#ffffff",
+              "--normal-border": "rgba(255, 255, 255, 0.14)",
             } as React.CSSProperties)
-          : ({
-              "--normal-bg": "var(--popover)",
-              "--normal-text": "var(--popover-foreground)",
-              "--normal-border": "var(--border)",
-              "--border-radius": "var(--radius)",
-            } as React.CSSProperties)
+          : cinematic
+            ? ({
+                "--border-radius": "20px",
+                "--normal-bg": "#ffffff",
+                "--normal-text": "#0d0d0d",
+                "--normal-border": "rgba(0, 0, 0, 0.08)",
+              } as React.CSSProperties)
+            : ({
+                "--normal-bg": "var(--popover)",
+                "--normal-text": "var(--popover-foreground)",
+                "--normal-border": "var(--border)",
+                "--border-radius": "var(--radius)",
+              } as React.CSSProperties)
       }
       {...props}
     />
