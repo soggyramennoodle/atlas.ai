@@ -109,7 +109,7 @@ const FOOTNOTES: { id: string; n: number; body: string }[] = [
   {
     id: "verify",
     n: 1,
-    body: "Payment information may be used to verify your identity and prevent abuse — such as one person opening multiple accounts to stack free usage — so we can keep the free tier sustainable for everyone. You will not be charged while Atlas is in beta.",
+    body: "Payment information may be used to verify your identity and prevent abuse, so we can keep the free tier sustainable for everyone. You will not be charged while Atlas is in beta.",
   },
 ];
 
