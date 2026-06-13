@@ -18,15 +18,21 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  PILL_PRIMARY_INLINE,
-  PILL_SECONDARY_INLINE,
-} from "@/components/app/pills";
-import { CARD } from "@/components/app/glass";
+import { CTA_WHITE, GLASS_DARK, GLASS_DARK_PILL } from "@/components/app/glass";
 import { cn } from "@/lib/utils";
 import type { CourseEntry, UserMemory, UserProfile } from "@/lib/types";
 
 type IconType = ComponentType<{ className?: string }>;
+
+/** Dark liquid-glass settings card. */
+const CARD = cn(GLASS_DARK, "rounded-3xl");
+/** Inline dark-glass secondary pill. */
+const PILL_SECONDARY_INLINE = cn(
+  GLASS_DARK_PILL,
+  "inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium"
+);
+/** White primary CTA (inline). */
+const PILL_PRIMARY_INLINE = cn(CTA_WHITE, "h-12 px-6 text-sm");
 
 /** De-dupe + trim a string list, dropping empties. */
 function clean(...lists: (string[] | undefined)[]): string[] {
@@ -64,7 +70,7 @@ function formatDate(iso: string): string | null {
 }
 
 const CHIP =
-  "inline-flex min-h-8 max-w-full items-center rounded-full border border-black/[0.08] bg-black/[0.03] px-3 py-1.5 text-left text-xs font-medium leading-5 text-[#0d0d0d]/68";
+  "inline-flex min-h-8 max-w-full items-center rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-left text-xs font-medium leading-5 text-white/70";
 
 /**
  * "What Atlas knows about you" surfaces the per-user personalization that
@@ -113,19 +119,19 @@ export function MemoryPanel({
             className="processing-glow"
             style={{ "--ai-ring-flow": "11s" } as CSSProperties}
           />
-          <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.10] bg-black/[0.03] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/55">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.06] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-white/60">
             <Brain className="size-3.5" />
             Atlas Memory
           </span>
-          <h2 className="mt-5 max-w-3xl text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+          <h2 className="mt-5 max-w-3xl text-3xl font-normal tracking-[-0.01em] text-white">
             What Atlas has learned about how you study
           </h2>
-          <p className="mt-3 max-w-3xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
+          <p className="mt-3 max-w-3xl text-pretty text-sm leading-6 text-white/65">
             As you record lectures and refine notes, Atlas learns your courses,
             recurring concepts, and preferred depth so each new note starts
             closer to the way you study.
           </p>
-          <p className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-3 py-1.5 text-xs font-medium text-[#0d0d0d]/55">
+          <p className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/60">
             <Lock className="size-3.5" />
             Private to you. Never shared with other students.
           </p>
@@ -145,7 +151,7 @@ export function MemoryPanel({
             ))}
           </div>
         ) : (
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-[#0d0d0d]/55">
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/60">
             Tell Atlas your program and university so notes start tuned to your
             field.
           </p>
@@ -153,7 +159,7 @@ export function MemoryPanel({
         <button
           type="button"
           onClick={onEditProfile}
-          className={`${PILL_SECONDARY_INLINE} mt-5 h-10 px-4 text-xs`}
+          className={cn(PILL_SECONDARY_INLINE, "mt-5 h-10 px-4 text-xs")}
         >
           {who.length > 0 ? "Edit profile" : "Complete profile"}
           <ArrowRight className="size-3.5" />
@@ -194,7 +200,7 @@ export function MemoryPanel({
               const date = formatDate(c.at);
               return (
                 <li key={`${c.at}-${i}`}>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#0d0d0d]/45">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/55">
                     {date && <span>{date}</span>}
                     {c.noteTitle && (
                       <>
@@ -203,7 +209,7 @@ export function MemoryPanel({
                       </>
                     )}
                   </div>
-                  <p className="mt-1 max-w-3xl text-pretty text-sm leading-6 text-[#0d0d0d]/72">
+                  <p className="mt-1 max-w-3xl text-pretty text-sm leading-6 text-white/75">
                     {c.summary}
                   </p>
                 </li>
@@ -216,7 +222,7 @@ export function MemoryPanel({
       {formatting.length > 0 && (
         <section className={cn(CARD, "p-6 sm:p-7")}>
           <SectionHeader icon={Type} title="Note formatting" />
-          <p className="mt-2 text-sm text-[#0d0d0d]/55">
+          <p className="mt-2 text-sm text-white/60">
             How your notes are presented.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -282,7 +288,7 @@ function RefineBox({
   return (
     <section className={cn(CARD, "p-6 sm:p-7")}>
       <SectionHeader icon={Wand2} title="Correct what Atlas knows" />
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-[#0d0d0d]/60">
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">
         Something off? Tell Atlas in plain language and it will adjust.
       </p>
       <textarea
@@ -298,17 +304,17 @@ function RefineBox({
             void submit();
           }
         }}
-        className="mt-5 min-h-32 w-full resize-none rounded-2xl border border-black/[0.12] bg-black/[0.02] px-5 py-4 text-sm leading-6 text-[#0d0d0d] outline-none transition placeholder:text-[#0d0d0d]/40 focus:border-black/30 focus-visible:ring-2 focus-visible:ring-black/25 disabled:opacity-60"
+        className="mt-5 min-h-32 w-full resize-none rounded-2xl border border-white/20 bg-white/[0.04] px-5 py-4 text-sm leading-6 text-white outline-none transition placeholder:text-white/40 focus:border-white/40 focus-visible:ring-2 focus-visible:ring-white/40 disabled:opacity-60"
       />
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <span className="text-xs text-[#0d0d0d]/45">
+        <span className="text-xs text-white/55">
           Cmd/Ctrl + Enter to send
         </span>
         <button
           type="button"
           onClick={submit}
           disabled={busy || !value.trim()}
-          className={`${PILL_PRIMARY_INLINE} h-10 px-4 text-xs`}
+          className={cn(PILL_PRIMARY_INLINE, "h-10 px-4 text-xs")}
         >
           {busy ? (
             <Loader2 className="size-4 animate-spin" />
@@ -324,7 +330,7 @@ function RefineBox({
           {changes.map((c, i) => (
             <li
               key={i}
-              className="flex items-start gap-2 py-2 text-sm leading-6 text-[#0d0d0d]/60"
+              className="flex items-start gap-2 py-2 text-sm leading-6 text-white/65"
             >
               <Check className="mt-1 size-4 shrink-0 text-emerald-500" />
               <span className="text-pretty">{c}</span>
@@ -345,10 +351,10 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="grid size-9 shrink-0 place-items-center rounded-full border border-black/[0.10] bg-white text-[#0d0d0d]">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full border border-white/20 bg-white/10 text-white">
         <Icon className="size-4" />
       </span>
-      <h3 className="text-base font-medium tracking-[-0.01em] text-[#0d0d0d]">
+      <h3 className="text-base font-medium tracking-[-0.01em] text-white">
         {title}
       </h3>
     </div>
@@ -376,7 +382,7 @@ function ChipSection({
           ))}
         </div>
       ) : (
-        <p className="text-sm leading-6 text-[#0d0d0d]/55">
+        <p className="text-sm leading-6 text-white/60">
           Nothing here yet. This fills in as you use Atlas.
         </p>
       )}
@@ -396,18 +402,18 @@ function ContentSection({ items }: { items: string[] }) {
           {items.map((item) => (
             <li
               key={item}
-              className="flex gap-2 text-sm leading-6 text-[#0d0d0d]/72"
+              className="flex gap-2 text-sm leading-6 text-white/75"
             >
               <span
                 aria-hidden
-                className="mt-2.5 size-1.5 shrink-0 rounded-full bg-[#0d0d0d]/35"
+                className="mt-2.5 size-1.5 shrink-0 rounded-full bg-white/35"
               />
               <span className="text-pretty">{item}</span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-sm leading-6 text-[#0d0d0d]/55">
+        <p className="text-sm leading-6 text-white/60">
           Edit a set of notes, add an example, or expand a derivation, and Atlas
           learns how much depth you want.
         </p>
@@ -426,7 +432,7 @@ function EmptyState() {
   return (
     <section className={cn(CARD, "p-6 sm:p-7")}>
       <SectionHeader icon={Brain} title="Atlas is just getting to know you" />
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-[#0d0d0d]/60">
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65">
         Record a lecture and tweak the generated notes. The more you use Atlas,
         the more this page fills in.
       </p>
@@ -434,9 +440,9 @@ function EmptyState() {
         {willLearn.map((w) => (
           <li
             key={w}
-            className="flex items-start gap-3 text-sm leading-6 text-[#0d0d0d]/72"
+            className="flex items-start gap-3 text-sm leading-6 text-white/75"
           >
-            <Sparkles className="mt-1 size-4 shrink-0 text-[#0d0d0d]/45" />
+            <Sparkles className="mt-1 size-4 shrink-0 text-white/55" />
             <span className="text-pretty">{w}</span>
           </li>
         ))}

@@ -208,8 +208,28 @@ Converted the whole capture + processing flow to dark glass (build passes):
 Note: a stray untracked `src/components/upload/capture-panel 2.tsx` (duplicate,
 unused, not imported) exists — left alone, not committed. Safe to delete.
 
-**Migration complete.** Background tuner already removed; if anything still reads
-light, grep `text-\[#0d0d0d\]|bg-white\b|border-black` per surface.
+## Stage 4 — Settings + app toasts ✅ DONE
+
+- **App toasts** — dark liquid-glass Sonner toasts on the signed-in app only
+  (`data-atlas-surface="app"` via a new `MarketingThemeLock` surface prop; CSS in
+  globals). Per-type accent on the icon chip; icon alignment fixed. Marketing/auth/
+  onboarding keep light cinematic toasts.
+- **Settings** (`settings/page.tsx` + `settings-client`, `settings-identity-card`,
+  `memory-panel`, `passkeys-panel`) — every `CARD` → dark glass (local
+  `const CARD = cn(GLASS_DARK, "rounded-3xl")` per file so call sites are
+  unchanged); tab nav → dark glass track w/ white active pill; profile inputs →
+  `DARK_FIELD`; pills → `CTA_WHITE` / `GLASS_DARK_PILL`; page header + identity
+  block (on the scene) → white + dark halo; memory/privacy hero cards keep their
+  `processing-glow` rainbow. Bulk color swap done via a scripted `perl` pass, then
+  structural edits by hand.
+
+**Migration complete** across dashboard, notes, record, settings + toasts.
+Background tuner already removed; if anything still reads light, grep
+`text-\[#0d0d0d\]|bg-white\b|border-black` per surface.
+
+Heads-up: project lives in an iCloud-synced `~/Documents`, which spawns " 2"
+conflict copies (e.g. `capture-panel 2.tsx`, `.next/types/*d 2.ts`) — harmless,
+not committed; `rm -rf .next/types` clears the tsc noise.
 
 ---
 

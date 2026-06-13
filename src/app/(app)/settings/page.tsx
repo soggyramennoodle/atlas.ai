@@ -34,15 +34,15 @@ export default async function SettingsPage() {
   return (
     <main className="px-4 pb-24 pt-8 sm:px-6 lg:px-10 lg:pt-12">
       <div className="mx-auto max-w-5xl">
-        <header className="border-b border-black/[0.08] pb-8">
-          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
+        <header className="border-b border-white/15 pb-8 [text-shadow:0_2px_20px_rgba(0,0,0,0.5)]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/55">
           Account
           </p>
-          <h1 className="mt-3 text-balance text-5xl font-normal leading-[0.98] text-[#0d0d0d] sm:text-6xl">
+          <h1 className="mt-3 text-balance text-5xl font-normal leading-[0.98] text-white sm:text-6xl">
             Settings for{" "}
             <span className="font-instrument italic">Atlas</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-pretty text-sm leading-6 text-[#0d0d0d]/60 sm:text-base">
+          <p className="mt-4 max-w-2xl text-pretty text-sm leading-6 text-white/65 sm:text-base">
             Keep your identity, study memory, sign-in methods, and privacy
             controls tuned without leaving the app.
           </p>

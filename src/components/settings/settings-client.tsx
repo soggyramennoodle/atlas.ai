@@ -15,16 +15,21 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  PILL_INPUT,
-  PILL_SECONDARY_INLINE,
-} from "@/components/app/pills";
-import { CARD, GLASS_CHIP } from "@/components/app/glass";
+  DARK_FIELD,
+  GLASS_DARK,
+  GLASS_DARK_PILL,
+} from "@/components/app/glass";
 import { cn } from "@/lib/utils";
 import type { UserMemory, UserProfile } from "@/lib/types";
 import { PasskeysPanel } from "@/components/settings/passkeys-panel";
 import { MemoryPanel } from "@/components/settings/memory-panel";
 
 type Tab = "profile" | "memory" | "privacy" | "account";
+
+/** The standard settings surface: dark liquid glass with a 3xl radius. */
+const CARD = cn(GLASS_DARK, "rounded-3xl");
+/** Pill-shaped dark text field for the profile form. */
+const FIELD = cn(DARK_FIELD, "h-11 w-full rounded-full px-5 text-sm");
 
 const TABS: { id: Tab; label: string; icon: ComponentType<{ className?: string }> }[] = [
   { id: "profile", label: "Profile", icon: User },
@@ -62,7 +67,7 @@ export function SettingsClient({
         aria-label="Settings sections"
         className={cn(
           "flex w-fit max-w-full gap-1 overflow-x-auto rounded-full p-1",
-          GLASS_CHIP
+          GLASS_DARK
         )}
       >
         {TABS.map((t) => {
@@ -74,16 +79,16 @@ export function SettingsClient({
               onClick={() => setTab(t.id)}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative isolate flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-full px-4 py-2 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-black/25",
+                "relative isolate flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-full px-4 py-2 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-white/40",
                 active
-                  ? "bg-[#0d0d0d] text-white"
-                  : "text-[#0d0d0d]/58 hover:bg-black/[0.04] hover:text-[#0d0d0d]"
+                  ? "text-[#0d0d0d]"
+                  : "text-white/60 hover:bg-white/[0.08] hover:text-white"
               )}
             >
               {active && (
                 <motion.span
                   layoutId="settings-tab"
-                  className="absolute inset-0 z-0 rounded-full bg-[#0d0d0d]"
+                  className="absolute inset-0 z-0 rounded-full bg-white"
                   transition={{ type: "spring", stiffness: 380, damping: 32 }}
                 />
               )}
@@ -166,13 +171,13 @@ function ProfileForm({
       <div className={cn(CARD, "p-6 sm:p-8")}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#0d0d0d]/45">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/55">
             Profile
           </p>
-          <h2 className="mt-2 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+          <h2 className="mt-2 text-3xl font-normal tracking-[-0.01em] text-white">
             Your study <span className="font-instrument italic">profile</span>
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#0d0d0d]/60">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">
             Atlas uses these details to personalize your notes. Changes save as
             you go.
           </p>
@@ -188,7 +193,7 @@ function ProfileForm({
           >
             <label
               htmlFor={f.key}
-              className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45"
+              className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/55"
             >
               {f.label}
             </label>
@@ -203,14 +208,14 @@ function ProfileForm({
               onKeyDown={(e) => {
                 if (e.key === "Enter") (e.target as HTMLInputElement).blur();
               }}
-              className={PILL_INPUT}
+              className={FIELD}
             />
           </div>
         ))}
         <div className="grid gap-2 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center">
           <label
             htmlFor="email-readonly"
-            className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45"
+            className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/55"
           >
             Email
           </label>
@@ -218,7 +223,7 @@ function ProfileForm({
             id="email-readonly"
             value={email}
             disabled
-            className={`${PILL_INPUT} bg-black/[0.03] text-[#0d0d0d]/55`}
+            className={cn(FIELD, "bg-white/[0.04] text-white/50")}
           />
         </div>
       </div>
@@ -230,7 +235,7 @@ function ProfileForm({
 function SaveStatus({ status }: { status: "idle" | "saving" | "saved" }) {
   if (status === "idle") return null;
   return (
-    <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-black/[0.10] bg-white px-3 text-xs font-medium text-[#0d0d0d]/60">
+    <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 text-xs font-medium text-white/65">
       {status === "saving" ? (
         <>
           <Loader2 className="size-3.5 animate-spin" /> Saving...
@@ -253,14 +258,14 @@ function PrivacyPanel() {
           className="processing-glow"
           style={{ "--ai-ring-flow": "11s" } as CSSProperties}
         />
-        <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.10] bg-black/[0.03] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/55">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.06] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-white/60">
           <Lock className="size-3.5" />
           Atlas Enclave
         </span>
-        <h2 className="mt-5 max-w-2xl text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+        <h2 className="mt-5 max-w-2xl text-3xl font-normal tracking-[-0.01em] text-white">
           Your notes are private and only visible to you.
         </h2>
-        <p className="mt-3 max-w-2xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
+        <p className="mt-3 max-w-2xl text-pretty text-sm leading-6 text-white/65">
           Every recording and note is scoped to your account alone. Other
           students and the public cannot see them.
         </p>
@@ -293,14 +298,14 @@ function InfoRow({
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-[3rem_minmax(0,1fr)]">
-      <span className="grid size-10 place-items-center rounded-full border border-black/[0.10] bg-white text-[#0d0d0d]">
+      <span className="grid size-10 place-items-center rounded-full border border-white/20 bg-white/10 text-white">
         <Icon className="size-4" />
       </span>
       <div>
-        <h3 className="text-sm font-medium tracking-[-0.01em] text-[#0d0d0d]">
+        <h3 className="text-sm font-medium tracking-[-0.01em] text-white">
           {title}
         </h3>
-        <p className="mt-1.5 max-w-2xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
+        <p className="mt-1.5 max-w-2xl text-pretty text-sm leading-6 text-white/65">
           {body}
         </p>
       </div>
@@ -321,18 +326,18 @@ function AccountPanel({
 
       <div className={cn(CARD, "space-y-5 p-6 sm:p-7")}>
         <div className="grid gap-2 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center">
-          <dt className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45">
+          <dt className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-white/55">
             <Mail className="size-3.5" /> Email
           </dt>
-          <dd className="min-w-0 truncate text-sm font-medium text-[#0d0d0d]">
+          <dd className="min-w-0 truncate text-sm font-medium text-white">
             {email}
           </dd>
         </div>
         <div className="grid gap-2 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center">
-          <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45">
+          <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/55">
             Member since
           </dt>
-          <dd className="text-sm font-medium text-[#0d0d0d]">
+          <dd className="text-sm font-medium text-white">
             {joined ?? "Not set"}
           </dd>
         </div>
@@ -340,15 +345,15 @@ function AccountPanel({
 
       <div className={cn(CARD, "flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7")}>
         <div>
-          <h3 className="text-lg font-normal tracking-[-0.01em] text-[#0d0d0d]">
+          <h3 className="text-lg font-normal tracking-[-0.01em] text-white">
             Sign out
           </h3>
-          <p className="mt-1 text-sm text-[#0d0d0d]/55">
+          <p className="mt-1 text-sm text-white/60">
             End your session on this device.
           </p>
         </div>
         <form action="/auth/signout" method="post">
-          <button className={`${PILL_SECONDARY_INLINE} h-10 px-4 text-xs`}>
+          <button className={cn(GLASS_DARK_PILL, "inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-xs font-medium")}>
             <LogOut className="size-4" />
             Sign out
           </button>
