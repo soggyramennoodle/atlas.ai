@@ -437,7 +437,7 @@ export default async function PricingPage() {
       {/* FAQ */}
       <section className="px-4 py-16 sm:px-6 lg:py-20">
         <div className="mx-auto grid w-full max-w-[1200px] gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-          <Reveal>
+          <Reveal className="lg:sticky lg:top-28 lg:self-start">
             <span className="grid size-11 place-items-center rounded-[14px] border border-black/10 bg-white text-[#0d0d0d] shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
               <MessageCircleQuestion className="size-5" strokeWidth={1.8} />
             </span>
