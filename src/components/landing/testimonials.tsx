@@ -1,13 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
+  useInView,
   useReducedMotion,
-  useScroll,
-  useTransform,
-  type MotionValue,
 } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,7 +20,8 @@ type Testimonial = {
 
 // Voice deliberately mixed — some polished and capitalised, some all-lowercase
 // and offhand, a couple skeptic-to-convert arcs — so the wall reads as real
-// students rather than one copywriter. Split into three rows of four below.
+// students rather than one copywriter. 18 total, six per row, so each marquee
+// track is wider than the viewport and loops with no gap.
 const ROW_1: Testimonial[] = [
   {
     quote:
@@ -47,10 +46,24 @@ const ROW_1: Testimonial[] = [
   },
   {
     quote:
-      "ngl i started recording lectures just to nap through them. the notes came out better than when i was awake lol",
-    name: "Jamal O.",
-    program: "Biochemistry",
-    year: "3rd year",
+      "Skipped a week with the flu and just caught up off the notes. Didn't have to email a single classmate.",
+    name: "Omar H.",
+    program: "Computer Eng",
+    year: "2nd year",
+  },
+  {
+    quote:
+      "honestly forgot i even recorded a lecture until i needed it. went back and the notes were just waiting. clutch.",
+    name: "Grace L.",
+    program: "Sociology",
+    year: "1st year",
+  },
+  {
+    quote:
+      "Reread a month of lectures the night before the final in about an hour. Used to eat a whole weekend.",
+    name: "Mei-ling C.",
+    program: "Economics",
+    year: "4th year",
   },
 ];
 
@@ -83,6 +96,20 @@ const ROW_2: Testimonial[] = [
     program: "Nursing",
     year: "1st year",
   },
+  {
+    quote:
+      "My prof posts nothing online. This is the only record I have of his lectures, full stop.",
+    name: "Yuki T.",
+    program: "Art History",
+    year: "3rd year",
+  },
+  {
+    quote:
+      "i used to rewrite my notes just to make them legible. now they come out legible. saved me hours.",
+    name: "Carlos M.",
+    program: "Kinesiology",
+    year: "2nd year",
+  },
 ];
 
 const ROW_3: Testimonial[] = [
@@ -102,36 +129,46 @@ const ROW_3: Testimonial[] = [
   },
   {
     quote:
-      "Reread a month of lectures the night before the final in about an hour. Used to eat a whole weekend.",
-    name: "Mei-ling C.",
-    program: "Economics",
-    year: "4th year",
-  },
-  {
-    quote:
       "five courses, every lecture turned into notes i'll actually reopen. that's the whole pitch and it just works.",
     name: "Fatima A.",
     program: "Health Sci",
     year: "2nd year",
   },
+  {
+    quote:
+      "ngl i started recording lectures just to nap through them. the notes came out better than when i was awake lol",
+    name: "Jamal O.",
+    program: "Biochemistry",
+    year: "3rd year",
+  },
+  {
+    quote:
+      "Sat through a guest lecture I barely understood live. The notes made it click two days later.",
+    name: "Priya D.",
+    program: "Philosophy",
+    year: "4th year",
+  },
+  {
+    quote:
+      "took me a couple lectures to actually trust it. haven't taken notes by hand since.",
+    name: "Ethan B.",
+    program: "Finance",
+    year: "1st year",
+  },
 ];
 
-const ALL = [...ROW_1, ...ROW_2, ...ROW_3];
-
-// Per-row entrance geometry. Cards swoop down from above along an inverted (∩)
-// arc — the middle row starts highest, the outer rows sway in from the sides —
-// then settle flat into the three-row grid before the carousel takes over.
-const ROW_ENTRY = [
-  { y: -300, x: -150, rotate: -7 },
-  { y: -420, x: 0, rotate: 0 },
-  { y: -300, x: 150, rotate: 7 },
-] as const;
+const ROWS = [ROW_1, ROW_2, ROW_3];
+// A trimmed, voice-varied set for the mobile swipe carousel — 18 dots would be
+// unusable on a phone.
+const MOBILE = [ROW_1[0], ROW_2[1], ROW_3[0], ROW_1[1], ROW_2[3], ROW_3[2], ROW_1[4]];
 
 const ROW_MARQUEE = [
   "animate-marquee",
   "animate-marquee-reverse",
   "animate-marquee-slow",
 ] as const;
+
+const smoothEase = [0.22, 1, 0.36, 1] as const;
 
 function initials(name: string) {
   return name
@@ -145,7 +182,7 @@ function initials(name: string) {
 // row stays level no matter how long a given quote runs.
 function Card({ t }: { t: Testimonial }) {
   return (
-    <article className="flex h-[200px] w-[316px] shrink-0 flex-col justify-between rounded-[24px] border border-black/[0.08] bg-white p-6 shadow-[0_18px_50px_rgba(0,0,0,0.12)]">
+    <article className="flex h-[208px] w-[320px] flex-col justify-between rounded-[24px] border border-black/[0.08] bg-white p-6 shadow-[0_18px_50px_rgba(0,0,0,0.12)]">
       <p className="font-heading text-pretty text-[14px] leading-[1.55] text-black/70">
         {t.quote}
       </p>
@@ -166,59 +203,65 @@ function Card({ t }: { t: Testimonial }) {
   );
 }
 
-// One endless carousel row: the landing marquee mechanism (one duplicated,
-// compositor-only track). Wrapped in a motion layer whose transform is scrubbed
-// by the section's scroll progress, so the arc fly-in composes cleanly on top
-// of the continuous horizontal drift.
+// One endless carousel row. The cards each play a one-time rise-from-below
+// fly-in (staggered) once `entered`, settling to their natural transform; the
+// row's continuous horizontal drift is a CSS marquee switched on only after the
+// fly-in lands (`carouselOn`), so the two motions never fight.
 function CarouselRow({
   items,
   rowIndex,
-  progress,
-  reduce,
+  entered,
+  carouselOn,
 }: {
   items: Testimonial[];
   rowIndex: number;
-  progress: MotionValue<number>;
-  reduce: boolean;
+  entered: boolean;
+  carouselOn: boolean;
 }) {
-  const entry = ROW_ENTRY[rowIndex];
-  // Staggered entrance window: each row lands a touch after the one before it,
-  // all completing within the first ~quarter of the pinned scrub.
-  const start = 0.02 + rowIndex * 0.05;
-  const end = start + 0.2;
-
-  const opacity = useTransform(progress, [start, start + 0.05], [0, 1]);
-  const y = useTransform(progress, [start, end], [entry.y, 0]);
-  const x = useTransform(progress, [start, end], [entry.x, 0]);
-  const rotate = useTransform(progress, [start, end], [entry.rotate, 0]);
-
   return (
-    <motion.div style={reduce ? undefined : { opacity, y, x, rotate }}>
-      <div
-        className={cn(
-          "marquee-mask flex w-max will-change-transform",
-          !reduce && ROW_MARQUEE[rowIndex],
-        )}
-      >
-        {[0, 1].map((track) => (
-          <ul
-            key={track}
-            aria-hidden={track === 1}
-            className="flex shrink-0 items-center gap-4 pr-4"
-          >
-            {items.map((t) => (
+    <div
+      className={cn(
+        "marquee-mask flex w-max will-change-transform",
+        carouselOn && ROW_MARQUEE[rowIndex],
+      )}
+    >
+      {[0, 1].map((track) => (
+        <ul
+          key={track}
+          aria-hidden={track === 1}
+          className="flex shrink-0 items-center gap-4 pr-4"
+        >
+          {items.map((t, i) => {
+            // Stagger across the whole grid so cards arrive one at a time, with
+            // a gentle alternating sideways lean + tilt for the curved rise.
+            const delay = 0.1 + rowIndex * 0.14 + i * 0.07;
+            const lean = i % 2 === 0 ? -26 : 26;
+            const tilt = i % 2 === 0 ? -3.5 : 3.5;
+            const hidden = {
+              opacity: 0,
+              y: 120,
+              x: lean,
+              scale: 0.9,
+              rotate: tilt,
+            };
+            const shown = { opacity: 1, y: 0, x: 0, scale: 1, rotate: 0 };
+            return (
               <li key={`${track}-${t.name}`}>
-                <Card t={t} />
+                <motion.div
+                  initial={hidden}
+                  animate={entered ? shown : hidden}
+                  transition={{ duration: 0.8, delay, ease: smoothEase }}
+                >
+                  <Card t={t} />
+                </motion.div>
               </li>
-            ))}
-          </ul>
-        ))}
-      </div>
-    </motion.div>
+            );
+          })}
+        </ul>
+      ))}
+    </div>
   );
 }
-
-const ROWS = [ROW_1, ROW_2, ROW_3];
 
 function Heading() {
   return (
@@ -244,33 +287,26 @@ function Heading() {
   );
 }
 
-// Card width + gap used for the mobile carousel index math (w-[300px] + gap-4).
-const MOBILE_STEP = 300 + 16;
+// Card width + gap used for the mobile carousel index math (w-[320px] + gap-4).
+const MOBILE_STEP = 320 + 16;
 
 export function Testimonials() {
   const reduce = useReducedMotion() ?? false;
 
-  // ── Desktop pinned scroll-scrub ──────────────────────────────────────────
+  // ── Desktop pinned cinematic entrance ─────────────────────────────────────
   const stageRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: stageRef,
-    offset: ["start start", "end end"],
+  // Fire once the pinned stage settles near the centre of the viewport.
+  const entered = useInView(stageRef, {
+    once: true,
+    margin: "-25% 0px -25% 0px",
   });
-
-  // Zoom: the rows start inset (a contained section with #fafafa margins) then
-  // scale up to fill the viewport while pinned, then zoom back out on exit —
-  // the neighbouring sections appear to pull out of frame and back.
-  const stageScale = useTransform(
-    scrollYProgress,
-    [0, 0.22, 0.74, 1],
-    [0.6, 1, 1, 0.6],
-  );
-  // Heading recedes while the cards own the screen, returns as we zoom out.
-  const headingOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.22, 0.74, 1],
-    [1, 0.2, 0.2, 1],
-  );
+  // The horizontal drift only switches on after the fly-in has landed.
+  const [carouselOn, setCarouselOn] = useState(false);
+  useEffect(() => {
+    if (!entered) return;
+    const id = window.setTimeout(() => setCarouselOn(true), 1500);
+    return () => window.clearTimeout(id);
+  }, [entered]);
 
   // ── Mobile swipe carousel ─────────────────────────────────────────────────
   const trackRef = useRef<HTMLDivElement>(null);
@@ -289,8 +325,7 @@ export function Testimonials() {
 
   return (
     <>
-      {/* Desktop: pinned zoom-in, arc fly-in, then endless three-row carousel.
-          Under reduced motion this collapses to a plain stacked section below. */}
+      {/* Desktop. Reduced motion collapses to a plain stacked section. */}
       {reduce ? (
         <section className="hidden overflow-hidden bg-[#fafafa] px-6 py-20 lg:block">
           <div className="mx-auto max-w-[1200px]">
@@ -299,42 +334,63 @@ export function Testimonials() {
             </Reveal>
             <div className="flex flex-col gap-4">
               {ROWS.map((items, i) => (
-                <CarouselRow
-                  key={i}
-                  items={items}
-                  rowIndex={i}
-                  progress={scrollYProgress}
-                  reduce
-                />
+                <div key={i} className="marquee-mask flex w-max">
+                  <ul className="flex shrink-0 items-center gap-4 pr-4">
+                    {items.map((t) => (
+                      <li key={t.name}>
+                        <Card t={t} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
             </div>
           </div>
         </section>
       ) : (
         <section
-          ref={stageRef}
           className="relative hidden bg-[#fafafa] lg:block"
-          style={{ height: "260vh" }}
+          style={{ height: "210vh" }}
           aria-label="What students say"
         >
-          <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+          <div className="sticky top-0 h-screen overflow-hidden">
             <motion.div
-              style={{ scale: stageScale }}
-              className="flex w-full flex-col items-center gap-8"
+              ref={stageRef}
+              className="absolute inset-0 flex items-center justify-center"
+              initial={{ scale: 0.72 }}
+              animate={{ scale: entered ? 1 : 0.72 }}
+              transition={{ duration: 1, ease: smoothEase }}
             >
-              <motion.div style={{ opacity: headingOpacity }}>
-                <Heading />
-              </motion.div>
-              <div className="flex w-full flex-col gap-4">
-                {ROWS.map((items, i) => (
-                  <CarouselRow
-                    key={i}
-                    items={items}
-                    rowIndex={i}
-                    progress={scrollYProgress}
-                    reduce={false}
-                  />
-                ))}
+              <div className="relative w-full">
+                {/* Heading floats above the rows so its exit causes no layout
+                    shift: visible through the fly-in, then lifts away so the
+                    cards own the full screen. */}
+                <motion.div
+                  className="absolute inset-x-0 bottom-full mb-10 flex justify-center"
+                  initial={{ opacity: 1, y: 0 }}
+                  animate={
+                    entered ? { opacity: 0, y: -64 } : { opacity: 1, y: 0 }
+                  }
+                  transition={{
+                    duration: 0.7,
+                    delay: entered ? 1.15 : 0,
+                    ease: smoothEase,
+                  }}
+                >
+                  <Heading />
+                </motion.div>
+
+                <div className="flex w-full flex-col gap-4">
+                  {ROWS.map((items, i) => (
+                    <CarouselRow
+                      key={i}
+                      items={items}
+                      rowIndex={i}
+                      entered={entered}
+                      carouselOn={carouselOn}
+                    />
+                  ))}
+                </div>
               </div>
             </motion.div>
           </div>
@@ -353,7 +409,7 @@ export function Testimonials() {
             onScroll={handleScroll}
             className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {ALL.map((t) => (
+            {MOBILE.map((t) => (
               <div key={t.name} className="shrink-0 snap-start">
                 <Card t={t} />
               </div>
@@ -362,7 +418,7 @@ export function Testimonials() {
 
           <div className="mt-6 flex items-center justify-center gap-4">
             <div className="flex items-center gap-1.5">
-              {ALL.map((t, i) => (
+              {MOBILE.map((t, i) => (
                 <button
                   key={t.name}
                   type="button"
