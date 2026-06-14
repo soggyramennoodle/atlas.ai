@@ -14,7 +14,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 flex-col px-6 pb-8 pt-6 sm:px-10 lg:px-14">
         <div className="flex justify-center lg:justify-start">
           <Link href="/">
-            <Logo beta />
+            <Logo className="text-[#0d0d0d]" />
           </Link>
         </div>
 
