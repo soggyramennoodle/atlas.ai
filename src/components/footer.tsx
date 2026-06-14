@@ -180,14 +180,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-black/10 pt-6 text-xs text-black/45 sm:flex-row">
-          <p>© {new Date().getFullYear()}. Atlas Co. Made with Love in Toronto 🇨🇦</p>
-          <div className="flex items-center gap-2 font-mono">
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-              <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-            </span>
-            All systems operational
-          </div>
+          <p>Atlas Co. 2026. Made with love in the Prairies 🌾</p>
         </div>
       </div>
     </footer>
