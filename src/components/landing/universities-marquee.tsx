@@ -3,39 +3,48 @@
 import { cn } from "@/lib/utils";
 
 /**
- * An endless strip of Canadian university logos, mirroring the SubjectsMarquee
- * mechanism (one compositor-only translate of a duplicated track). Logos stay
- * muted at rest but preserve crest colour, then reveal full colour on hover.
+ * An endless strip of North American university crests, mirroring the
+ * SubjectsMarquee mechanism (one compositor-only translate of a duplicated
+ * track). Canadian and US schools are deliberately scrambled together rather
+ * than grouped by country, and every logo renders at a single uniform height.
+ * Logos stay muted at rest but preserve crest colour, then reveal full colour
+ * on hover.
  */
 
-const LOGO_SIZE_CLASS = {
-  base: "h-12 sm:h-[3.75rem]",
-  tall: "h-14 sm:h-[4.5rem]",
-  focus: "h-16 sm:h-20",
-} as const;
-
-type LogoSize = keyof typeof LOGO_SIZE_CLASS;
-
+// Crest + wordmark lockups, bold heraldic shields, and official seals — all
+// sized to one height so the strip reads as a uniform wall of crests. CA and US
+// are interleaved (never clustered by country, including across the loop seam).
 export const UNIVERSITIES = [
+  { src: "/universities/harvard.svg", name: "Harvard University" },
   { src: "/universities/toronto.png", name: "University of Toronto" },
-  { src: "/universities/waterloo.png", name: "University of Waterloo", size: "focus" },
+  { src: "/universities/stanford.svg", name: "Stanford University" },
   { src: "/universities/mcgill.png", name: "McGill University" },
+  { src: "/universities/waterloo.png", name: "University of Waterloo" },
+  { src: "/universities/yale.svg", name: "Yale University" },
   { src: "/universities/ubc.png", name: "University of British Columbia" },
-  { src: "/universities/queens.png", name: "Queen's University" },
+  { src: "/universities/berkeley.svg", name: "University of California, Berkeley" },
   { src: "/universities/western.png", name: "Western University" },
-  { src: "/universities/mcmaster.png", name: "McMaster University", size: "focus" },
+  { src: "/universities/princeton.svg", name: "Princeton University" },
+  { src: "/universities/mcmaster.png", name: "McMaster University" },
+  { src: "/universities/columbia.svg", name: "Columbia University" },
   { src: "/universities/alberta.png", name: "University of Alberta" },
+  { src: "/universities/queens.png", name: "Queen's University" },
+  { src: "/universities/cornell.svg", name: "Cornell University" },
   { src: "/universities/york.png", name: "York University" },
-  { src: "/universities/toronto-metropolitan.png", name: "Toronto Metropolitan University", size: "focus" },
+  { src: "/universities/notre-dame.svg", name: "University of Notre Dame" },
   { src: "/universities/calgary.png", name: "University of Calgary" },
-  { src: "/universities/victoria.png", name: "University of Victoria", size: "tall" },
-  { src: "/universities/new-brunswick.png", name: "University of New Brunswick", size: "tall" },
-  { src: "/universities/manitoba.png", name: "University of Manitoba", size: "tall" },
+  { src: "/universities/penn.svg", name: "University of Pennsylvania" },
+  { src: "/universities/victoria.png", name: "University of Victoria" },
+  { src: "/universities/chicago.png", name: "University of Chicago" },
+  { src: "/universities/new-brunswick.png", name: "University of New Brunswick" },
+  { src: "/universities/johns-hopkins.svg", name: "Johns Hopkins University" },
+  { src: "/universities/manitoba.png", name: "University of Manitoba" },
+  { src: "/universities/brown.svg", name: "Brown University" },
   { src: "/universities/saskatchewan.png", name: "University of Saskatchewan" },
+  { src: "/universities/toronto-metropolitan.png", name: "Toronto Metropolitan University" },
 ] satisfies Array<{
   src: string;
   name: string;
-  size?: LogoSize;
 }>;
 
 export function UniversitiesMarquee() {
@@ -45,7 +54,7 @@ export function UniversitiesMarquee() {
       className="relative overflow-hidden border-b border-border py-8"
     >
       <p className="mb-6 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-        For students across Canada
+        For students across North America
       </p>
       <div className="marquee-mask flex w-max animate-marquee-reverse will-change-transform">
         {[0, 1].map((track) => (
@@ -68,7 +77,8 @@ export function UniversitiesMarquee() {
                   loading="lazy"
                   className={cn(
                     "uni-logo w-auto max-w-none object-contain",
-                    LOGO_SIZE_CLASS[u.size ?? "base"],
+                    // One uniform height for every crest, CA and US alike.
+                    "h-14 sm:h-16",
                   )}
                 />
               </li>
