@@ -201,7 +201,7 @@ export default async function PricingPage() {
   ];
 
   return (
-    <main className="font-heading overflow-hidden bg-[#fafafa]">
+    <main className="font-heading overflow-x-clip bg-[#fafafa]">
       {/* Hero */}
       <section className="px-4 pb-16 pt-28 sm:px-6 sm:pt-32 lg:pb-20">
         <div className="mx-auto grid w-full max-w-[1200px] items-center gap-10 lg:grid-cols-12">
