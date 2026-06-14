@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
 import { Reveal } from "@/components/landing/reveal";
 
 type Testimonial = {
@@ -102,15 +103,35 @@ function CardBody({ t }: { t: Testimonial }) {
   );
 }
 
+// Card width + gap used for the mobile carousel index math (w-[280px] + gap-4).
+const MOBILE_STEP = 280 + 16;
+
 export function Testimonials() {
   const reduce = useReducedMotion();
   const [hovered, setHovered] = useState<number | null>(null);
+
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+  const [hasSwiped, setHasSwiped] = useState(false);
+
+  function handleScroll(e: React.UIEvent<HTMLDivElement>) {
+    const index = Math.round(e.currentTarget.scrollLeft / MOBILE_STEP);
+    if (index !== active) setActive(index);
+    if (!hasSwiped) setHasSwiped(true);
+  }
+
+  function scrollTo(index: number) {
+    trackRef.current?.scrollTo({
+      left: index * MOBILE_STEP,
+      behavior: "smooth",
+    });
+  }
 
   // The inner card surface — owns the hover lift + emerald focus accent. Kept
   // separate from the entrance layer so the slow reveal transition never
   // bleeds into the snappy hover-out.
   const cardClass =
-    "group flex h-[230px] w-[280px] cursor-default flex-col justify-between rounded-[24px] border border-black/[0.08] bg-white p-6 shadow-[0_18px_50px_rgba(0,0,0,0.12)] transition-[box-shadow,border-color] duration-300 hover:border-[#0a5736]/25 hover:shadow-[0_26px_60px_-12px_rgba(10,87,54,0.35)]";
+    "group flex w-[280px] cursor-default flex-col justify-between rounded-[24px] border border-black/[0.08] bg-white p-6 shadow-[0_18px_50px_rgba(0,0,0,0.12)] transition-[box-shadow,border-color] duration-300 hover:border-[#0a5736]/25 hover:shadow-[0_26px_60px_-12px_rgba(10,87,54,0.35)]";
 
   return (
     <section className="overflow-hidden bg-[#fafafa] px-6 py-20">
@@ -173,7 +194,7 @@ export function Testimonials() {
                   <motion.article
                     onMouseEnter={() => setHovered(i)}
                     onMouseLeave={() => setHovered(null)}
-                    className={cardClass}
+                    className={`${cardClass} h-[230px]`}
                     initial={{ rotate: slot.rotate, scale: slot.scale }}
                     whileHover={
                       reduce
@@ -190,19 +211,58 @@ export function Testimonials() {
           </div>
         </div>
 
-        {/* Mobile / tablet: swipeable row */}
-        <div className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {TESTIMONIALS.map((t, i) => (
-            <Reveal
-              key={t.name}
-              delay={i * 0.06}
-              className="snap-center shrink-0"
-            >
-              <article className={`${cardClass} shadow-[0_8px_30px_rgba(0,0,0,0.05)]`}>
+        {/* Mobile / tablet: swipeable carousel with dots + swipe hint */}
+        <div className="lg:hidden">
+          <div
+            ref={trackRef}
+            onScroll={handleScroll}
+            className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {TESTIMONIALS.map((t) => (
+              <article
+                key={t.name}
+                className={`${cardClass} h-[210px] shrink-0 snap-start !shadow-[0_8px_30px_rgba(0,0,0,0.05)]`}
+              >
                 <CardBody t={t} />
               </article>
-            </Reveal>
-          ))}
+            ))}
+          </div>
+
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <div className="flex items-center gap-1.5">
+              {TESTIMONIALS.map((t, i) => (
+                <button
+                  key={t.name}
+                  type="button"
+                  aria-label={`Go to testimonial ${i + 1}`}
+                  onClick={() => scrollTo(i)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    active === i ? "w-5 bg-[#0d0d0d]" : "w-1.5 bg-black/20"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <AnimatePresence>
+              {!hasSwiped && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="font-heading flex items-center gap-0.5 text-[12px] font-medium text-black/40"
+                >
+                  Swipe
+                  <motion.span
+                    aria-hidden
+                    animate={reduce ? undefined : { x: [0, 3, 0] }}
+                    transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <ChevronRight className="size-3.5" strokeWidth={2} />
+                  </motion.span>
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </section>
