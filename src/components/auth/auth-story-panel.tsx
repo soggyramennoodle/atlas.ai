@@ -4,7 +4,7 @@ import { useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { UNIVERSITIES } from "@/components/landing/universities-marquee";
 
-const PANEL_IMAGE = "/auth/story-login.jpg";
+const PANEL_IMAGE = "/app/meadow-scene.jpg";
 
 /* Split the crest set into three interleaved rows so each marquee carries a
    distinct, non-repeating run of schools. */
@@ -54,11 +54,15 @@ function CrestRow({
                 compact ? "h-12 px-3.5" : "h-16 px-5",
               )}
               style={{
-                background: "rgba(255,255,255,0.94)",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
+                // Frosted liquid glass, not a flat white card: translucent
+                // fill + blur/saturate so it refracts the meadow behind it
+                // while keeping colour crests legible.
+                background: "rgba(255,255,255,0.78)",
+                border: "1px solid rgba(255,255,255,0.6)",
+                backdropFilter: "blur(14px) saturate(1.4)",
+                WebkitBackdropFilter: "blur(14px) saturate(1.4)",
                 boxShadow:
-                  "0 6px 18px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.9)",
+                  "inset 0 1px 0 rgba(255,255,255,0.85), 0 10px 26px -14px rgba(0,0,0,0.5)",
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -103,35 +107,17 @@ export function AuthStoryPanel({ compact = false }: { compact?: boolean }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={PANEL_IMAGE}
-        alt="A student taking notes in a lecture hall"
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ objectPosition: "center 30%" }}
+        alt="A quiet dawn meadow"
+        className="absolute inset-0 h-full w-full object-cover [filter:contrast(1.08)_saturate(1.12)]"
+        style={{ objectPosition: "center 35%" }}
       />
 
-      {/* Soft-light green tint */}
+      {/* Dark veil — the app/dash dawn-meadow treatment, so the frosted glass
+          chips cohere instead of fighting a bright scene. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
-        style={{
-          mixBlendMode: "soft-light",
-          background:
-            "linear-gradient(160deg, rgba(220,255,90,0.65) 0%, rgba(170,230,70,0.35) 40%, rgba(80,140,40,0.25) 100%)",
-        }}
-      />
-      {/* Radial highlight */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at 30% 15%, rgba(230,255,120,0.25), transparent 55%)",
-        }}
-      />
-      {/* Darken for crest + headline legibility */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{ background: "rgba(4,5,4,0.32)" }}
+        style={{ background: "rgba(10,12,16,0.46)" }}
       />
       {/* Lower dark gradient */}
       <div
