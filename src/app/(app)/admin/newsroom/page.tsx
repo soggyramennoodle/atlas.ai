@@ -62,10 +62,10 @@ export default async function AdminNewsroomPage() {
               <Newspaper className="size-3.5" />
               Admin
             </span>
-            <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+            <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]">
               Newsroom
             </h1>
-            <p className="mt-2 text-sm leading-6 text-[#0d0d0d]/60">
+            <p className="mt-2 text-sm leading-6 text-white/70 [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]">
               {articles.length === 0
                 ? "Publish announcements, product updates and notices."
                 : `${counts.published ?? 0} published · ${counts.draft ?? 0} draft · ${counts.archived ?? 0} archived`}

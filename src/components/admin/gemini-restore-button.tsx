@@ -71,7 +71,7 @@ export function GeminiRestoreButton({ onResolved }: { onResolved?: () => void })
       disabled={!active || busy}
       className={
         active
-          ? "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 text-xs font-medium text-white outline-none transition hover:bg-emerald-700 disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-black/25"
+          ? "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 text-xs font-medium text-white outline-none transition hover:bg-emerald-700 disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-white/40"
           : `${ADMIN_BTN} h-10`
       }
     >

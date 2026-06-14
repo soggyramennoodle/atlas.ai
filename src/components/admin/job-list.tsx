@@ -23,7 +23,7 @@ export function AdminJobList({ jobs }: { jobs: AdminJobRow[] }) {
   return (
     <div className={cn(CARD, "overflow-x-auto")}>
       <table className="min-w-full text-left text-sm">
-        <thead className="border-b border-black/[0.08] text-[11px] uppercase tracking-[0.16em] text-[#0d0d0d]/45">
+        <thead className="border-b border-white/10 text-[11px] uppercase tracking-[0.16em] text-white/50">
           <tr>
             <th className="px-4 py-3 font-medium">Job</th>
             <th className="px-4 py-3 font-medium">Owner</th>
@@ -32,7 +32,7 @@ export function AdminJobList({ jobs }: { jobs: AdminJobRow[] }) {
             <th className="px-4 py-3 font-medium">Auto-delete</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-black/[0.06]">
+        <tbody className="divide-y divide-white/10">
           {jobs.map((job) => (
             <JobRow key={job.id} job={job} />
           ))}

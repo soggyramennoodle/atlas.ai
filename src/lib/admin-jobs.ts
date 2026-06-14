@@ -46,10 +46,10 @@ export const JOB_STATUS_LABELS: Record<LectureJobStatus, string> = {
 };
 
 export const JOB_STATUS_TONES: Record<LectureJobStatus, string> = {
-  recording: "border-amber-500/35 bg-amber-500/10 text-amber-700",
-  recording_complete: "border-sky-500/35 bg-sky-500/10 text-sky-700",
-  processing: "border-violet-500/35 bg-violet-500/10 text-violet-700",
-  enriching: "border-amber-500/35 bg-amber-500/10 text-amber-700",
-  ready: "border-emerald-500/35 bg-emerald-500/10 text-emerald-700",
-  failed: "border-[#0d0d0d] bg-[#0d0d0d] text-white",
+  recording: "border-amber-300/40 bg-amber-300/15 text-amber-200",
+  recording_complete: "border-sky-300/40 bg-sky-300/15 text-sky-200",
+  processing: "border-violet-300/40 bg-violet-300/15 text-violet-200",
+  enriching: "border-amber-300/40 bg-amber-300/15 text-amber-200",
+  ready: "border-emerald-300/40 bg-emerald-300/15 text-emerald-200",
+  failed: "border-white/30 bg-white/15 text-white",
 };

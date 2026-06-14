@@ -53,12 +53,12 @@ export function LogoutAllButton() {
     <div className={cn(CARD, "p-6 sm:p-7")}>
       <div className="flex items-start gap-3.5">
         {/* Drastic action: amber attention, never a red block. */}
-        <span className="grid size-10 shrink-0 place-items-center rounded-full border border-amber-500/35 bg-amber-500/10 text-amber-700">
+        <span className="grid size-10 shrink-0 place-items-center rounded-full border border-amber-300/35 bg-amber-300/15 text-amber-200">
           <AlertTriangle className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="font-medium text-[#0d0d0d]">Log out everyone</h2>
-          <p className="mt-1 text-sm leading-6 text-[#0d0d0d]/60">
+          <h2 className="font-medium text-white">Log out everyone</h2>
+          <p className="mt-1 text-sm leading-6 text-white/70">
             Queues a sign-out for every non-admin account. Users mid-recording
             finish uploading first; processing sessions end immediately. Admins
             are never signed out.
@@ -76,10 +76,10 @@ export function LogoutAllButton() {
           Log out everyone
         </button>
       ) : (
-        <div className="mt-5 space-y-3 rounded-2xl border border-amber-500/30 bg-amber-500/[0.06] p-4">
-          <p className="text-sm text-[#0d0d0d]/60">
+        <div className="mt-5 space-y-3 rounded-2xl border border-amber-300/30 bg-amber-300/[0.08] p-4">
+          <p className="text-sm text-white/70">
             Type{" "}
-            <strong className="font-medium text-[#0d0d0d]">
+            <strong className="font-medium text-white">
               {CONFIRM_PHRASE}
             </strong>{" "}
             to confirm.
@@ -87,7 +87,7 @@ export function LogoutAllButton() {
           <div className="space-y-2">
             <label
               htmlFor="logout-all-confirm"
-              className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45"
+              className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/50"
             >
               Confirmation
             </label>

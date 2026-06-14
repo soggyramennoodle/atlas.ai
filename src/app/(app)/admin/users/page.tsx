@@ -26,8 +26,8 @@ export default async function AdminUsersPage() {
             <Users className="size-3.5" />
             Admin
           </span>
-          <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">Users</h1>
-          <p className="mt-2 max-w-3xl text-pretty text-sm leading-6 text-[#0d0d0d]/60">
+          <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]">Users</h1>
+          <p className="mt-2 max-w-3xl text-pretty text-sm leading-6 text-white/70 [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]">
             Every signed-up account, by email and sign-in method. Resend a magic
             link, suspend an account, or delete it entirely (which also purges
             their notes, recordings and stored audio).

@@ -15,6 +15,7 @@ import {
 import { countUnreadFeedback } from "@/lib/admin-feedback-server";
 import { getNewsroomAdmin } from "@/lib/newsroom-server";
 import { ADMIN_EYEBROW, CARD, cn } from "@/components/admin/admin-kit";
+import { GLASS_HOVER } from "@/components/app/glass";
 
 export const metadata: Metadata = { title: "Admin" };
 export const dynamic = "force-dynamic";
@@ -85,10 +86,10 @@ export default async function AdminHubPage() {
             <ShieldCheck className="size-3.5" />
             Admin
           </span>
-          <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+          <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]">
             Admin <span className="font-instrument italic">console</span>
           </h1>
-          <p className="mt-2 text-sm text-[#0d0d0d]/60">
+          <p className="mt-2 text-sm text-white/65 [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]">
             Choose an area to manage.
           </p>
         </div>
@@ -103,25 +104,26 @@ export default async function AdminHubPage() {
                 href={action.href}
                 className={cn(
                   CARD,
-                  "group flex items-start gap-4 p-5 outline-none transition-[border-color,box-shadow] duration-300 hover:border-black/20 focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2"
+                  GLASS_HOVER,
+                  "group flex items-start gap-4 p-5 outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 )}
               >
-                <div className="grid size-10 shrink-0 place-items-center rounded-full border border-black/[0.1] bg-black/[0.03] text-[#0d0d0d]">
+                <div className="grid size-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/[0.08] text-white">
                   <action.icon className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <h2 className="font-medium text-[#0d0d0d]">{action.title}</h2>
+                      <h2 className="font-medium text-white">{action.title}</h2>
                       {unread > 0 && (
-                        <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-[0.12em] text-amber-700">
+                        <span className="rounded-full border border-amber-300/40 bg-amber-300/15 px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-[0.12em] text-amber-100">
                           {unread} unread
                         </span>
                       )}
                     </div>
-                    <ChevronRight className="size-4 shrink-0 text-[#0d0d0d]/40 transition group-hover:translate-x-0.5 group-hover:text-[#0d0d0d]" />
+                    <ChevronRight className="size-4 shrink-0 text-white/40 transition group-hover:translate-x-0.5 group-hover:text-white" />
                   </div>
-                  <p className="mt-1 text-sm leading-6 text-[#0d0d0d]/55">
+                  <p className="mt-1 text-sm leading-6 text-white/65">
                     {action.description}
                   </p>
                 </div>

@@ -44,10 +44,10 @@ function StatusBadge({ status }: { status: FeedbackStatus }) {
     <span
       className={cn(
         ADMIN_BADGE,
-        tone === "alert" && "border-amber-500/40 bg-amber-500/10 text-amber-700",
-        tone === "neutral" && "border-black/[0.12] bg-white text-[#0d0d0d]/70",
-        tone === "ok" && "border-emerald-500/35 bg-emerald-500/10 text-emerald-700",
-        tone === "muted" && "border-black/[0.08] bg-black/[0.03] text-[#0d0d0d]/45"
+        tone === "alert" && "border-amber-300/40 bg-amber-300/15 text-amber-200",
+        tone === "neutral" && "border-white/20 bg-white/[0.08] text-white/75",
+        tone === "ok" && "border-emerald-300/40 bg-emerald-300/15 text-emerald-200",
+        tone === "muted" && "border-white/15 bg-white/[0.05] text-white/45"
       )}
     >
       {FEEDBACK_STATUS_LABELS[status]}
@@ -57,7 +57,7 @@ function StatusBadge({ status }: { status: FeedbackStatus }) {
 
 function CategoryBadge({ category }: { category: FeedbackCategory }) {
   return (
-    <span className="rounded-full border border-black/[0.1] bg-white px-2 py-0.5 text-[0.7rem] font-medium text-[#0d0d0d]/55">
+    <span className="rounded-full border border-white/15 bg-white/[0.06] px-2 py-0.5 text-[0.7rem] font-medium text-white/60">
       {FEEDBACK_CATEGORY_LABELS[category]}
     </span>
   );
@@ -93,7 +93,7 @@ export function FeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-1 rounded-full border border-black/[0.1] bg-white p-1">
+        <div className="flex flex-wrap gap-1 rounded-full border border-white/15 bg-white/[0.06] p-1">
           {(["all", ...FEEDBACK_STATUSES] as const).map((status) => {
             const active = statusFilter === status;
             const label = status === "all" ? "All" : FEEDBACK_STATUS_LABELS[status];
@@ -105,10 +105,10 @@ export function FeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
                 type="button"
                 onClick={() => setStatusFilter(status)}
                 className={cn(
-                  "rounded-full px-3 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-black/25",
+                  "rounded-full px-3 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white/40",
                   active
-                    ? "bg-[#0d0d0d] text-white"
-                    : "text-[#0d0d0d]/55 hover:bg-black/[0.04] hover:text-[#0d0d0d]"
+                    ? "bg-white text-[#0d0d0d]"
+                    : "text-white/60 hover:bg-white/[0.08] hover:text-white"
                 )}
               >
                 {label}
@@ -132,10 +132,10 @@ export function FeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
               type="button"
               onClick={() => setCategoryFilter(category)}
               className={cn(
-                "rounded-full border px-3 py-1 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-black/25",
+                "rounded-full border px-3 py-1 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white/40",
                 active
-                  ? "border-[#0d0d0d] bg-black/[0.04] text-[#0d0d0d]"
-                  : "border-black/[0.1] text-[#0d0d0d]/55 hover:border-black/25 hover:text-[#0d0d0d]"
+                  ? "border-white/40 bg-white/10 text-white"
+                  : "border-white/15 text-white/60 hover:border-white/30 hover:text-white"
               )}
             >
               {label}
@@ -151,7 +151,7 @@ export function FeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
           body="User reports from notes and the sidebar land here."
         />
       ) : (
-        <ul className={cn(CARD, "divide-y divide-black/[0.06] overflow-hidden")}>
+        <ul className={cn(CARD, "divide-y divide-white/10 overflow-hidden")}>
           {filtered.map((row) => (
             <FeedbackRow key={row.id} row={row} />
           ))}
@@ -175,16 +175,16 @@ function StatCard({
       className={cn(
         CARD,
         "rounded-2xl px-4 py-3",
-        alert && "border-amber-500/35 bg-amber-500/[0.06]"
+        alert && "border-amber-300/35 bg-amber-300/[0.08]"
       )}
     >
-      <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/45">
+      <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
         {label}
       </p>
       <p
         className={cn(
-          "mt-1 text-2xl font-normal tabular-nums tracking-tight text-[#0d0d0d]",
-          alert && "text-amber-700"
+          "mt-1 text-2xl font-normal tabular-nums tracking-tight text-white",
+          alert && "text-amber-200"
         )}
       >
         {value}
@@ -259,30 +259,30 @@ function FeedbackRow({ row }: { row: AdminFeedbackRow }) {
     <li
       className={cn(
         "px-5 py-4 transition-colors",
-        row.status === "unread" && "bg-amber-500/[0.04]"
+        row.status === "unread" && "bg-amber-300/[0.07]"
       )}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="min-w-0 flex-1 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-black/25"
+          className="min-w-0 flex-1 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-white/40"
         >
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={row.status} />
             <CategoryBadge category={row.category} />
-            <span className="text-xs text-[#0d0d0d]/50">
+            <span className="text-xs text-white/50">
               {formatFeedbackWhen(row.created_at)}
             </span>
           </div>
-          <p className="mt-2 text-sm font-medium text-[#0d0d0d]">
+          <p className="mt-2 text-sm font-medium text-white">
             {row.message?.trim() || "No details provided."}
           </p>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#0d0d0d]/50">
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
             {row.reporter_email && <span>{row.reporter_email}</span>}
             {row.note_title && (
               <span>
-                Note: <span className="text-[#0d0d0d]">{row.note_title}</span>
+                Note: <span className="text-white">{row.note_title}</span>
               </span>
             )}
             {row.page_path && <span>{row.page_path}</span>}
@@ -333,13 +333,13 @@ function FeedbackRow({ row }: { row: AdminFeedbackRow }) {
       </div>
 
       {expanded && (
-        <div className="mt-4 space-y-4 rounded-2xl bg-black/[0.02] p-4">
+        <div className="mt-4 space-y-4 rounded-2xl bg-white/[0.04] p-4">
           {row.message && (
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/45">
+              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
                 Full message
               </p>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#0d0d0d]">
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-white">
                 {row.message}
               </p>
             </div>
@@ -357,13 +357,13 @@ function FeedbackRow({ row }: { row: AdminFeedbackRow }) {
               </Link>
             </div>
           )}
-          <p className="flex items-center gap-1.5 text-xs text-[#0d0d0d]/50">
+          <p className="flex items-center gap-1.5 text-xs text-white/50">
             <MessageSquareText className="size-3.5" />
             Report {row.id.slice(0, 8)}
           </p>
 
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#0d0d0d]/45">
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
               Internal notes
             </p>
             <textarea
@@ -372,10 +372,10 @@ function FeedbackRow({ row }: { row: AdminFeedbackRow }) {
               onBlur={saveNotes}
               placeholder="Triage notes — what you checked, fixed, or decided."
               rows={3}
-              className={cn(ADMIN_TEXTAREA, "mt-2 bg-white")}
+              className={cn(ADMIN_TEXTAREA, "mt-2")}
             />
             {row.reviewed_at && (
-              <p className="mt-2 text-xs text-[#0d0d0d]/50">
+              <p className="mt-2 text-xs text-white/50">
                 Last reviewed {formatFeedbackWhen(row.reviewed_at)}
               </p>
             )}

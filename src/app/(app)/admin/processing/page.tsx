@@ -27,10 +27,10 @@ export default async function AdminProcessingPage() {
             <Activity className="size-3.5" />
             Admin
           </span>
-          <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-[#0d0d0d]">
+          <h1 className="mt-4 text-3xl font-normal tracking-[-0.01em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]">
             Processing
           </h1>
-          <p className="mt-2 text-sm leading-6 text-[#0d0d0d]/60">
+          <p className="mt-2 text-sm leading-6 text-white/70 [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]">
             Live status of recordings and uploads moving through the pipeline.
             Owner email and pipeline state — no lecture content.
           </p>

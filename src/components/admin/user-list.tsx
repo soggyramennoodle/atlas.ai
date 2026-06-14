@@ -29,7 +29,7 @@ export function UserList({
   return (
     <div>
       <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#0d0d0d]/40" />
+        <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-white/45" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -39,7 +39,7 @@ export function UserList({
         />
       </div>
 
-      <p className="mt-3 text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45">
+      <p className="mt-3 text-[11px] font-medium uppercase tracking-[0.18em] text-white/50">
         {filtered.length} of {users.length}{" "}
         {users.length === 1 ? "user" : "users"}
         {truncated && " · showing first 5000"}

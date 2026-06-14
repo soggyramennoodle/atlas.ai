@@ -38,8 +38,8 @@ export function SiteAnnouncementForm({
 
   return (
     <div className={cn(CARD, "p-6 sm:p-7")}>
-      <h2 className="font-medium text-[#0d0d0d]">Landing status pill</h2>
-      <p className="mt-1 text-sm leading-6 text-[#0d0d0d]/60">
+      <h2 className="font-medium text-white">Landing status pill</h2>
+      <p className="mt-1 text-sm leading-6 text-white/70">
         Shown above the hero on the marketing page. Use it for beta notices,
         downtime, or anything everyone should see.
       </p>
@@ -48,7 +48,7 @@ export function SiteAnnouncementForm({
         <div className="space-y-2">
           <label
             htmlFor="announcement-message"
-            className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45"
+            className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/50"
           >
             Message
           </label>
@@ -62,12 +62,12 @@ export function SiteAnnouncementForm({
           />
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-[#0d0d0d]/80">
+        <label className="flex items-center gap-2 text-sm text-white/80">
           <input
             type="checkbox"
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
-            className="size-4 rounded-full border border-black/[0.18] accent-[#0d0d0d]"
+            className="size-4 rounded-full border border-white/25 accent-white"
           />
           Show on landing page
         </label>

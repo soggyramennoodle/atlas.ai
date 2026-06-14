@@ -19,18 +19,18 @@ const HEALTH_DOT: Record<JobHealthKey, string> = {
   held: "bg-orange-500",
   running: "bg-emerald-500",
   stuck: "bg-amber-500",
-  failed: "bg-[#0d0d0d]",
+  failed: "bg-white",
   ready: "bg-emerald-500",
-  idle: "bg-black/25",
+  idle: "bg-white/30",
 };
 
 /* Tiny row-action pill (dense table context). */
 const ROW_BTN =
-  "inline-flex items-center gap-1 rounded-full border border-black/[0.12] bg-white px-2.5 py-0.5 text-xs text-[#0d0d0d]/70 outline-none transition hover:bg-black/[0.03] hover:text-[#0d0d0d] disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-black/25";
+  "inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/[0.08] px-2.5 py-0.5 text-xs text-white/70 outline-none transition hover:bg-white/[0.16] hover:text-white disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-white/40";
 
 function CopyId({ label, value }: { label: string; value: string | null }) {
   const [copied, setCopied] = useState(false);
-  if (!value) return <span className="text-[#0d0d0d]/45">{label} —</span>;
+  if (!value) return <span className="text-white/45">{label} —</span>;
   return (
     <button
       type="button"
@@ -41,11 +41,11 @@ function CopyId({ label, value }: { label: string; value: string | null }) {
           setTimeout(() => setCopied(false), 1200);
         });
       }}
-      className="inline-flex items-center gap-1 text-[#0d0d0d]/80 outline-none transition hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
+      className="inline-flex items-center gap-1 text-white/80 outline-none transition hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
     >
       {label} {formatAdminId(value)}
       {copied ? (
-        <Check className="size-3 text-emerald-600" />
+        <Check className="size-3 text-emerald-300" />
       ) : (
         <Copy className="size-3 opacity-50" />
       )}
@@ -95,7 +95,7 @@ export function JobRow({ job }: { job: AdminJobRow }) {
   }
 
   return (
-    <tr className="align-top transition hover:bg-black/[0.02]">
+    <tr className="align-top transition hover:bg-white/[0.04]">
       {/* Job column */}
       <td className="px-4 py-3.5">
         <div className="flex flex-wrap items-center gap-2">
@@ -103,12 +103,12 @@ export function JobRow({ job }: { job: AdminJobRow }) {
             <span className="size-1.5 rounded-full bg-current" />
             {JOB_STATUS_LABELS[job.status]}
           </span>
-          <span className="inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.12em] text-[#0d0d0d]/50">
+          <span className="inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.12em] text-white/50">
             <span className={cn("size-1.5 rounded-full", HEALTH_DOT[job.health])} />
             {job.healthLabel}
           </span>
           {job.error && job.health !== "held" ? (
-            <span className="font-mono text-[0.65rem] uppercase tracking-wider text-[#0d0d0d]/70">
+            <span className="font-mono text-[0.65rem] uppercase tracking-wider text-white/70">
               {job.error}
             </span>
           ) : null}
@@ -122,9 +122,9 @@ export function JobRow({ job }: { job: AdminJobRow }) {
       {/* Owner column */}
       <td className="px-4 py-3.5">
         {job.userEmail ? (
-          <p className="text-sm text-[#0d0d0d]">{job.userEmail}</p>
+          <p className="text-sm text-white">{job.userEmail}</p>
         ) : (
-          <p className="text-sm text-[#0d0d0d]/45">—</p>
+          <p className="text-sm text-white/45">—</p>
         )}
         <div className="mt-0.5">
           <CopyId label="user" value={job.userId} />
@@ -132,7 +132,7 @@ export function JobRow({ job }: { job: AdminJobRow }) {
       </td>
 
       {/* Segments column */}
-      <td className="px-4 py-3.5 text-[#0d0d0d]/55">
+      <td className="px-4 py-3.5 text-white/55">
         <p>
           {job.segmentRows}
           {job.segmentCount != null ? ` / ${job.segmentCount}` : ""} uploaded
@@ -143,14 +143,14 @@ export function JobRow({ job }: { job: AdminJobRow }) {
       </td>
 
       {/* Last activity column */}
-      <td className="px-4 py-3.5 text-[#0d0d0d]/55">
+      <td className="px-4 py-3.5 text-white/55">
         <p>{formatTimestamp(job.lastActivityAt)}</p>
         <p
           className={cn(
             "mt-0.5 font-mono text-[0.65rem]",
             !job.heartbeatAt && job.health === "held"
-              ? "text-orange-600"
-              : "text-[#0d0d0d]/45"
+              ? "text-orange-300"
+              : "text-white/45"
           )}
           title={
             job.heartbeatAt
@@ -164,11 +164,11 @@ export function JobRow({ job }: { job: AdminJobRow }) {
 
       {/* Auto-delete column */}
       <td className="px-4 py-3.5">
-        <p className="font-medium text-[#0d0d0d]">
+        <p className="font-medium text-white">
           {formatAutoDeleteCountdown(Date.parse(job.autoDeleteAt))}
         </p>
-        <p className="mt-0.5 text-xs text-[#0d0d0d]/55">{formatTimestamp(job.autoDeleteAt)}</p>
-        <p className="mt-0.5 text-[0.65rem] text-[#0d0d0d]/45">
+        <p className="mt-0.5 text-xs text-white/55">{formatTimestamp(job.autoDeleteAt)}</p>
+        <p className="mt-0.5 text-[0.65rem] text-white/45">
           {job.autoDeleteKind === "stale" ? "Abandoned job cleanup" : "Job record retention"}
         </p>
         <div className="mt-1.5 flex flex-wrap gap-1.5">

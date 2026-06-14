@@ -101,8 +101,8 @@ export function SignatureGenerator() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start">
       {/* Form */}
       <div className={cn(CARD, "p-6 sm:p-7")}>
-        <h2 className="font-medium text-[#0d0d0d]">Your details</h2>
-        <p className="mt-1 text-sm leading-6 text-[#0d0d0d]/60">
+        <h2 className="font-medium text-white">Your details</h2>
+        <p className="mt-1 text-sm leading-6 text-white/70">
           Required fields fill the preview. Optional ones are left out when blank.
         </p>
 
@@ -111,7 +111,7 @@ export function SignatureGenerator() {
             <div key={field.key} className="space-y-2">
               <label
                 htmlFor={`sig-${field.key}`}
-                className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45"
+                className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/50"
               >
                 {field.label}
               </label>
@@ -133,8 +133,8 @@ export function SignatureGenerator() {
       {/* Preview + copy */}
       <div className="space-y-4 lg:sticky lg:top-8">
         <div className={cn(CARD, "p-6 sm:p-7")}>
-          <h2 className="font-medium text-[#0d0d0d]">Preview</h2>
-          <p className="mt-1 text-sm leading-6 text-[#0d0d0d]/60">
+          <h2 className="font-medium text-white">Preview</h2>
+          <p className="mt-1 text-sm leading-6 text-white/70">
             Exactly what lands in the recipient&rsquo;s inbox.
           </p>
 
@@ -176,11 +176,11 @@ export function SignatureGenerator() {
               {copied === "source" ? "Copied" : "Copy HTML source"}
             </button>
             {copied === "error" && (
-              <span className="text-xs text-red-600">Copy failed — try again.</span>
+              <span className="text-xs text-red-300">Copy failed — try again.</span>
             )}
           </div>
 
-          <p className="mt-4 text-xs leading-5 text-[#0d0d0d]/45">
+          <p className="mt-4 text-xs leading-5 text-white/55">
             Paste into Gmail, Outlook, or Apple Mail&rsquo;s signature settings. The
             font shows as Inter where available and a matching system sans
             elsewhere.

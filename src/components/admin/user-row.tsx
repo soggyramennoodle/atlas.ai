@@ -43,10 +43,10 @@ function Badge({
     <span
       className={cn(
         ADMIN_BADGE,
-        tone === "alert" && "border-amber-500/40 bg-amber-500/10 text-amber-700",
-        tone === "neutral" && "border-black/[0.1] bg-black/[0.03] text-[#0d0d0d]/55",
-        tone === "ok" && "border-emerald-500/35 bg-emerald-500/10 text-emerald-700",
-        tone === "brand" && "border-[#0d0d0d] bg-[#0d0d0d] text-white"
+        tone === "alert" && "border-amber-300/40 bg-amber-300/15 text-amber-200",
+        tone === "neutral" && "border-white/15 bg-white/[0.06] text-white/55",
+        tone === "ok" && "border-emerald-300/35 bg-emerald-300/15 text-emerald-200",
+        tone === "brand" && "border-white bg-white text-[#0d0d0d]"
       )}
     >
       {children}
@@ -132,7 +132,7 @@ export function UserRow({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate font-medium text-[#0d0d0d]">
+            <span className="truncate font-medium text-white">
               {user.email ?? "—"}
             </span>
             {isSelf && <Badge tone="brand">You</Badge>}
@@ -155,15 +155,15 @@ export function UserRow({
             )}
           </div>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#0d0d0d]/50">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/50">
             <button
               type="button"
               onClick={copyId}
-              className="inline-flex items-center gap-1 font-mono outline-none transition hover:text-[#0d0d0d] focus-visible:ring-2 focus-visible:ring-black/25"
+              className="inline-flex items-center gap-1 font-mono outline-none transition hover:text-white focus-visible:ring-2 focus-visible:ring-white/30"
               title="Copy user ID"
             >
               {copied ? (
-                <Check className="size-3 text-emerald-600" />
+                <Check className="size-3 text-emerald-300" />
               ) : (
                 <Copy className="size-3" />
               )}
@@ -171,7 +171,7 @@ export function UserRow({
             </button>
           </div>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#0d0d0d]/50">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/50">
             <span>{user.methodLabel}</span>
             <span>Joined {formatUserDate(user.createdAt)}</span>
             <span>
@@ -210,7 +210,7 @@ export function UserRow({
           </button>
           <button
             type="button"
-            className={cn(ADMIN_BTN, "text-[#0d0d0d]/60")}
+            className={cn(ADMIN_BTN, "text-white/60")}
             onClick={() => setDialog("delete")}
             disabled={pending || protectedTarget}
             title={protectedTarget ? "Protected account" : undefined}
@@ -266,27 +266,27 @@ function ConfirmPanel({
       className={cn(
         "mt-4 rounded-2xl border p-4",
         isDelete
-          ? "border-amber-500/35 bg-amber-500/[0.06]"
-          : "border-black/[0.08] bg-black/[0.02]"
+          ? "border-amber-300/35 bg-amber-300/[0.08]"
+          : "border-white/15 bg-white/[0.04]"
       )}
     >
       <div className="flex items-start gap-2.5">
         {isDelete && (
-          <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-700" />
+          <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-200" />
         )}
         <div className="min-w-0 flex-1">
           {dialog === "resend" && (
-            <p className="text-pretty text-sm text-[#0d0d0d]/80">
+            <p className="text-pretty text-sm text-white/80">
               Email a fresh sign-in link to{" "}
-              <strong className="font-medium text-[#0d0d0d]">{user.email}</strong>?
+              <strong className="font-medium text-white">{user.email}</strong>?
             </p>
           )}
           {dialog === "ban" && (
-            <p className="text-pretty text-sm text-[#0d0d0d]/80">
+            <p className="text-pretty text-sm text-white/80">
               {user.banned ? (
                 <>
                   Unban{" "}
-                  <strong className="font-medium text-[#0d0d0d]">
+                  <strong className="font-medium text-white">
                     {user.email}
                   </strong>
                   ? They&apos;ll be able to sign in again.
@@ -294,7 +294,7 @@ function ConfirmPanel({
               ) : (
                 <>
                   Ban{" "}
-                  <strong className="font-medium text-[#0d0d0d]">
+                  <strong className="font-medium text-white">
                     {user.email}
                   </strong>
                   ? They won&apos;t be able to sign in until you unban them.
@@ -304,15 +304,15 @@ function ConfirmPanel({
           )}
           {isDelete && (
             <>
-              <p className="text-pretty text-sm text-[#0d0d0d]/80">
+              <p className="text-pretty text-sm text-white/80">
                 Permanently delete{" "}
-                <strong className="font-medium text-[#0d0d0d]">
+                <strong className="font-medium text-white">
                   {user.email}
                 </strong>{" "}
                 and purge all their notes, recordings and stored audio. This
                 cannot be undone.
               </p>
-              <label className="mt-3 block text-[11px] font-medium uppercase tracking-[0.18em] text-[#0d0d0d]/45">
+              <label className="mt-3 block text-[11px] font-medium uppercase tracking-[0.18em] text-white/45">
                 Type the email to confirm
               </label>
               <input
