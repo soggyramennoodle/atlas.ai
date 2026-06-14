@@ -8,6 +8,7 @@ import {
   useTransform,
   useReducedMotion,
 } from "framer-motion";
+import { useIntroRevealed } from "@/components/landing/intro";
 
 const STORY_IMAGE = "/landing/story-student.jpg";
 
@@ -19,6 +20,7 @@ const EASE = [0.22, 1, 0.36, 1] as const;
  */
 export function StoryCard() {
   const reduce = useReducedMotion();
+  const revealed = useIntroRevealed();
   const [slide, setSlide] = useState(0);
 
   // Slide timer synchronized with the story-fill bars: slide 1 at 3s, then a
@@ -59,8 +61,8 @@ export function StoryCard() {
     <div style={{ marginTop: 48, perspective: 1200 }}>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
+        animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        transition={{ duration: 0.8, delay: revealed ? 0.45 : 0, ease: EASE }}
         style={{
           width: 310,
           height: 455,

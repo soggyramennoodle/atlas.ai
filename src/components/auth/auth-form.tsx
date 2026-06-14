@@ -18,6 +18,7 @@ import { browserSupportsPasskeys } from "@/lib/passkeys";
 import { lookupAuthEmail } from "@/app/(auth)/login/actions";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { usePasskeySignIn } from "@/components/auth/use-passkey-sign-in";
+import { AuthHandoff } from "@/components/auth/auth-handoff";
 import {
   ARROW_BADGE,
   EASE,
@@ -481,21 +482,29 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   }
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={step}
-        initial={reduceMotion ? false : { opacity: 0, filter: "blur(8px)", y: 8 }}
-        animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-        exit={
-          reduceMotion
-            ? { opacity: 0, transition: { duration: 0 } }
-            : { opacity: 0, filter: "blur(8px)", y: -6 }
-        }
-        transition={{ duration: reduceMotion ? 0 : 0.45, ease: EASE }}
-      >
-        {renderStep()}
-      </motion.div>
-    </AnimatePresence>
+    <>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={step}
+          initial={reduceMotion ? false : { opacity: 0, filter: "blur(8px)", y: 8 }}
+          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+          exit={
+            reduceMotion
+              ? { opacity: 0, transition: { duration: 0 } }
+              : { opacity: 0, filter: "blur(8px)", y: -6 }
+          }
+          transition={{ duration: reduceMotion ? 0 : 0.45, ease: EASE }}
+        >
+          {renderStep()}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* OAuth takeover — covers the wait between click and the provider's
+          screen so the redirect feels intentional. */}
+      <AnimatePresence>
+        {redirecting && <AuthHandoff key="handoff" provider={redirecting} />}
+      </AnimatePresence>
+    </>
   );
 }
 

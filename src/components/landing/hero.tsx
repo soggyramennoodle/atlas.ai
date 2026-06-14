@@ -6,6 +6,7 @@ import { ArrowUpRight, Megaphone } from "lucide-react";
 import { HeroVideo } from "@/components/landing/hero-video";
 import { StoryCard } from "@/components/landing/story-card";
 import { UNIVERSITIES } from "@/components/landing/universities-marquee";
+import { useIntroRevealed } from "@/components/landing/intro";
 import type { SiteAnnouncement } from "@/lib/types";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -17,6 +18,10 @@ export function Hero({
   ctaHref: string;
   announcement: SiteAnnouncement | null;
 }) {
+  // Hold the entrance until the intro splash lifts (true immediately when the
+  // splash is skipped this session), so the hero eases in as the cover clears.
+  const revealed = useIntroRevealed();
+
   return (
     <section className="relative overflow-hidden bg-[#fafafa]" style={{ minHeight: "100svh" }}>
       <HeroVideo />
@@ -36,7 +41,7 @@ export function Hero({
         {announcement ? (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
             transition={{ duration: 0.7, ease: EASE }}
             className="font-heading mb-6 inline-flex max-w-lg items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-2 text-[13px] font-medium leading-snug text-black/80 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur-[12px]"
           >
@@ -47,7 +52,7 @@ export function Hero({
 
         <motion.h1
           initial={{ opacity: 0, y: -40 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: -40 }}
           transition={{ duration: 0.9, ease: EASE }}
           className="text-center text-[#0d0d0d]"
           style={{
@@ -67,8 +72,8 @@ export function Hero({
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.25, ease: EASE }}
+          animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.8, delay: revealed ? 0.25 : 0, ease: EASE }}
         >
           <Link
             href={ctaHref}

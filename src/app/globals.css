@@ -1141,6 +1141,22 @@
 .animate-marquee-slow {
   animation: atlas-marquee 82s linear infinite;
 }
+
+/* Landing intro splash. The pre-paint gate script flags sessions that already
+   saw the intro, so the SSR-rendered cover is hidden before first paint (no
+   flash on in-session refreshes). */
+html[data-intro-seen="1"] .atlas-intro-overlay {
+  display: none !important;
+}
+/* Border-only conic ring for the intro loader: shows the gradient just in the
+   padding band (same mask-exclude trick as .processing-glow::before). */
+.intro-ring-mask {
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
 .marquee-mask {
   -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
   mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
