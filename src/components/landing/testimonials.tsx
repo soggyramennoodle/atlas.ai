@@ -55,17 +55,18 @@ const TESTIMONIALS: Testimonial[] = [
   },
 ];
 
-// Upside-down-U arc slots, center (index 3) at the peak. x/y are offsets in px
-// from the stage center; rotate fans the cards outward; scale + z keep the
-// middle card most prominent.
+// Asymmetric ascending curve: cards start low on the left and rise to the
+// right along a gentle upward bow. x/y are offsets in px from the stage centre;
+// the left/front cards are larger and stack on top (z 7 -> 1) so the run reads
+// as receding into the distance toward the upper-right.
 const ARC = [
-  { x: -600, y: 74, rotate: -11, scale: 0.9, z: 1 },
-  { x: -400, y: 30, rotate: -7, scale: 0.94, z: 2 },
-  { x: -200, y: 6, rotate: -3, scale: 0.97, z: 3 },
-  { x: 0, y: -6, rotate: 0, scale: 1.04, z: 7 },
-  { x: 200, y: 6, rotate: 3, scale: 0.97, z: 3 },
-  { x: 400, y: 30, rotate: 7, scale: 0.94, z: 2 },
-  { x: 600, y: 74, rotate: 11, scale: 0.9, z: 1 },
+  { x: -540, y: 150, rotate: 4, scale: 1.0, z: 7 },
+  { x: -360, y: 96, rotate: 2, scale: 0.96, z: 6 },
+  { x: -180, y: 44, rotate: 0, scale: 0.93, z: 5 },
+  { x: 0, y: -6, rotate: -2, scale: 0.9, z: 4 },
+  { x: 180, y: -52, rotate: -3, scale: 0.87, z: 3 },
+  { x: 360, y: -96, rotate: -4, scale: 0.84, z: 2 },
+  { x: 540, y: -140, rotate: -5, scale: 0.82, z: 1 },
 ];
 
 const smoothEase = [0.22, 1, 0.36, 1] as const;
@@ -78,14 +79,14 @@ function initials(name: string) {
     .join("");
 }
 
-function Card({ t }: { t: Testimonial }) {
+function CardBody({ t }: { t: Testimonial }) {
   return (
     <>
       <p className="font-heading text-pretty text-[14px] leading-[1.6] text-black/70">
         {t.quote}
       </p>
       <div className="mt-5 flex items-center gap-3">
-        <span className="font-heading grid size-9 shrink-0 place-items-center rounded-full border border-black/10 bg-black/[0.04] text-[12px] font-medium tracking-tight text-[#0d0d0d]">
+        <span className="font-heading grid size-9 shrink-0 place-items-center rounded-full border border-black/10 bg-black/[0.04] text-[12px] font-medium tracking-tight text-[#0d0d0d] transition-colors duration-300 group-hover:border-[#0a5736]/30 group-hover:bg-[#0a5736]/[0.08] group-hover:text-[#0a5736]">
           {initials(t.name)}
         </span>
         <span className="min-w-0">
@@ -105,10 +106,16 @@ export function Testimonials() {
   const reduce = useReducedMotion();
   const [hovered, setHovered] = useState<number | null>(null);
 
+  // The inner card surface — owns the hover lift + emerald focus accent. Kept
+  // separate from the entrance layer so the slow reveal transition never
+  // bleeds into the snappy hover-out.
+  const cardClass =
+    "group flex h-[230px] w-[280px] cursor-default flex-col justify-between rounded-[24px] border border-black/[0.08] bg-white p-6 shadow-[0_18px_50px_rgba(0,0,0,0.12)] transition-[box-shadow,border-color] duration-300 hover:border-[#0a5736]/25 hover:shadow-[0_26px_60px_-12px_rgba(10,87,54,0.35)]";
+
   return (
     <section className="overflow-hidden bg-[#fafafa] px-6 py-20">
       <div className="mx-auto max-w-[1200px]">
-        <Reveal className="mb-14 text-center lg:mb-20">
+        <Reveal className="mb-14 text-center lg:mb-16">
           <p className="font-heading mb-4 text-[12px] font-medium tracking-[2px] text-black/45">
             WHAT STUDENTS SAY
           </p>
@@ -128,58 +135,56 @@ export function Testimonials() {
           </h2>
         </Reveal>
 
-        {/* Desktop: fan-in arc */}
-        <div className="relative hidden h-[460px] lg:block">
+        {/* Desktop: diagonal sweep-in along an ascending curve */}
+        <div className="relative hidden h-[540px] lg:block">
           <div className="absolute left-1/2 top-1/2 size-px -translate-x-1/2 -translate-y-1/2">
             {TESTIMONIALS.map((t, i) => {
               const slot = ARC[i];
               const isHovered = hovered === i;
-              // Stagger from the centre outward so the fan opens from the middle.
-              const delay = 0.15 + Math.abs(i - 3) * 0.1;
+              // Stagger left -> right so the run climbs the curve one card at a time.
+              const delay = 0.1 + i * 0.12;
               return (
-                <motion.article
+                <motion.div
                   key={t.name}
-                  onMouseEnter={() => setHovered(i)}
-                  onMouseLeave={() => setHovered(null)}
-                  className="absolute left-0 top-0 flex h-[230px] w-[280px] -translate-x-1/2 -translate-y-1/2 cursor-default flex-col justify-between rounded-[24px] border border-black/[0.08] bg-white p-6 shadow-[0_18px_50px_rgba(0,0,0,0.12)]"
+                  className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2"
                   style={{ zIndex: isHovered ? 30 : slot.z }}
                   initial={
                     reduce
-                      ? { opacity: 0 }
+                      ? { opacity: 0, x: slot.x, y: slot.y, scale: 1 }
                       : {
                           opacity: 0,
-                          x: 0,
-                          y: 150,
-                          rotate: 0,
-                          scale: 0.6,
+                          x: slot.x - 180,
+                          y: slot.y + 200,
+                          scale: 0.85,
                         }
                   }
                   whileInView={
                     reduce
                       ? { opacity: 1 }
-                      : {
-                          opacity: 1,
-                          x: slot.x,
-                          y: slot.y,
-                          rotate: slot.rotate,
-                          scale: slot.scale,
-                        }
+                      : { opacity: 1, x: slot.x, y: slot.y, scale: 1 }
                   }
                   viewport={{ once: true, margin: "-120px" }}
-                  transition={{ duration: 0.85, delay, ease: smoothEase }}
-                  whileHover={
-                    reduce
-                      ? undefined
-                      : {
-                          rotate: 0,
-                          scale: 1.08,
-                          y: slot.y - 24,
-                          transition: { duration: 0.3, ease: smoothEase },
-                        }
-                  }
+                  transition={{
+                    duration: reduce ? 0.4 : 0.7,
+                    delay,
+                    ease: smoothEase,
+                  }}
                 >
-                  <Card t={t} />
-                </motion.article>
+                  <motion.article
+                    onMouseEnter={() => setHovered(i)}
+                    onMouseLeave={() => setHovered(null)}
+                    className={cardClass}
+                    initial={{ rotate: slot.rotate, scale: slot.scale }}
+                    whileHover={
+                      reduce
+                        ? undefined
+                        : { rotate: 0, scale: slot.scale + 0.12, y: -22 }
+                    }
+                    transition={{ duration: 0.3, ease: smoothEase }}
+                  >
+                    <CardBody t={t} />
+                  </motion.article>
+                </motion.div>
               );
             })}
           </div>
@@ -193,8 +198,8 @@ export function Testimonials() {
               delay={i * 0.06}
               className="snap-center shrink-0"
             >
-              <article className="flex h-[230px] w-[280px] flex-col justify-between rounded-[24px] border border-black/[0.08] bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
-                <Card t={t} />
+              <article className={`${cardClass} shadow-[0_8px_30px_rgba(0,0,0,0.05)]`}>
+                <CardBody t={t} />
               </article>
             </Reveal>
           ))}
