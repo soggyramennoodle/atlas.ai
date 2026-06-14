@@ -30,6 +30,7 @@ export default function TermsPage() {
             "You need an account to use Atlas. You are responsible for keeping your login credentials secure and for all activity that occurs under your account.",
             "You must be at least 13 years old to use Atlas, which is built for students in higher education.",
             "You agree to provide accurate information and to notify us promptly of any unauthorized use of your account.",
+            "Due to certain policies of our service providers, any accounts suspected to be operated by a user under 13 years of age will be restricted, temporarily banned, or deleted, at our discretion.",
           ],
         },
         {
@@ -50,7 +51,7 @@ export default function TermsPage() {
           heading: "Account Suspension & Access Restrictions",
           body: [
             "We may suspend, restrict, or terminate your account if we detect unusual activity, suspected abuse, violations of these terms, or conduct that risks the security, reliability, or cost of the service.",
-            "Suspension may be applied automatically by our systems when protective limits are triggered. If your account is restricted, you may be unable to sign in or continue using Atlas until the restriction is lifted.",
+            "Suspension may be applied automatically by our systems when protective limits are triggered. If your account is restricted, you may be unable to sign in or continue using Atlas, at our discretion.",
             "When processing is paused or an account is restricted, certain data associated with your account — including recordings, uploads, transcripts, and notes — may be retained for a limited period and may be deleted thereafter. Retention is not guaranteed.",
             "If you believe a restriction was applied in error, contact us at hello@atlasai.ca.",
           ],
@@ -85,7 +86,7 @@ export default function TermsPage() {
         {
           heading: "Governing Law",
           body: [
-            "These terms are governed by the laws of the Province of Ontario and the federal laws of Canada applicable therein, without regard to conflict-of-law principles. You agree to the exclusive jurisdiction of the courts located in Ontario, Canada.",
+            "These terms are governed by the laws of the Province of Ontario, Saskatchewan, and Alberta, as well as the federal laws of Canada applicable therein, without regard to conflict-of-law principles. You agree to the exclusive jurisdiction of the courts in the provinces of Ontario, Saskatchewan, and Alberta.",
           ],
         },
         {
