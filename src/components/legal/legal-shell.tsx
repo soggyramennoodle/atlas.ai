@@ -92,14 +92,6 @@ export function LegalShell({
             </Reveal>
           ))}
         </div>
-
-        <Reveal>
-          <p className="mt-12 rounded-[20px] border border-black/[0.08] bg-white p-5 text-pretty text-[13px] leading-[1.6] text-black/60 shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
-            This is a template document provided for transparency while Atlas is
-            in active development. It will be replaced with a finalized policy
-            reviewed by counsel before general availability.
-          </p>
-        </Reveal>
       </article>
     </main>
   );

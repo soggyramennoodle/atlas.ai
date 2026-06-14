@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
         {
           heading: "Information We Collect",
           body: [
-            "Account information: the email address you sign in with, the oAuth provider you sign in with (if applicable), and the profile details you choose to provide (name, institution, program, year, and expected graduation).",
+            "Account information: the email address you sign in with, the method you use to sign in (for example, signing in with Google), and the profile details you choose to provide — your name, institution, program, year, and expected graduation.",
             "Lecture content (physical lectures): the audio you record or upload, and the structured notes, summaries, transcripts, and edits generated from or made to it.",
             "Lecture content (virtual lectures): the screen recording of your chosen tab, window, or entire screen, and the notes, summaries, transcripts, and edits generated from or made to it.",
             "Usage information: basic technical data such as device and browser type, and the interactions needed to operate the service (for example, when a note is created or exported).",
@@ -30,23 +30,36 @@ export default function PrivacyPolicyPage() {
           heading: "How We Use Your Information",
           body: [
             "We use your information to provide and improve the service: to transcribe and analyze your recordings, generate and store your notes, sync your library across sessions, and personalize future note-taking based on your info.",
-            "We do not use your personal notes or recordings to train third-party AI models, and we do not use them for advertising.",
-            "We do not look at your screen recording, while you share your screen for virtual lectures. Our AI also does not see the recording; we only collect and extract the system audio from your device, in order to capture virtual lecture content. All screen recordings are temporarily stored to our Cloudflare server, and are deleted after the notes are generated.",
+            "We do not use your personal notes or recordings to train AI models, and we do not use them for advertising.",
+            "When you share your screen for a virtual lecture, neither we nor our AI watch the video. We only capture the audio from the tab, window, or screen you share — that audio is what we need to write your notes. Any screen recording is stored only briefly while your notes are generated, and is then deleted.",
           ],
         },
         {
           heading: "Data Sharing & Third Parties",
           body: [
-            "We share data only with the service providers necessary to operate Atlas, upon their request. For example, our cloud database and storage provider (Supabase) and the AI model provider (Google) that performs transcription and note generation. These providers process data on our behalf under contractual confidentiality obligations, as well as their own privacy policy pertaining to their associated APIs.",
+            "We share data only with the trusted service providers we rely on to run Atlas — for example, the cloud provider that securely stores your notes, and the AI provider that performs transcription and note generation. These providers process your data on our behalf, under confidentiality obligations, and only to help us deliver the service to you.",
             "We never sell your personal information, and we never share it with advertisers or data brokers. We may disclose information if required by law or to protect the rights, safety, and security of our users and the service.",
+          ],
+        },
+        {
+          heading: "How We Protect Your Information",
+          body: [
+            "Your account and content are protected with industry-standard safeguards, including encryption in transit and access controls that limit who can reach your data. Your notes and recordings are tied to your account — other students and the public cannot see them.",
+            "No online service can promise perfect security, but we work hard to protect your information and to keep sensitive data, like your recordings, only as long as we genuinely need it.",
           ],
         },
         {
           heading: "Data Retention",
           body: [
-            "Your lecture audio is retained only as long as needed to generate your notes, after which it is removed from the processing service, and deleted from our server. Your notes and account information are retained for as long as your account is active.",
-            "Your screen recording is only retained to extract the audio/transcript, in order to generate your notes, after which, the screen recording is deleted from our servers. Our AI never sees this screen recording; only the extracted audio.",
-            "When you delete a note, the transcription, note summary, and course code/name are deleted as well. When you delete your account, we remove your associated content within a reasonable period, except where retention is required by law.",
+            "Your lecture audio is kept only as long as needed to generate your notes, after which it is removed from our processing service and deleted from our servers. Your notes and account information are kept for as long as your account is active.",
+            "For virtual lectures, any screen recording is kept only long enough to capture the audio needed to write your notes, and is then deleted from our servers. Our AI only ever receives that audio, never the video of your screen.",
+            "When you delete a note, its transcript, summary, and course details are deleted along with it. When you delete your account, we remove your associated content within a reasonable period, except where the law requires us to keep it.",
+          ],
+        },
+        {
+          heading: "Payments & Plans",
+          body: [
+            "Atlas is free to use while it is in beta, and we don't ask for payment information to sign up. If we introduce paid plans in the future, we'll give you clear notice before any charges apply, and payments would be handled by a secure third-party payment processor — we would not store your full card details ourselves.",
           ],
         },
         {

@@ -21,14 +21,21 @@ export default function TermsPage() {
           heading: "Description of Service",
           body: [
             "Atlas turns lecture recordings and uploads into structured study notes, summaries, and transcripts, and lets you edit, organize, and export them.",
-            "The service is offered for personal, educational use and is under active development; features may change over time.",
+            "The service is offered for personal, educational use and is currently in beta — it is under active development, and features may change, be added, or be removed over time.",
           ],
         },
         {
           heading: "User Accounts",
           body: [
             "You need an account to use Atlas. You are responsible for keeping your login credentials secure and for all activity that occurs under your account.",
+            "You must be at least 13 years old to use Atlas, which is built for students in higher education.",
             "You agree to provide accurate information and to notify us promptly of any unauthorized use of your account.",
+          ],
+        },
+        {
+          heading: "Plans & Payments",
+          body: [
+            "Atlas is free to use during the beta, and we don't require payment information to create an account. We may introduce paid plans (such as Pro and Max) in the future. If we do, we'll clearly describe what each plan includes and give you notice before any charges apply — you'll never be charged without first choosing a paid plan.",
           ],
         },
         {
