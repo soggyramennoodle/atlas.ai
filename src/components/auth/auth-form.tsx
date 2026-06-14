@@ -201,6 +201,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           <p className="mt-1 text-xs text-[#0d0d0d]/45 text-pretty">
             Nothing in your inbox? Check your junk or spam folder.
           </p>
+          <p className="mt-1 text-xs text-[#0d0d0d]/45 text-pretty">
+            Used an institutional email? Universities often block or delay
+            outside mail with their security filters, so the link may never
+            arrive. Try again with a personal email instead.
+          </p>
 
           <div className="mt-8 grid gap-4">
             <button
