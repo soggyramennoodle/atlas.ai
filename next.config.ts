@@ -63,7 +63,9 @@ const csp = [
   `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:${isDev ? " 'unsafe-eval'" : ""}`,
   `worker-src 'self' blob:`,
   `style-src 'self' 'unsafe-inline'`,
-  `img-src 'self' data: blob:`,
+  // api.producthunt.com serves the "Featured on Product Hunt" badge SVG
+  // embedded in the footer.
+  `img-src 'self' data: blob: https://api.producthunt.com`,
   `font-src 'self'`,
   `media-src 'self' blob:`,
   `connect-src ${connectSrc}`,

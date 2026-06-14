@@ -69,6 +69,21 @@ export function Footer() {
               A smart study assistant that turns lecture recordings into
               thorough, structured notes. Built for students, by a student.
             </p>
+            <a
+              href="https://www.producthunt.com/products/atlas-35?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-atlas-37"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-block rounded-md transition hover:opacity-90"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1171252&theme=dark"
+                alt="Atlas - Never take notes in lecture again. | Product Hunt"
+                width={250}
+                height={54}
+                className="h-[54px] w-[250px]"
+              />
+            </a>
           </div>
 
           <div className="grid grid-cols-2 gap-10 text-sm sm:grid-cols-4 sm:gap-12">
