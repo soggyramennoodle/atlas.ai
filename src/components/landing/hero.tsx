@@ -103,16 +103,16 @@ export function Hero({
           Loved by students at
         </p>
         <div className="overflow-hidden" style={{ width: "min(430px, 100%)" }}>
-          <div
-            className="flex w-max animate-marquee-hero will-change-transform"
-            style={{ gap: 54 }}
-          >
+          <div className="flex w-max animate-marquee-hero will-change-transform">
             {[0, 1].map((track) => (
               <div
                 key={track}
                 aria-hidden={track === 1}
                 className="flex shrink-0 items-center"
-                style={{ gap: 54 }}
+                // Each track carries its own trailing gap (paddingRight) so the
+                // duplicated track is exactly half the strip; the -50% loop then
+                // lands seamlessly instead of jumping by half a gap each cycle.
+                style={{ gap: 54, paddingRight: 54 }}
               >
                 {UNIVERSITIES.map((u) => (
                   // eslint-disable-next-line @next/next/no-img-element
